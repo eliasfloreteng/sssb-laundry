@@ -121,9 +121,21 @@ actor AptusService {
         return HTMLParser.parseFeedback(html: html)
     }
 
+    // MARK: - Re-authentication
+
+    private func reauthenticate() async throws {
+        guard let creds = KeychainService.load() else {
+            throw AptusError.sessionExpired
+        }
+        let success = try await login(username: creds.username, password: creds.password)
+        if !success {
+            throw AptusError.sessionExpired
+        }
+    }
+
     // MARK: - Helpers
 
-    private func fetchHTML(path: String) async throws -> String {
+    private func fetchHTML(path: String, isRetry: Bool = false) async throws -> String {
         let cleanPath = path.hasPrefix("/AptusPortal") ? path : "/AptusPortal\(path.hasPrefix("/") ? "" : "/")\(path)"
         let url = URL(string: "https://sssb.aptustotal.se\(cleanPath)")!
         let (data, response) = try await session.data(from: url)
@@ -132,13 +144,17 @@ actor AptusService {
         if let httpResponse = response as? HTTPURLResponse,
            let finalURL = httpResponse.url ?? response.url,
            finalURL.path.contains("Account/Login") {
+            if !isRetry {
+                try await reauthenticate()
+                return try await fetchHTML(path: path, isRetry: true)
+            }
             throw AptusError.sessionExpired
         }
 
         return String(data: data, encoding: .utf8) ?? ""
     }
 
-    private func fetchAJAX(path: String) async throws -> String {
+    private func fetchAJAX(path: String, isRetry: Bool = false) async throws -> String {
         let cleanPath = path.hasPrefix("/AptusPortal") ? path : "/AptusPortal\(path.hasPrefix("/") ? "" : "/")\(path)"
         let url = URL(string: "https://sssb.aptustotal.se\(cleanPath)")!
         var request = URLRequest(url: url)
@@ -148,6 +164,10 @@ actor AptusService {
         if let httpResponse = response as? HTTPURLResponse,
            let finalURL = httpResponse.url ?? response.url,
            finalURL.path.contains("Account/Login") {
+            if !isRetry {
+                try await reauthenticate()
+                return try await fetchAJAX(path: path, isRetry: true)
+            }
             throw AptusError.sessionExpired
         }
 
@@ -169,7 +189,7 @@ enum AptusError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .sessionExpired: return "Session expired. Please log in again."
+        case .sessionExpired: return "Session expired. Please log in again — saved credentials may be outdated."
         case .loginFailed: return "Login failed. Check your credentials."
         case .networkError(let msg): return msg
         }

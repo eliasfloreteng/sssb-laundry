@@ -44,3 +44,4 @@ Open `laundry/laundry.xcodeproj` in Xcode 16+, resolve packages, and run on a si
 - [ ] Notification on unclaimed bookings from others, they expire if not claimed after 15 minutes (only if at home)
 - [ ] Dates displayed in relative time when close
 - [ ] Splash screen with more info and not just white
+- [ ] Also display previous bookings (history)

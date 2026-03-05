@@ -54,7 +54,7 @@ struct WeekCalendarView: View {
                 }
 
                 // Calendar grid
-                if vm.isLoading && vm.weekCalendar == nil {
+                if (vm.isLoadingCalendar || vm.isLoadingGroups) && vm.weekCalendar == nil {
                     Spacer()
                     ProgressView("Loading calendar...")
                     Spacer()

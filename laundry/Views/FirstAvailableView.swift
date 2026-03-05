@@ -7,7 +7,7 @@ struct FirstAvailableView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if vm.isLoading && vm.firstAvailableSlots.isEmpty {
+                if vm.isLoadingFirstAvailable && vm.firstAvailableSlots.isEmpty {
                     ProgressView("Loading available slots...")
                 } else if vm.firstAvailableSlots.isEmpty {
                     ContentUnavailableView(

@@ -7,7 +7,9 @@ final class CalendarViewModel {
     var weekCalendar: WeekCalendar?
     var groups: [LaundryGroup] = []
     var selectedGroup: LaundryGroup?
-    var isLoading = false
+    var isLoadingFirstAvailable = false
+    var isLoadingCalendar = false
+    var isLoadingGroups = false
     var errorMessage: String?
     var feedbackMessage: String?
 
@@ -16,14 +18,14 @@ final class CalendarViewModel {
     // MARK: - First Available
 
     func fetchFirstAvailable() async {
-        isLoading = true
+        isLoadingFirstAvailable = true
         errorMessage = nil
         do {
             firstAvailableSlots = try await service.fetchFirstAvailable()
         } catch {
             errorMessage = error.localizedDescription
         }
-        isLoading = false
+        isLoadingFirstAvailable = false
     }
 
     func bookFirstAvailable(_ slot: TimeSlot) async {
@@ -42,29 +44,37 @@ final class CalendarViewModel {
 
     // MARK: - Groups
 
+    private static let defaultGroups = [
+        LaundryGroup(id: 185, name: "Grupp 1"),
+        LaundryGroup(id: 186, name: "Grupp 2"),
+    ]
+
     func fetchGroups() async {
+        isLoadingGroups = true
         do {
-            groups = try await service.fetchLocationGroups()
-            if selectedGroup == nil, let first = groups.first {
-                selectedGroup = first
-            }
+            let fetched = try await service.fetchLocationGroups()
+            groups = fetched.isEmpty ? Self.defaultGroups : fetched
         } catch {
-            errorMessage = error.localizedDescription
+            groups = Self.defaultGroups
         }
+        if selectedGroup == nil, let first = groups.first {
+            selectedGroup = first
+        }
+        isLoadingGroups = false
     }
 
     // MARK: - Week Calendar
 
     func fetchWeekCalendar(passDate: String? = nil) async {
         guard let group = selectedGroup else { return }
-        isLoading = true
+        isLoadingCalendar = true
         errorMessage = nil
         do {
             weekCalendar = try await service.fetchWeekCalendar(groupId: group.id, passDate: passDate)
         } catch {
             errorMessage = error.localizedDescription
         }
-        isLoading = false
+        isLoadingCalendar = false
     }
 
     func bookFromCalendar(_ slot: TimeSlot) async {

@@ -39,10 +39,11 @@ Open `laundry/laundry.xcodeproj` in Xcode 16+, resolve packages, and run on a si
 
 - [x] Automatically re-authenticate when session expires and the app is still open
 - [x] Loading indicators and error display
-- [ ] Notification before booking
-- [ ] Dates displayed in relative time when close
+- [ ] Notification before booking (with live updating time and time sensitive)
+- [ ] Dates displayed in relative time when close (parse dates)
 - [ ] Splash screen with more info and not just white
 - [ ] Also display previous bookings (history)
 - [ ] Allow pull to refresh when pages are empty
 - [ ] Wash timer for when to take out the clothes
 - [ ] Notification on unclaimed bookings from others, they expire if not claimed after 15 minutes (only if at home)
+- [ ] Replace br tags in responses with newlines

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		64F7B2C02F59A000008843A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 64F7B2BF2F59A000008843A1 /* SwiftSoup */; };
+		64F7B4AD2F59ADD9008843A1 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 64F7B4AC2F59ADD9008843A1 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +32,7 @@
 		64F7B2912F59888E008843A1 /* laundry.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = laundry.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F7B2A02F59888F008843A1 /* laundryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = laundryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F7B2AA2F59888F008843A1 /* laundryUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = laundryUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		64F7B4AC2F59ADD9008843A1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +82,7 @@
 		64F7B2882F59888E008843A1 = {
 			isa = PBXGroup;
 			children = (
+				64F7B4AC2F59ADD9008843A1 /* README.md */,
 				64F7B2932F59888E008843A1 /* laundry */,
 				64F7B2A32F59888F008843A1 /* laundryTests */,
 				64F7B2AD2F59888F008843A1 /* laundryUITests */,
@@ -201,11 +204,11 @@
 			);
 			mainGroup = 64F7B2882F59888E008843A1;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
-			productRefGroup = 64F7B2922F59888E008843A1 /* Products */;
 			packageReferences = (
 				64F7B2BE2F59A000008843A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 64F7B2922F59888E008843A1 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -221,6 +224,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64F7B4AD2F59ADD9008843A1 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

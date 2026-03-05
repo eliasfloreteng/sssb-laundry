@@ -34,3 +34,12 @@ Views/           LoginView, MainTabView, BookingsView, FirstAvailableView, WeekC
 ## Building
 
 Open `laundry/laundry.xcodeproj` in Xcode 16+, resolve packages, and run on a simulator or device.
+
+## New features
+
+- [ ] Automatically re-authenticate when session expires and the app is still open
+- [ ] Loading indicators and error display
+- [ ] Notification before booking
+- [ ] Wash timer for when to take out the clothes
+- [ ] Notification on unclaimed bookings from others, they expire if not claimed after 15 minutes (only if at home)
+- [ ] Dates displayed in relative time when close

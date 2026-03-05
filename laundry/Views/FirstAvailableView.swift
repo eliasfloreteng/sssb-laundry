@@ -70,6 +70,22 @@ struct FirstAvailableView: View {
                     Text("Book \(slot.time) on \(slot.date) (\(slot.groupName ?? ""))?")
                 }
             }
+            .overlay {
+                if vm.isLoadingFirstAvailable && !vm.firstAvailableSlots.isEmpty {
+                    ProgressView()
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.ultraThinMaterial)
+                }
+            }
+            .alert("Error", isPresented: .init(
+                get: { vm.errorMessage != nil },
+                set: { if !$0 { vm.errorMessage = nil } }
+            )) {
+                Button("OK") { vm.errorMessage = nil }
+            } message: {
+                Text(vm.errorMessage ?? "")
+            }
             .alert("Booked!", isPresented: .init(
                 get: { vm.feedbackMessage != nil },
                 set: { if !$0 { vm.feedbackMessage = nil } }

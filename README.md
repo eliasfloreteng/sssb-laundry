@@ -38,7 +38,7 @@ Open `laundry/laundry.xcodeproj` in Xcode 16+, resolve packages, and run on a si
 ## New features
 
 - [x] Automatically re-authenticate when session expires and the app is still open
-- [ ] Loading indicators and error display
+- [x] Loading indicators and error display
 - [ ] Notification before booking
 - [ ] Dates displayed in relative time when close
 - [ ] Splash screen with more info and not just white

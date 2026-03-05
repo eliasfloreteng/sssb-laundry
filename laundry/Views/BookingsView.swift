@@ -27,6 +27,22 @@ struct BookingsView: View {
             .task {
                 await vm.fetchBookings()
             }
+            .overlay {
+                if vm.isLoading && !vm.bookings.isEmpty {
+                    ProgressView()
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.ultraThinMaterial)
+                }
+            }
+            .alert("Error", isPresented: .init(
+                get: { vm.errorMessage != nil },
+                set: { if !$0 { vm.errorMessage = nil } }
+            )) {
+                Button("OK") { vm.errorMessage = nil }
+            } message: {
+                Text(vm.errorMessage ?? "")
+            }
             .alert("Booking Cancelled", isPresented: .init(
                 get: { vm.feedbackMessage != nil },
                 set: { if !$0 { vm.feedbackMessage = nil } }

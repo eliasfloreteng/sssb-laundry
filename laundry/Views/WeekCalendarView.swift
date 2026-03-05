@@ -110,6 +110,22 @@ struct WeekCalendarView: View {
                     }
                 }
             }
+            .overlay {
+                if (vm.isLoadingCalendar || vm.isLoadingGroups) && vm.weekCalendar != nil {
+                    ProgressView()
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.ultraThinMaterial)
+                }
+            }
+            .alert("Error", isPresented: .init(
+                get: { vm.errorMessage != nil },
+                set: { if !$0 { vm.errorMessage = nil } }
+            )) {
+                Button("OK") { vm.errorMessage = nil }
+            } message: {
+                Text(vm.errorMessage ?? "")
+            }
             .alert("Done", isPresented: .init(
                 get: { vm.feedbackMessage != nil },
                 set: { if !$0 { vm.feedbackMessage = nil } }

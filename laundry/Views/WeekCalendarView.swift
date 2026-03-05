@@ -61,16 +61,21 @@ struct WeekCalendarView: View {
                 } else if let calendar = vm.weekCalendar {
                     calendarGrid(calendar)
                 } else {
-                    Spacer()
-                    ContentUnavailableView(
-                        "No Calendar Data",
-                        systemImage: "calendar",
-                        description: Text("Select a group to view the calendar.")
-                    )
-                    Spacer()
+                    ScrollView {
+                        ContentUnavailableView(
+                            "No Calendar Data",
+                            systemImage: "calendar",
+                            description: Text("Select a group to view the calendar.")
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 300)
+                    }
                 }
             }
             .navigationTitle("Calendar")
+            .refreshable {
+                await vm.fetchGroups()
+                await vm.fetchWeekCalendar()
+            }
             .task {
                 await vm.fetchGroups()
                 await vm.fetchWeekCalendar()

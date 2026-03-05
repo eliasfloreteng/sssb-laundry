@@ -9,11 +9,14 @@ struct BookingsView: View {
                 if vm.isLoading && vm.bookings.isEmpty {
                     ProgressView("Loading bookings...")
                 } else if vm.bookings.isEmpty {
-                    ContentUnavailableView(
-                        "No Bookings",
-                        systemImage: "calendar.badge.exclamationmark",
-                        description: Text("You don't have any active bookings.")
-                    )
+                    ScrollView {
+                        ContentUnavailableView(
+                            "No Bookings",
+                            systemImage: "calendar.badge.exclamationmark",
+                            description: Text("You don't have any active bookings.")
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 300)
+                    }
                 } else {
                     List(vm.bookings) { booking in
                         BookingCardView(booking: booking)

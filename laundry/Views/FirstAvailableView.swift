@@ -10,11 +10,14 @@ struct FirstAvailableView: View {
                 if vm.isLoadingFirstAvailable && vm.firstAvailableSlots.isEmpty {
                     ProgressView("Loading available slots...")
                 } else if vm.firstAvailableSlots.isEmpty {
-                    ContentUnavailableView(
-                        "No Available Slots",
-                        systemImage: "calendar.badge.exclamationmark",
-                        description: Text("No slots available right now.")
-                    )
+                    ScrollView {
+                        ContentUnavailableView(
+                            "No Available Slots",
+                            systemImage: "calendar.badge.exclamationmark",
+                            description: Text("No slots available right now.")
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 300)
+                    }
                 } else {
                     List(vm.firstAvailableSlots) { slot in
                         HStack {

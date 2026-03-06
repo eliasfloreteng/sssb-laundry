@@ -276,6 +276,9 @@ enum HTMLParser {
         message = message.replacingOccurrences(of: "<b>", with: "")
         message = message.replacingOccurrences(of: "</b>", with: "")
         message = message.replacingOccurrences(of: "&nbsp;", with: " ")
+        message = message.replacingOccurrences(of: "<br>", with: "\n")
+        message = message.replacingOccurrences(of: "<br/>", with: "\n")
+        message = message.replacingOccurrences(of: "<br />", with: "\n")
         return message.isEmpty ? nil : message
     }
 

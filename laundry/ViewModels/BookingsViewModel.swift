@@ -5,6 +5,7 @@ import Observation
 final class BookingsViewModel {
     var bookings: [Booking] = []
     var isLoading = false
+    var isBooking = false
     var errorMessage: String?
     var feedbackMessage: String?
 
@@ -24,6 +25,7 @@ final class BookingsViewModel {
     }
 
     func unbook(_ booking: Booking) async {
+        isBooking = true
         do {
             let feedback = try await service.unbook(path: booking.unbookPath)
             feedbackMessage = feedback
@@ -31,5 +33,6 @@ final class BookingsViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+        isBooking = false
     }
 }

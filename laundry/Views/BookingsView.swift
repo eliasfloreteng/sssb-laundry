@@ -31,7 +31,7 @@ struct BookingsView: View {
                 await vm.fetchBookings()
             }
             .overlay {
-                if vm.isLoading && !vm.bookings.isEmpty {
+                if (vm.isLoading && !vm.bookings.isEmpty) || vm.isBooking {
                     ProgressView()
                         .controlSize(.large)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

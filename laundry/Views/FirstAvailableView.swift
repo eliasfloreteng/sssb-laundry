@@ -74,7 +74,7 @@ struct FirstAvailableView: View {
                 }
             }
             .overlay {
-                if vm.isLoadingFirstAvailable && !vm.firstAvailableSlots.isEmpty {
+                if (vm.isLoadingFirstAvailable && !vm.firstAvailableSlots.isEmpty) || vm.isBooking {
                     ProgressView()
                         .controlSize(.large)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

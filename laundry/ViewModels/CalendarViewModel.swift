@@ -10,6 +10,7 @@ final class CalendarViewModel {
     var isLoadingFirstAvailable = false
     var isLoadingCalendar = false
     var isLoadingGroups = false
+    var isBooking = false
     var errorMessage: String?
     var feedbackMessage: String?
 
@@ -29,6 +30,7 @@ final class CalendarViewModel {
     }
 
     func bookFirstAvailable(_ slot: TimeSlot) async {
+        isBooking = true
         do {
             let feedback = try await service.bookFirstAvailable(
                 passNo: slot.passNo,
@@ -40,6 +42,7 @@ final class CalendarViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+        isBooking = false
     }
 
     // MARK: - Groups
@@ -78,6 +81,7 @@ final class CalendarViewModel {
     }
 
     func bookFromCalendar(_ slot: TimeSlot) async {
+        isBooking = true
         do {
             let feedback = try await service.bookFromCalendar(
                 passNo: slot.passNo,
@@ -90,10 +94,12 @@ final class CalendarViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+        isBooking = false
     }
 
     func unbookFromCalendar(_ slot: TimeSlot) async {
         guard let path = slot.unbookPath else { return }
+        isBooking = true
         do {
             let feedback = try await service.unbookFromCalendar(path: path)
             feedbackMessage = feedback
@@ -101,6 +107,7 @@ final class CalendarViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+        isBooking = false
     }
 
     func navigatePreviousWeek() async {

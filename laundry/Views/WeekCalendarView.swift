@@ -116,7 +116,7 @@ struct WeekCalendarView: View {
                 }
             }
             .overlay {
-                if (vm.isLoadingCalendar || vm.isLoadingGroups) && vm.weekCalendar != nil {
+                if ((vm.isLoadingCalendar || vm.isLoadingGroups) && vm.weekCalendar != nil) || vm.isBooking {
                     ProgressView()
                         .controlSize(.large)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

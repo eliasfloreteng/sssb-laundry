@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UserNotifications
 
 @Observable
 final class AuthViewModel {
@@ -46,6 +47,7 @@ final class AuthViewModel {
     func logout() async {
         await service.logout()
         KeychainService.delete()
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         isAuthenticated = false
         password = ""
     }

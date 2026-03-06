@@ -16,6 +16,7 @@ final class BookingsViewModel {
         errorMessage = nil
         do {
             bookings = try await service.fetchBookings()
+            await NotificationService.syncReminders(with: bookings)
         } catch let aptusError as AptusError {
             errorMessage = aptusError.errorDescription
         } catch {
@@ -29,6 +30,7 @@ final class BookingsViewModel {
         do {
             let feedback = try await service.unbook(path: booking.unbookPath)
             feedbackMessage = feedback
+            NotificationService.removeReminder(date: booking.date, time: booking.time)
             await fetchBookings()
         } catch {
             errorMessage = error.localizedDescription

@@ -20,6 +20,7 @@ struct MainTabView: View {
                     .environment(calendarVM)
             }
         }
+        .task { await NotificationService.requestPermission() }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Log Out") {

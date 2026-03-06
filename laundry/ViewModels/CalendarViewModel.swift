@@ -38,6 +38,7 @@ final class CalendarViewModel {
                 bookingGroupId: slot.groupId
             )
             feedbackMessage = feedback
+            await NotificationService.scheduleReminder(date: slot.date, time: slot.time, groupName: slot.groupName)
             await fetchFirstAvailable()
         } catch {
             errorMessage = error.localizedDescription
@@ -89,6 +90,7 @@ final class CalendarViewModel {
                 bookingGroupId: slot.groupId
             )
             feedbackMessage = feedback
+            await NotificationService.scheduleReminder(date: slot.date, time: slot.time, groupName: slot.groupName)
             // Refresh same week
             await fetchWeekCalendar(passDate: slot.passDate)
         } catch {
@@ -103,6 +105,7 @@ final class CalendarViewModel {
         do {
             let feedback = try await service.unbookFromCalendar(path: path)
             feedbackMessage = feedback
+            NotificationService.removeReminder(date: slot.date, time: slot.time)
             await fetchWeekCalendar(passDate: slot.passDate)
         } catch {
             errorMessage = error.localizedDescription

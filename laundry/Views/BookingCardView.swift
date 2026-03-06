@@ -11,7 +11,7 @@ struct BookingCardView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(booking.time)
                         .font(.headline)
-                    Text(booking.date)
+                    Text(booking.formattedDate)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -40,7 +40,7 @@ struct BookingCardView: View {
                 Task { await vm.unbook(booking) }
             }
         } message: {
-            Text("Do you want to cancel \(booking.time) on \(booking.date)?")
+            Text("Do you want to cancel \(booking.time) on \(booking.formattedDate)?")
         }
     }
 }

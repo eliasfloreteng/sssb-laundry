@@ -67,10 +67,12 @@ enum HTMLParser {
                 }
             }
 
+            let parsedDate = DateFormatting.parseSwedishBookingDate(date)
+
             bookings.append(Booking(
                 id: bookingId,
                 time: time,
-                date: date,
+                date: parsedDate,
                 group: group,
                 unbookPath: unbookPath
             ))
@@ -110,9 +112,12 @@ enum HTMLParser {
                 }
             }
 
+            let parsedDate = DateFormatting.parseISO(passDate)
+
             slots.append(TimeSlot(
                 passNo: passNo,
-                date: passDate,
+                passDate: passDate,
+                date: parsedDate,
                 groupId: groupId,
                 time: time,
                 status: .available,
@@ -175,9 +180,12 @@ enum HTMLParser {
                     status = .unavailable
                 }
 
+                let parsedDate = DateFormatting.parseISO(passDate)
+
                 columnSlots.append(TimeSlot(
                     passNo: passNo,
-                    date: passDate,
+                    passDate: passDate,
+                    date: parsedDate,
                     groupId: groupId,
                     time: timeText,
                     status: status,

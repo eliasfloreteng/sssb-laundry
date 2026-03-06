@@ -32,7 +32,7 @@ final class CalendarViewModel {
         do {
             let feedback = try await service.bookFirstAvailable(
                 passNo: slot.passNo,
-                passDate: slot.date,
+                passDate: slot.passDate,
                 bookingGroupId: slot.groupId
             )
             feedbackMessage = feedback
@@ -81,12 +81,12 @@ final class CalendarViewModel {
         do {
             let feedback = try await service.bookFromCalendar(
                 passNo: slot.passNo,
-                passDate: slot.date,
+                passDate: slot.passDate,
                 bookingGroupId: slot.groupId
             )
             feedbackMessage = feedback
             // Refresh same week
-            await fetchWeekCalendar(passDate: slot.date)
+            await fetchWeekCalendar(passDate: slot.passDate)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -97,7 +97,7 @@ final class CalendarViewModel {
         do {
             let feedback = try await service.unbookFromCalendar(path: path)
             feedbackMessage = feedback
-            await fetchWeekCalendar(passDate: slot.date)
+            await fetchWeekCalendar(passDate: slot.passDate)
         } catch {
             errorMessage = error.localizedDescription
         }

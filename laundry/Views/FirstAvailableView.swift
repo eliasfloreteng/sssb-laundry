@@ -24,7 +24,7 @@ struct FirstAvailableView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(slot.time)
                                     .font(.headline)
-                                Text(slot.date)
+                                Text(slot.formattedDate)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
@@ -59,7 +59,7 @@ struct FirstAvailableView: View {
                 titleVisibility: .visible
             ) {
                 if let slot = bookingSlot {
-                    Button("Book \(slot.time) on \(slot.date)") {
+                    Button("Book \(slot.time) on \(slot.formattedDate)") {
                         let s = slot
                         bookingSlot = nil
                         Task { await vm.bookFirstAvailable(s) }
@@ -70,7 +70,7 @@ struct FirstAvailableView: View {
                 }
             } message: {
                 if let slot = bookingSlot {
-                    Text("Book \(slot.time) on \(slot.date) (\(slot.groupName ?? ""))?")
+                    Text("Book \(slot.time) on \(slot.formattedDate) (\(slot.groupName ?? ""))?")
                 }
             }
             .overlay {

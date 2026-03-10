@@ -4,6 +4,7 @@ struct MainTabView: View {
     @Environment(AuthViewModel.self) private var authVM
     @State private var bookingsVM = BookingsViewModel()
     @State private var calendarVM = CalendarViewModel()
+    @State private var settingsVM = SettingsViewModel()
 
     var body: some View {
         TabView {
@@ -18,6 +19,10 @@ struct MainTabView: View {
             Tab("Calendar", systemImage: "calendar") {
                 WeekCalendarView()
                     .environment(calendarVM)
+            }
+            Tab("Settings", systemImage: "gearshape") {
+                SettingsView()
+                    .environment(settingsVM)
             }
         }
         .task { await NotificationService.requestPermission() }

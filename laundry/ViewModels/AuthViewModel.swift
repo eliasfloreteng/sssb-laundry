@@ -48,6 +48,7 @@ final class AuthViewModel {
         await service.logout()
         KeychainService.delete()
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        NotificationService.removeAllFreedSlotNotifications()
         isAuthenticated = false
         password = ""
     }

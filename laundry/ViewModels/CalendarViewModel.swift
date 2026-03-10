@@ -75,6 +75,9 @@ final class CalendarViewModel {
         errorMessage = nil
         do {
             weekCalendar = try await service.fetchWeekCalendar(groupId: group.id, passDate: passDate)
+            if let calendar = weekCalendar {
+                SlotMonitorService.scheduleNextCheck(for: calendar, groupName: selectedGroup?.name)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -35,9 +35,22 @@
 		64F7B4AC2F59ADD9008843A1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		64F7B5002F5AB000008843A1 /* Exceptions for "laundry" folder in "laundry" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 64F7B2902F59888E008843A1 /* laundry */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		64F7B2932F59888E008843A1 /* laundry */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				64F7B5002F5AB000008843A1 /* Exceptions for "laundry" folder in "laundry" target */,
+			);
 			path = laundry;
 			sourceTree = "<group>";
 		};
@@ -408,12 +421,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = laundry/laundry.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XQ9HKBVB36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = laundry/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to check if you're at home before sending freed laundry slot notifications.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -441,12 +457,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = laundry/laundry.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XQ9HKBVB36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = laundry/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location is used to check if you're at home before sending freed laundry slot notifications.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -140,7 +140,7 @@ enum HTMLParser {
             let dayName = try column.select(".weekDay").text()
             let dayOfMonth = try column.select(".dayOfMonth").text()
 
-            var columnSlots: [TimeSlot] = []
+            var columnSlots: [TimeSlot] = []  // mutated later for date reconstruction
             let intervals = try column.select(".interval")
 
             for interval in intervals {
@@ -195,12 +195,37 @@ enum HTMLParser {
                 ))
             }
 
+            // Reconstruct dates for unavailable slots: use passDate from a sibling slot
+            let siblingPassDate = columnSlots.first(where: { !$0.passDate.isEmpty })?.passDate ?? ""
+            if !siblingPassDate.isEmpty {
+                columnSlots = columnSlots.map { slot in
+                    if slot.passDate.isEmpty {
+                        let parsedDate = DateFormatting.parseISO(siblingPassDate)
+                        return TimeSlot(
+                            passNo: slot.passNo,
+                            passDate: siblingPassDate,
+                            date: parsedDate,
+                            groupId: slot.groupId,
+                            time: slot.time,
+                            status: slot.status,
+                            bookPath: slot.bookPath,
+                            unbookPath: slot.unbookPath,
+                            groupName: slot.groupName
+                        )
+                    }
+                    return slot
+                }
+            }
+
             days.append(DayColumn(
                 dayName: dayName,
                 dayOfMonth: dayOfMonth,
                 slots: columnSlots
             ))
         }
+
+        // If any day still has no dates, try to reconstruct from navigation links
+        // The prev/next week links contain passDate params defining the week range
 
         // Parse week navigation
         var prevPath: String?

@@ -51,6 +51,44 @@ enum NotificationService {
         }
     }
 
+    // MARK: - Freed Slot Notifications
+
+    static func sendFreedSlotNotification(time: String, groupName: String?) async {
+        let content = UNMutableNotificationContent()
+        content.title = "Laundry Slot Available"
+        if let group = groupName {
+            content.body = "A \(time) slot (\(group)) just became available!"
+        } else {
+            content.body = "A \(time) slot just became available!"
+        }
+
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour >= 22 || hour < 7 {
+            content.interruptionLevel = .passive
+        } else {
+            content.interruptionLevel = .timeSensitive
+            content.sound = .default
+        }
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let identifier = "freed-\(time)-\(UUID().uuidString.prefix(8))"
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+        try? await UNUserNotificationCenter.current().add(request)
+    }
+
+    static func removeAllFreedSlotNotifications() {
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { requests in
+            let ids = requests.filter { $0.identifier.hasPrefix("freed-") }.map(\.identifier)
+            center.removePendingNotificationRequests(withIdentifiers: ids)
+        }
+        center.getDeliveredNotifications { notifications in
+            let ids = notifications.filter { $0.request.identifier.hasPrefix("freed-") }.map(\.request.identifier)
+            center.removeDeliveredNotifications(withIdentifiers: ids)
+        }
+    }
+
     // MARK: - Private
 
     private static func notificationIdentifier(date: Date?, time: String) -> String {

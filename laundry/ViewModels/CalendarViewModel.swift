@@ -13,6 +13,7 @@ final class CalendarViewModel {
     var isBooking = false
     var errorMessage: String?
     var feedbackMessage: String?
+    var lastBookedSlot: TimeSlot?
 
     private let service = AptusService.shared
 
@@ -38,6 +39,7 @@ final class CalendarViewModel {
                 bookingGroupId: slot.groupId
             )
             feedbackMessage = feedback
+            lastBookedSlot = slot
             await NotificationService.scheduleReminder(date: slot.date, time: slot.time, groupName: slot.groupName)
             await fetchFirstAvailable()
         } catch {
@@ -90,6 +92,7 @@ final class CalendarViewModel {
                 bookingGroupId: slot.groupId
             )
             feedbackMessage = feedback
+            lastBookedSlot = slot
             await NotificationService.scheduleReminder(date: slot.date, time: slot.time, groupName: slot.groupName)
             // Refresh same week
             await fetchWeekCalendar(passDate: slot.passDate)

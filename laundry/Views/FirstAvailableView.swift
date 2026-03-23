@@ -3,6 +3,7 @@ import SwiftUI
 struct FirstAvailableView: View {
     @Environment(CalendarViewModel.self) private var vm
     @State private var bookingSlot: TimeSlot?
+    @State private var calendarMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -93,9 +94,33 @@ struct FirstAvailableView: View {
                 get: { vm.feedbackMessage != nil },
                 set: { if !$0 { vm.feedbackMessage = nil } }
             )) {
-                Button("OK") { vm.feedbackMessage = nil }
+                if let slot = vm.lastBookedSlot {
+                    Button("Add to Calendar") {
+                        let s = slot
+                        vm.feedbackMessage = nil
+                        vm.lastBookedSlot = nil
+                        Task {
+                            let result = await CalendarExportService.addToCalendar(
+                                date: s.date, time: s.time, groupName: s.groupName
+                            )
+                            calendarMessage = result
+                        }
+                    }
+                }
+                Button("OK") {
+                    vm.feedbackMessage = nil
+                    vm.lastBookedSlot = nil
+                }
             } message: {
                 Text(vm.feedbackMessage ?? "")
+            }
+            .alert("Calendar", isPresented: .init(
+                get: { calendarMessage != nil },
+                set: { if !$0 { calendarMessage = nil } }
+            )) {
+                Button("OK") { calendarMessage = nil }
+            } message: {
+                Text(calendarMessage ?? "")
             }
         }
     }

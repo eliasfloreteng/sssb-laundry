@@ -2,17 +2,7 @@
 //  Item.swift
 //  sssb-laundry
 //
-//  Created by Elias Floreteng on 2026-04-18.
+//  Placeholder retained to avoid Xcode project sync churn. Intentionally empty.
 //
 
 import Foundation
-import SwiftData
-
-@Model
-final class Item {
-    var timestamp: Date
-    
-    init(timestamp: Date) {
-        self.timestamp = timestamp
-    }
-}

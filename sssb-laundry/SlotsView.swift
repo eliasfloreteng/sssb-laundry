@@ -81,6 +81,8 @@ final class SlotsViewModel: ObservableObject {
 struct SlotsView: View {
     @EnvironmentObject private var session: Session
     @StateObject private var vm = SlotsViewModel()
+    @AppStorage("activeHoursStart") private var activeHoursStart: Int = 0
+    @AppStorage("activeHoursEnd") private var activeHoursEnd: Int = 24
 
     var body: some View {
         NavigationStack {
@@ -92,11 +94,11 @@ struct SlotsView: View {
                     ErrorState(message: message) {
                         Task { await vm.load() }
                     }
-                } else if vm.slots.isEmpty {
+                } else if visibleSlots.isEmpty {
                     EmptyState(
                         icon: "calendar.badge.exclamationmark",
                         title: "No slots available",
-                        subtitle: vm.includeAll ? "Nothing to show right now." : "Turn on \"Show all\" to see taken and past slots."
+                        subtitle: emptySubtitle
                     )
                 } else {
                     slotList
@@ -151,8 +153,33 @@ struct SlotsView: View {
         }
     }
 
+    private var activeHoursEnabled: Bool {
+        activeHoursStart != 0 || activeHoursEnd != 24
+    }
+
+    private var visibleSlots: [Slot] {
+        guard activeHoursEnabled else { return vm.slots }
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Stockholm") ?? .current
+        return vm.slots.filter { slot in
+            let startHour = cal.component(.hour, from: slot.startsAt)
+            let endComponents = cal.dateComponents([.hour, .minute], from: slot.endsAt)
+            let endHour = endComponents.hour ?? 0
+            let endMinute = endComponents.minute ?? 0
+            let endEffective = (endHour == 0 && endMinute == 0) ? 24 : endHour + (endMinute > 0 ? 1 : 0)
+            return startHour >= activeHoursStart && endEffective <= activeHoursEnd
+        }
+    }
+
+    private var emptySubtitle: String {
+        if activeHoursEnabled && !vm.slots.isEmpty {
+            return "All slots are outside your active hours. Adjust them in Profile."
+        }
+        return vm.includeAll ? "Nothing to show right now." : "Turn on \"Show all\" to see taken and past slots."
+    }
+
     private var groupedByDay: [(String, [Slot])] {
-        let groups = Dictionary(grouping: vm.slots, by: { $0.date })
+        let groups = Dictionary(grouping: visibleSlots, by: { $0.date })
         return groups.keys.sorted().map { ($0, groups[$0]!.sorted { $0.startsAt < $1.startsAt }) }
     }
 

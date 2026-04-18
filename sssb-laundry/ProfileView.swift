@@ -8,6 +8,8 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject private var session: Session
     @State private var showSignOutConfirm = false
+    @AppStorage("activeHoursStart") private var activeHoursStart: Int = 0
+    @AppStorage("activeHoursEnd") private var activeHoursEnd: Int = 24
 
     var body: some View {
         NavigationStack {
@@ -23,6 +25,28 @@ struct ProfileView: View {
                         if let category = me.categoryName {
                             labeledRow(title: "Category", value: category, icon: "tag.fill")
                         }
+                    }
+
+                    Section {
+                        Picker("From", selection: $activeHoursStart) {
+                            ForEach(0..<24) { h in
+                                Text(hourLabel(h)).tag(h)
+                            }
+                        }
+                        Picker("To", selection: $activeHoursEnd) {
+                            ForEach(1...24, id: \.self) { h in
+                                Text(hourLabel(h)).tag(h)
+                            }
+                        }
+                        if activeHoursStart >= activeHoursEnd {
+                            Label("End must be after start.", systemImage: "exclamationmark.triangle.fill")
+                                .font(.footnote)
+                                .foregroundStyle(.orange)
+                        }
+                    } header: {
+                        Text("Active hours")
+                    } footer: {
+                        Text("Slots outside these hours are hidden. Set 00:00–24:00 to show all.")
                     }
 
                     Section("Booking groups") {
@@ -89,6 +113,10 @@ struct ProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
+    }
+
+    private func hourLabel(_ hour: Int) -> String {
+        String(format: "%02d:00", hour == 24 ? 24 : hour)
     }
 
     private func labeledRow(title: String, value: String, icon: String) -> some View {

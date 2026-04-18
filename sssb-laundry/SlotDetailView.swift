@@ -14,6 +14,7 @@ struct SlotDetailView: View {
     @State private var errorMessage: String?
     @State private var successMessage: String?
     @State private var showCancelConfirm = false
+    @State private var showAddToCalendar = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -102,6 +103,24 @@ struct SlotDetailView: View {
             }
             Button("Keep it", role: .cancel) { }
         }
+        .sheet(isPresented: $showAddToCalendar) {
+            AddToCalendarSheet(
+                title: calendarEventTitle,
+                startsAt: slot.startsAt,
+                endsAt: slot.endsAt
+            ) {
+                showAddToCalendar = false
+            }
+            .ignoresSafeArea()
+        }
+    }
+
+    private var calendarEventTitle: String {
+        let names = slot.groups
+            .filter { $0.status == "booked-by-me" }
+            .map(\.name)
+            .joined(separator: ", ")
+        return names.isEmpty ? "Laundry booking" : "Laundry – \(names)"
     }
 
     private var hero: some View {
@@ -138,21 +157,35 @@ struct SlotDetailView: View {
     @ViewBuilder
     private var actionButton: some View {
         if slot.bookedByMe {
-            Button(role: .destructive) {
-                showCancelConfirm = true
-            } label: {
-                HStack {
-                    if isWorking { ProgressView().tint(.white) } else {
-                        Label("Cancel booking", systemImage: "xmark.circle.fill")
-                            .font(.headline)
-                    }
+            VStack(spacing: 10) {
+                Button {
+                    showAddToCalendar = true
+                } label: {
+                    Label("Add to Calendar", systemImage: "calendar.badge.plus")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.white)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(.red, in: RoundedRectangle(cornerRadius: 14))
-                .foregroundStyle(.white)
+                .disabled(isWorking)
+
+                Button(role: .destructive) {
+                    showCancelConfirm = true
+                } label: {
+                    HStack {
+                        if isWorking { ProgressView().tint(.white) } else {
+                            Label("Cancel booking", systemImage: "xmark.circle.fill")
+                                .font(.headline)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(.red, in: RoundedRectangle(cornerRadius: 14))
+                    .foregroundStyle(.white)
+                }
+                .disabled(isWorking)
             }
-            .disabled(isWorking)
         } else if slot.bookable {
             Button {
                 Task { await performBook() }

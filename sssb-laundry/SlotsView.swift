@@ -13,7 +13,6 @@ final class SlotsViewModel: ObservableObject {
     @Published var isLoadingMore = false
     @Published var errorMessage: String?
     @Published var nextCursor: String?
-    @Published var includeAll = false
 
     private var objectId: String?
 
@@ -26,7 +25,7 @@ final class SlotsViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         do {
-            let page = try await APIClient.shared.slots(objectId: objectId, includeAll: includeAll)
+            let page = try await APIClient.shared.slots(objectId: objectId)
             slots = page.items
             nextCursor = page.nextCursor
         } catch let api as APIError {
@@ -42,7 +41,7 @@ final class SlotsViewModel: ObservableObject {
         guard let idx = slots.firstIndex(of: current), idx >= slots.count - 6 else { return }
         isLoadingMore = true
         do {
-            let page = try await APIClient.shared.slots(objectId: objectId, includeAll: includeAll, cursor: cursor)
+            let page = try await APIClient.shared.slots(objectId: objectId, cursor: cursor)
             slots.append(contentsOf: page.items)
             nextCursor = page.nextCursor
         } catch {
@@ -105,22 +104,10 @@ struct SlotsView: View {
                 }
             }
             .navigationTitle("Slots")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Toggle(isOn: $vm.includeAll) {
-                        Text("All")
-                    }
-                    .toggleStyle(.button)
-                    .controlSize(.small)
-                }
-            }
             .refreshable { await vm.load() }
             .task(id: session.objectId) {
                 vm.configure(objectId: session.objectId)
                 await vm.load()
-            }
-            .onChange(of: vm.includeAll) { _, _ in
-                Task { await vm.load() }
             }
         }
     }
@@ -183,7 +170,7 @@ struct SlotsView: View {
         if activeHoursEnabled && !vm.slots.isEmpty {
             return "All slots are outside your active hours. Adjust them in Profile."
         }
-        return vm.includeAll ? "Nothing to show right now." : "Turn on \"Show all\" to see taken and past slots."
+        return "Nothing to show right now."
     }
 
     private var groupedByDay: [(String, [Slot])] {

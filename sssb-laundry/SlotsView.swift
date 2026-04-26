@@ -167,7 +167,15 @@ struct SlotsView: View {
             let endHour = endComponents.hour ?? 0
             let endMinute = endComponents.minute ?? 0
             let endEffective = (endHour == 0 && endMinute == 0) ? 24 : endHour + (endMinute > 0 ? 1 : 0)
-            return startHour >= activeHoursStart && endEffective <= activeHoursEnd
+
+            if activeHoursStart < activeHoursEnd {
+                return startHour >= activeHoursStart && endEffective <= activeHoursEnd
+            } else {
+                // Wrap-around: slot must fit entirely in [start, 24] OR [0, end]
+                let fitsLate = startHour >= activeHoursStart && endEffective <= 24
+                let fitsEarly = startHour >= 0 && endEffective <= activeHoursEnd
+                return fitsLate || fitsEarly
+            }
         }
     }
 

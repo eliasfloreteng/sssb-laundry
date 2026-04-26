@@ -39,15 +39,10 @@ struct ProfileView: View {
                                 Text(hourLabel(h)).tag(h)
                             }
                         }
-                        if activeHoursStart >= activeHoursEnd {
-                            Label("End must be after start.", systemImage: "exclamationmark.triangle.fill")
-                                .font(.footnote)
-                                .foregroundStyle(.orange)
-                        }
                     } header: {
                         Text("Active hours")
                     } footer: {
-                        Text("Slots outside these hours are hidden. Set 00:00–24:00 to show all.")
+                        Text("Slots outside these hours are hidden. If the end time is before the start, the range wraps past midnight (e.g. 08:00–01:00).")
                     }
 
                     Section("Booking groups") {

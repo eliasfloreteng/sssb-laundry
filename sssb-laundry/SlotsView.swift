@@ -214,10 +214,12 @@ struct SlotRow: View {
                 Text(statusLabel)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(slotTint)
-                Text(groupsSummary)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if !groupsSummary.isEmpty {
+                    Text(groupsSummary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer()
@@ -246,17 +248,10 @@ struct SlotRow: View {
     }
 
     private var groupsSummary: String {
-        slot.groups.map { "\($0.name) · \(humanStatus($0.status))" }.joined(separator: " • ")
-    }
-
-    private func humanStatus(_ raw: String) -> String {
-        switch raw {
-        case "bookable": return "free"
-        case "booked-by-me": return "yours"
-        case "taken": return "taken"
-        case "past": return "past"
-        default: return raw
-        }
+        slot.groups
+            .filter { $0.status == "bookable" }
+            .map(\.name)
+            .joined(separator: ", ")
     }
 
     private func timeOnly(_ date: Date) -> String {

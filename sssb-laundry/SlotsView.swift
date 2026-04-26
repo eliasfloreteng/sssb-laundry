@@ -225,10 +225,7 @@ struct SlotRow: View {
             if slot.bookedByMe {
                 Image(systemName: "checkmark.seal.fill")
                     .foregroundStyle(.green)
-            } else if slot.bookable {
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.tertiary)
-            } else {
+            } else if !slot.bookable {
                 Image(systemName: "lock.fill")
                     .foregroundStyle(.tertiary)
             }

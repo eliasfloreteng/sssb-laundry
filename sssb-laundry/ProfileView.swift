@@ -10,6 +10,7 @@ struct ProfileView: View {
     @State private var showSignOutConfirm = false
     @AppStorage("activeHoursStart") private var activeHoursStart: Int = 0
     @AppStorage("activeHoursEnd") private var activeHoursEnd: Int = 24
+    @AppStorage("apiBaseURL") private var apiBaseURL: String = ""
 
     var body: some View {
         NavigationStack {
@@ -68,6 +69,29 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                    }
+
+                    Section {
+                        HStack {
+                            TextField(
+                                "API URL",
+                                text: $apiBaseURL,
+                                prompt: Text(APIClient.defaultBaseURL)
+                            )
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                            .textContentType(.URL)
+                            if !apiBaseURL.isEmpty {
+                                Button("Reset") { apiBaseURL = "" }
+                                    .buttonStyle(.borderless)
+                                    .font(.footnote)
+                            }
+                        }
+                    } header: {
+                        Text("Advanced")
+                    } footer: {
+                        Text("Leave blank to use the default. Changes apply to the next request.")
                     }
                 }
 

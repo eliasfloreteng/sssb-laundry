@@ -8,7 +8,16 @@ import Foundation
 final class APIClient: @unchecked Sendable {
     static let shared = APIClient()
 
-    private let baseURL = URL(string: "https://sssb-laundry-api.eliasfloreteng.workers.dev")!
+    static let defaultBaseURL = "https://sssb-laundry-api.eliasfloreteng.workers.dev"
+
+    private var baseURL: URL {
+        let stored = UserDefaults.standard.string(forKey: "apiBaseURL") ?? ""
+        let trimmed = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty, let url = URL(string: trimmed), url.scheme != nil {
+            return url
+        }
+        return URL(string: APIClient.defaultBaseURL)!
+    }
 
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()

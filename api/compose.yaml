@@ -1,0 +1,13 @@
+services:
+  sssb-laundry-api:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - cloudflare-net
+networks:
+  cloudflare-net:
+    external: true
+x-dockge:
+  urls:
+    - https://sssb-laundry.eliasf.se

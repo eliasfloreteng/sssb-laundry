@@ -17,7 +17,9 @@ interface TimeslotParams {
 export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstance {
   const app = Fastify({
     logger: true,
-    maxParamLength: 256
+    routerOptions: {
+      maxParamLength: 256
+    }
   });
   const aptus = args?.aptusClient ?? new AptusClient();
 

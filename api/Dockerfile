@@ -12,7 +12,7 @@ ENV PORT=3000
 ENV HOST=0.0.0.0
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY package.json bun.lock* tsconfig.json ./
+COPY package.json bun.lock* ./
 COPY src ./src
 
 USER bun

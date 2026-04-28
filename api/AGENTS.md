@@ -1,5 +1,7 @@
 # sssb-laundry-api
 
+Always use Bun.
+
 This is a minimal structued HTTP API for booking laundry sessions at SSSB that wraps their Aptus Portal laundry booking service.
 
 Find example requests in the `./requests` directory. This directory is gitignored as it contains sensitive authentication details

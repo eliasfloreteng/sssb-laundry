@@ -1,0 +1,212 @@
+//
+//  WeekView.swift
+//  SSSBLaundry
+//
+
+import SwiftUI
+
+struct WeekView: View {
+    @State private var store = LaundryStore()
+    @State private var selectedTimeslot: Timeslot?
+    @State private var showingSettings = false
+    @AppStorage(ObjectIdStore.key) private var objectId: String = ""
+
+    var body: some View {
+        NavigationStack {
+            content
+                .navigationTitle("Laundry")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showingSettings = true } label: {
+                            Image(systemName: "person.crop.circle")
+                        }
+                    }
+                }
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    weekNavigator
+                }
+                .sheet(item: $selectedTimeslot) { ts in
+                    BookingSheet(
+                        timeslot: ts,
+                        groupsById: store.groupsById,
+                        store: store
+                    )
+                }
+                .sheet(isPresented: $showingSettings) {
+                    SettingsView()
+                }
+                .alert(item: outcomeBinding) { outcome in
+                    outcomeAlert(for: outcome)
+                }
+                .task {
+                    if store.week == nil {
+                        await store.loadInitial()
+                    }
+                }
+                .refreshable {
+                    await store.refresh()
+                }
+                .onChange(of: store.authFailed) { _, failed in
+                    if failed {
+                        objectId = ""
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch store.loadState {
+        case .idle, .loading where store.week == nil:
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .error(let err) where store.week == nil:
+            errorState(err)
+        default:
+            if let week = store.week, !week.timeslots.isEmpty {
+                listView
+            } else if store.week != nil {
+                emptyState
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+    }
+
+    private var listView: some View {
+        List {
+            ForEach(store.timeslotsByDay, id: \.date) { day in
+                Section {
+                    ForEach(day.slots) { ts in
+                        Button {
+                            if hasAnyInteractive(ts) {
+                                selectedTimeslot = ts
+                            }
+                        } label: {
+                            TimeslotRow(timeslot: ts, groupsById: store.groupsById)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!hasAnyInteractive(ts))
+                    }
+                } header: {
+                    dayHeader(for: day.date)
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    private var weekNavigator: some View {
+        HStack(spacing: 12) {
+            Button {
+                Task { await store.prevWeek() }
+            } label: {
+                Image(systemName: "chevron.left")
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+
+            Spacer()
+
+            VStack(spacing: 0) {
+                Text(store.weekLabel)
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                Text("Week")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button {
+                Task { await store.nextWeek() }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(.bar)
+    }
+
+    private func dayHeader(for dateString: String) -> some View {
+        let parser = DateFormatter()
+        parser.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        parser.dateFormat = "yyyy-MM-dd"
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        let date = parser.date(from: dateString)
+        let printer = DateFormatter()
+        printer.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        printer.dateFormat = "EEEE d MMM"
+        let label = date.map { printer.string(from: $0) } ?? dateString
+        return Text(label)
+            .textCase(nil)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+    }
+
+    private func hasAnyInteractive(_ ts: Timeslot) -> Bool {
+        ts.groups.contains { $0.status == .bookable || $0.status == .own }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "calendar.badge.exclamationmark")
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+            Text("No timeslots this week")
+                .font(.headline)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func errorState(_ err: APIError) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.largeTitle)
+                .foregroundStyle(.orange)
+            Text(err.message)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Button("Try again") {
+                Task { await store.refresh() }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var outcomeBinding: Binding<ActionOutcome?> {
+        Binding(
+            get: { store.lastOutcome },
+            set: { store.lastOutcome = $0 }
+        )
+    }
+
+    private func outcomeAlert(for outcome: ActionOutcome) -> Alert {
+        let title: String
+        switch outcome.overallStatus {
+        case .success: title = "Done"
+        case .partial_success: title = "Partial success"
+        case .failed: title = "Failed"
+        }
+        let lines = outcome.results.map { r -> String in
+            let name = store.groupsById[r.groupId]?.name ?? "Group \(r.groupId)"
+            return "\(name): \(r.message ?? r.status)"
+        }
+        return Alert(
+            title: Text(title),
+            message: Text(lines.joined(separator: "\n")),
+            dismissButton: .default(Text("OK"))
+        )
+    }
+}

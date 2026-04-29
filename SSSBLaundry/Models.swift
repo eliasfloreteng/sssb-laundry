@@ -19,34 +19,8 @@ struct Week: Decodable {
 
 struct LaundryGroup: Decodable, Identifiable, Hashable {
     let id: Int
+    let location: String
     let name: String
-
-    var displayName: String {
-        name
-            .replacingOccurrences(of: "Vad skall bokas?", with: "")
-            .trimmingCharacters(in: .whitespaces)
-    }
-
-    static func commonDisplayPrefix(_ names: [String]) -> String {
-        guard names.count >= 2 else { return "" }
-        var shared: String?
-        for name in names {
-            guard let gruppRange = name.range(of: "Grupp") else { return "" }
-            let beforeGrupp = String(name[..<gruppRange.lowerBound])
-            if let existing = shared {
-                if existing != beforeGrupp { return "" }
-            } else {
-                shared = beforeGrupp
-            }
-        }
-        return shared ?? ""
-    }
-
-    static func trimmedDisplayName(_ name: String, prefix: String) -> String {
-        guard !prefix.isEmpty, name.hasPrefix(prefix) else { return name }
-        let trimmed = String(name.dropFirst(prefix.count))
-        return trimmed.isEmpty ? name : trimmed
-    }
 }
 
 struct Timeslot: Decodable, Identifiable, Hashable {

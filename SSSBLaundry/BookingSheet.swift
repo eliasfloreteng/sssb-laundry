@@ -11,7 +11,6 @@ struct BookingSheet: View {
     let timeslot: Timeslot
     let groupsById: [Int: LaundryGroup]
     let hiddenGroups: Set<Int>
-    let groupNamePrefix: String
     let store: LaundryStore
     @Environment(\.dismiss) private var dismiss
 
@@ -41,12 +40,21 @@ struct BookingSheet: View {
                     .padding(.bottom, 8)
 
                 List {
-                    Section {
-                        ForEach(visibleGroups, id: \.groupId) { item in
-                            row(for: item)
+                    let sections = locationSections
+                    ForEach(Array(sections.enumerated()), id: \.element.location) { index, section in
+                        Section {
+                            ForEach(section.items, id: \.groupId) { item in
+                                row(for: item)
+                            }
+                        } header: {
+                            if !section.location.isEmpty {
+                                Text(section.location)
+                            }
+                        } footer: {
+                            if index == sections.count - 1 {
+                                Text("Select up to 2 machines per booking. Bookings auto-cancel if not started within 15 minutes.")
+                            }
                         }
-                    } footer: {
-                        Text("Select up to 2 machines per booking. Bookings auto-cancel if not started within 15 minutes.")
                     }
                 }
                 .listStyle(.insetGrouped)
@@ -119,8 +127,7 @@ struct BookingSheet: View {
     }
 
     private func row(for item: TimeslotGroup) -> some View {
-        let fullName = groupsById[item.groupId]?.displayName ?? "Group \(item.groupId)"
-        let name = LaundryGroup.trimmedDisplayName(fullName, prefix: groupNamePrefix)
+        let name = groupsById[item.groupId]?.name ?? "Group \(item.groupId)"
         let isSelected = selection.contains(item.groupId)
         let disabled = item.status == .unavailable
         return Button {
@@ -182,6 +189,20 @@ struct BookingSheet: View {
         timeslot.groups.filter { !hiddenGroups.contains($0.groupId) }
     }
 
+    private var locationSections: [(location: String, items: [TimeslotGroup])] {
+        var order: [String] = []
+        var buckets: [String: [TimeslotGroup]] = [:]
+        for item in visibleGroups {
+            let location = groupsById[item.groupId]?.location ?? ""
+            if buckets[location] == nil {
+                order.append(location)
+                buckets[location] = []
+            }
+            buckets[location]?.append(item)
+        }
+        return order.map { ($0, buckets[$0] ?? []) }
+    }
+
     private var ownGroupIds: Set<Int> {
         Set(visibleGroups.filter { $0.status == .own }.map(\.groupId))
     }
@@ -223,14 +244,14 @@ struct BookingSheet: View {
     }
 
     private func addOwnBookingToCalendar() {
-        let names = ownGroupIds.sorted().map { id -> String in
-            let fullName = groupsById[id]?.displayName ?? "Group \(id)"
-            return LaundryGroup.trimmedDisplayName(fullName, prefix: groupNamePrefix)
-        }
+        let ids = ownGroupIds.sorted()
+        let names = ids.map { id in groupsById[id]?.name ?? "Group \(id)" }
+        let locations = Set(ids.compactMap { groupsById[$0]?.location }.filter { !$0.isEmpty })
+        let location = locations.count == 1 ? locations.first : nil
         addingToCalendar = true
         Task {
             do {
-                let prepared = try await CalendarService.prepareEvent(for: timeslot, machineNames: names)
+                let prepared = try await CalendarService.prepareEvent(for: timeslot, machineNames: names, location: location)
                 addingToCalendar = false
                 pendingEvent = PendingEvent(store: prepared.store, event: prepared.event)
             } catch {

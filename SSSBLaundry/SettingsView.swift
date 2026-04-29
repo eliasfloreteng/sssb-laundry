@@ -37,24 +37,35 @@ struct SettingsView: View {
                     Text("Used as the X-Object-Id header on every request.")
                 }
 
-                Section {
-                    if allGroups.isEmpty {
+                if allGroups.isEmpty {
+                    Section {
                         Text("No groups loaded yet.")
                             .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(allGroups) { group in
-                            Toggle(group.displayName, isOn: visibilityBinding(for: group.id))
-                        }
-                        if !hiddenSet.isEmpty {
-                            Button("Show all groups") {
-                                hiddenGroupsRaw = ""
+                    } header: {
+                        Text("Visible groups")
+                    } footer: {
+                        Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object id covers multiple buildings.")
+                    }
+                } else {
+                    let sections = locationSections
+                    ForEach(Array(sections.enumerated()), id: \.element.location) { index, section in
+                        Section {
+                            ForEach(section.groups) { group in
+                                Toggle(group.name, isOn: visibilityBinding(for: group.id))
+                            }
+                            if index == sections.count - 1, !hiddenSet.isEmpty {
+                                Button("Show all groups") {
+                                    hiddenGroupsRaw = ""
+                                }
+                            }
+                        } header: {
+                            Text(section.location.isEmpty ? "Visible groups" : section.location)
+                        } footer: {
+                            if index == sections.count - 1 {
+                                Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object id covers multiple buildings.")
                             }
                         }
                     }
-                } header: {
-                    Text("Visible groups")
-                } footer: {
-                    Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object id covers multiple buildings.")
                 }
 
                 Section {
@@ -118,6 +129,19 @@ struct SettingsView: View {
 
     private var hiddenSet: Set<Int> {
         ActiveGroupsSetting.parse(hiddenGroupsRaw)
+    }
+
+    private var locationSections: [(location: String, groups: [LaundryGroup])] {
+        var order: [String] = []
+        var buckets: [String: [LaundryGroup]] = [:]
+        for group in allGroups {
+            if buckets[group.location] == nil {
+                order.append(group.location)
+                buckets[group.location] = []
+            }
+            buckets[group.location]?.append(group)
+        }
+        return order.map { ($0, buckets[$0] ?? []) }
     }
 
     private func visibilityBinding(for groupId: Int) -> Binding<Bool> {

@@ -9,7 +9,6 @@ struct TimeslotRow: View {
     let timeslot: Timeslot
     let groupsById: [Int: LaundryGroup]
     let hiddenGroups: Set<Int>
-    let groupNamePrefix: String
 
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
@@ -24,7 +23,7 @@ struct TimeslotRow: View {
             }
             .frame(width: 56, alignment: .leading)
 
-            FlowChips(items: activeGroups, groupsById: groupsById, groupNamePrefix: groupNamePrefix)
+            FlowChips(items: activeGroups, groupsById: groupsById, includeLocationInLabel: !sharesSingleLocation)
 
             Spacer(minLength: 0)
 
@@ -58,20 +57,23 @@ struct TimeslotRow: View {
     private var allUnavailable: Bool {
         activeGroups.allSatisfy { $0.status == .unavailable }
     }
+
+    private var sharesSingleLocation: Bool {
+        let locations = Set(activeGroups.compactMap { groupsById[$0.groupId]?.location })
+        return locations.count <= 1
+    }
 }
 
 private struct FlowChips: View {
     let items: [TimeslotGroup]
     let groupsById: [Int: LaundryGroup]
-    let groupNamePrefix: String
+    let includeLocationInLabel: Bool
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(items.filter { $0.status != .unavailable }, id: \.groupId) { item in
-                    let fullName = groupsById[item.groupId]?.displayName ?? "Group \(item.groupId)"
-                    let name = LaundryGroup.trimmedDisplayName(fullName, prefix: groupNamePrefix)
-                    GroupChip(name: name, status: item.status)
+                    GroupChip(name: label(for: item), status: item.status)
                 }
             }
         }
@@ -86,5 +88,13 @@ private struct FlowChips: View {
                 endPoint: .trailing
             )
         )
+    }
+
+    private func label(for item: TimeslotGroup) -> String {
+        guard let group = groupsById[item.groupId] else { return "Group \(item.groupId)" }
+        if includeLocationInLabel, !group.location.isEmpty {
+            return "\(group.location) · \(group.name)"
+        }
+        return group.name
     }
 }

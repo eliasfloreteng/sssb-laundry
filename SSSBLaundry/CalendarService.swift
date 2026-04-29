@@ -23,7 +23,7 @@ struct PreparedEvent {
 }
 
 enum CalendarService {
-    static func prepareEvent(for timeslot: Timeslot, machineNames: [String]) async throws -> PreparedEvent {
+    static func prepareEvent(for timeslot: Timeslot, machineNames: [String], location: String? = nil) async throws -> PreparedEvent {
         let store = EKEventStore()
         let granted = try await store.requestWriteOnlyAccessToEvents()
         guard granted else { throw CalendarServiceError.accessDenied }
@@ -31,6 +31,9 @@ enum CalendarService {
         let event = EKEvent(eventStore: store)
         event.calendar = store.defaultCalendarForNewEvents
         event.title = eventTitle(machineNames: machineNames)
+        if let location, !location.isEmpty {
+            event.location = location
+        }
         event.startDate = parseISO8601(timeslot.startAt) ?? Date()
         event.endDate = parseISO8601(timeslot.endAt) ?? event.startDate.addingTimeInterval(3 * 3600)
         event.addAlarm(EKAlarm(relativeOffset: 0))

@@ -41,7 +41,6 @@ struct WeekView: View {
                         timeslot: ts,
                         groupsById: store.groupsById,
                         hiddenGroups: hiddenGroups,
-                        groupNamePrefix: groupNamePrefix,
                         store: store
                     )
                 }
@@ -95,14 +94,6 @@ struct WeekView: View {
         ActiveGroupsSetting.parse(hiddenGroupsRaw)
     }
 
-    private var groupNamePrefix: String {
-        let hidden = hiddenGroups
-        let visibleNames = store.allGroups
-            .filter { !hidden.contains($0.id) }
-            .map(\.displayName)
-        return LaundryGroup.commonDisplayPrefix(visibleNames)
-    }
-
     private var filteredDays: [(date: String, slots: [Timeslot])] {
         let days = store.timeslotsByDay
         let hidden = hiddenGroups
@@ -134,7 +125,7 @@ struct WeekView: View {
                                 selectedTimeslot = ts
                             }
                         } label: {
-                            TimeslotRow(timeslot: ts, groupsById: store.groupsById, hiddenGroups: hiddenGroups, groupNamePrefix: groupNamePrefix)
+                            TimeslotRow(timeslot: ts, groupsById: store.groupsById, hiddenGroups: hiddenGroups)
                         }
                         .buttonStyle(.plain)
                         .disabled(!hasAnyInteractive(ts))
@@ -247,7 +238,7 @@ struct WeekView: View {
         case .failed: title = "Failed"
         }
         let lines = outcome.results.map { r -> String in
-            let name = store.groupsById[r.groupId]?.displayName ?? "Group \(r.groupId)"
+            let name = store.groupsById[r.groupId]?.name ?? "Group \(r.groupId)"
             return "\(name): \(r.message ?? r.status)"
         }
         return Alert(

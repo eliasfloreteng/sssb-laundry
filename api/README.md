@@ -11,6 +11,12 @@ bun run dev
 
 Server defaults to `http://0.0.0.0:3000`.
 
+Set `LOG_LEVEL` for verbosity (`info` default, `debug` for upstream request traces):
+
+```bash
+LOG_LEVEL=debug bun run dev
+```
+
 ## Auth
 
 Pass the object id in every request:

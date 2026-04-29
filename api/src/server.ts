@@ -15,13 +15,14 @@ interface TimeslotParams {
 }
 
 export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstance {
+  const logLevel = process.env.LOG_LEVEL ?? "info";
   const app = Fastify({
-    logger: true,
+    logger: { level: logLevel },
     routerOptions: {
       maxParamLength: 256
     }
   });
-  const aptus = args?.aptusClient ?? new AptusClient();
+  const aptus = args?.aptusClient ?? new AptusClient({ logger: app.log });
 
   app.get("/health", async () => ({ ok: true }));
 
@@ -36,27 +37,31 @@ export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstan
       });
     }
 
-    return aptus.listTimeslots(objectId, date);
+    return aptus.listTimeslots(objectId, date, request.id);
   });
 
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/book", async (request) => {
     const objectId = requireObjectId(request);
     const groupIds = parseGroupIds(request.body.groupIds);
-    return aptus.bookTimeslot(objectId, request.params.timeslotId, groupIds);
+    return aptus.bookTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
   });
 
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/cancel", async (request) => {
     const objectId = requireObjectId(request);
     const groupIds = parseGroupIds(request.body.groupIds);
-    return aptus.cancelTimeslot(objectId, request.params.timeslotId, groupIds);
+    return aptus.cancelTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
   });
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error, request, reply) => {
     if (error instanceof AppError) {
       app.log.warn(
         {
           err: error,
+          reqId: request.id,
+          method: request.method,
+          url: request.url,
           code: error.code,
+          details: error.details,
           upstream: error.upstream
         },
         "Handled application error"
@@ -73,7 +78,15 @@ export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstan
     }
 
     const known = asError(error);
-    app.log.error({ err: known }, "Unhandled error");
+    app.log.error(
+      {
+        err: known,
+        reqId: request.id,
+        method: request.method,
+        url: request.url
+      },
+      "Unhandled error"
+    );
     reply.code(500).send({
       error: {
         code: "UNKNOWN_ERROR",

@@ -1,6 +1,7 @@
 import { load } from "cheerio";
+import { createHash } from "node:crypto";
 import { DateTime } from "luxon";
-import { AppError } from "./errors.js";
+import { AppError, asError } from "./errors.js";
 import { encodePwEnc } from "./pwenc.js";
 import { decodeTimeslotId, encodeTimeslotId } from "./timeslot-id.js";
 import type {
@@ -54,77 +55,118 @@ interface CanonicalTarget {
   endAt: string;
 }
 
+interface LoggerLike {
+  debug?: (obj: Record<string, unknown>, msg?: string) => void;
+  info?: (obj: Record<string, unknown>, msg?: string) => void;
+  warn?: (obj: Record<string, unknown>, msg?: string) => void;
+  error?: (obj: Record<string, unknown>, msg?: string) => void;
+}
+
+interface LogContext {
+  requestId?: string;
+  objectKey: string;
+  operation: "list_timeslots" | "book_timeslot" | "cancel_timeslot";
+}
+
 export class AptusClient {
   private readonly origin: string;
   private readonly portalPath = "/AptusPortal";
   private readonly userAgent: string;
+  private readonly logger?: LoggerLike;
   private readonly sessions = new Map<string, SessionState>();
 
-  constructor(args?: { baseUrl?: string; userAgent?: string }) {
+  constructor(args?: { baseUrl?: string; userAgent?: string; logger?: LoggerLike }) {
     this.origin = (args?.baseUrl ?? "https://sssb.aptustotal.se").replace(/\/$/, "");
     this.userAgent =
       args?.userAgent ??
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0";
+    this.logger = args?.logger;
   }
 
-  async listTimeslots(objectId: string, date: string): Promise<TimeslotsResponse> {
+  async listTimeslots(objectId: string, date: string, requestId?: string): Promise<TimeslotsResponse> {
     assertISODate(date, "date");
+    const context = this.buildLogContext(objectId, "list_timeslots", requestId);
+    this.log("info", context, { date }, "Listing Aptus timeslots");
 
-    const { groups } = await this.getLaundryGroups(objectId);
+    const { groups } = await this.getLaundryGroups(objectId, context);
     const calendars: Array<{ groupId: number; parsed: ParsedCalendar }> = [];
     for (const group of groups) {
       calendars.push({
         groupId: group.id,
-        parsed: await this.fetchCalendar(objectId, group.id, date)
+        parsed: await this.fetchCalendar(objectId, group.id, date, context)
       });
     }
 
     const week = calendars[0]?.parsed.week ?? weekWindowForDate(date);
     const timeslots = buildCanonicalTimeslots(groups, calendars.map((c) => ({ groupId: c.groupId, slots: c.parsed.slots })));
+    this.log(
+      "info",
+      context,
+      { date, groups: groups.length, timeslots: timeslots.length, week },
+      "Listed Aptus timeslots"
+    );
 
     return { week, groups, timeslots };
   }
 
-  async bookTimeslot(objectId: string, timeslotId: string, groupIds: number[]): Promise<ActionResponse> {
+  async bookTimeslot(objectId: string, timeslotId: string, groupIds: number[], requestId?: string): Promise<ActionResponse> {
+    const context = this.buildLogContext(objectId, "book_timeslot", requestId);
     const target = decodeCanonicalTarget(timeslotId);
     const passDate = startDateOfTarget(target);
+    this.log("info", context, { timeslotId, groupIds, passDate }, "Booking Aptus timeslot");
 
-    const { groups } = await this.getLaundryGroups(objectId);
+    const { groups } = await this.getLaundryGroups(objectId, context);
     validateGroupIds(groupIds, groups);
 
     const results: GroupActionResult[] = [];
     for (const groupId of groupIds) {
-      results.push(await this.bookForGroup(objectId, groupId, passDate, target));
+      results.push(await this.bookForGroup(objectId, groupId, passDate, target, context));
     }
 
-    return {
+    const response: ActionResponse = {
       timeslotId,
       results,
       overallStatus: computeOverallStatus(results, new Set(["booked", "already_booked"]))
     };
+    this.log("info", context, { timeslotId, groupIds, overallStatus: response.overallStatus }, "Booked Aptus timeslot");
+    return response;
   }
 
-  async cancelTimeslot(objectId: string, timeslotId: string, groupIds: number[]): Promise<ActionResponse> {
+  async cancelTimeslot(
+    objectId: string,
+    timeslotId: string,
+    groupIds: number[],
+    requestId?: string
+  ): Promise<ActionResponse> {
+    const context = this.buildLogContext(objectId, "cancel_timeslot", requestId);
     const target = decodeCanonicalTarget(timeslotId);
     const passDate = startDateOfTarget(target);
+    this.log("info", context, { timeslotId, groupIds, passDate }, "Cancelling Aptus timeslot");
 
-    const { groups } = await this.getLaundryGroups(objectId);
+    const { groups } = await this.getLaundryGroups(objectId, context);
     validateGroupIds(groupIds, groups);
 
     const results: GroupActionResult[] = [];
     for (const groupId of groupIds) {
-      results.push(await this.cancelForGroup(objectId, groupId, passDate, target));
+      results.push(await this.cancelForGroup(objectId, groupId, passDate, target, context));
     }
 
-    return {
+    const response: ActionResponse = {
       timeslotId,
       results,
       overallStatus: computeOverallStatus(results, new Set(["cancelled", "not_booked"]))
     };
+    this.log(
+      "info",
+      context,
+      { timeslotId, groupIds, overallStatus: response.overallStatus },
+      "Cancelled Aptus timeslot"
+    );
+    return response;
   }
 
-  private async getLaundryGroups(objectId: string): Promise<{ groups: BookingGroup[] }> {
-    const categoriesRes = await this.requestDialogPage(objectId, "/CustomerBooking/CustomerCategories");
+  private async getLaundryGroups(objectId: string, context: LogContext): Promise<{ groups: BookingGroup[] }> {
+    const categoriesRes = await this.requestDialogPage(objectId, "/CustomerBooking/CustomerCategories", context);
 
     const categories = parseCategories(categoriesRes.body);
     if (!categories.length) {
@@ -142,7 +184,8 @@ export class AptusClient {
     const category = categories[0];
     const groupsRes = await this.requestDialogPage(
       objectId,
-      `/CustomerBooking/CustomerLocationGroups?categoryId=${category.id}`
+      `/CustomerBooking/CustomerLocationGroups?categoryId=${category.id}`,
+      context
     );
 
     const groups = parseGroups(groupsRes.body);
@@ -162,27 +205,39 @@ export class AptusClient {
     return { groups };
   }
 
-  private async requestDialogPage(objectId: string, path: string): Promise<HttpResult> {
+  private async requestDialogPage(objectId: string, path: string, context: LogContext): Promise<HttpResult> {
     try {
-      const withXRequestedWith = await this.requestWithAuth(objectId, path, {
+      const withXRequestedWith = await this.requestWithAuth(objectId, path, context, {
         refererPath: "/CustomerBooking",
         xRequestedWith: true
       });
       if (withXRequestedWith.body.trim()) return withXRequestedWith;
+      this.log(
+        "warn",
+        context,
+        { path, reason: "EMPTY_BODY" },
+        "Aptus dialog response was empty with X-Requested-With, retrying without it"
+      );
     } catch (error) {
       if (!(error instanceof AppError) || error.code !== "UPSTREAM_ACCOUNT_ERROR") {
         throw error;
       }
+      this.log(
+        "warn",
+        context,
+        { path, reason: error.code },
+        "Aptus dialog request rejected with X-Requested-With, retrying without it"
+      );
     }
 
-    return this.requestWithAuth(objectId, path, {
+    return this.requestWithAuth(objectId, path, context, {
       refererPath: "/CustomerBooking"
     });
   }
 
-  private async fetchCalendar(objectId: string, groupId: number, passDate: string): Promise<ParsedCalendar> {
+  private async fetchCalendar(objectId: string, groupId: number, passDate: string, context: LogContext): Promise<ParsedCalendar> {
     const path = `/CustomerBooking/BookingCalendar?bookingGroupId=${groupId}&passDate=${passDate}`;
-    const response = await this.requestWithAuth(objectId, path, {
+    const response = await this.requestWithAuth(objectId, path, context, {
       refererPath: `/CustomerBooking/BookingCalendarOverview?bookingGroupId=${groupId}`
     });
 
@@ -206,9 +261,10 @@ export class AptusClient {
     objectId: string,
     groupId: number,
     passDate: string,
-    target: CanonicalTarget
+    target: CanonicalTarget,
+    context: LogContext
   ): Promise<GroupActionResult> {
-    const before = await this.fetchCalendar(objectId, groupId, passDate);
+    const before = await this.fetchCalendar(objectId, groupId, passDate, context);
     const slot = findMatchingSlot(before.slots, target);
     if (!slot) {
       return actionFailure(groupId, "BOOK_SLOT_NOT_FOUND", "Timeslot does not exist in group calendar", {
@@ -224,11 +280,11 @@ export class AptusClient {
       return { groupId, status: "not_bookable", message: "Timeslot is not bookable for this group" };
     }
 
-    await this.requestWithAuth(objectId, slot.bookUrl, {
+    await this.requestWithAuth(objectId, slot.bookUrl, context, {
       refererPath: `/CustomerBooking/BookingCalendar?bookingGroupId=${groupId}&passDate=${passDate}`
     });
 
-    const after = await this.fetchCalendar(objectId, groupId, passDate);
+    const after = await this.fetchCalendar(objectId, groupId, passDate, context);
     const updated = findMatchingSlot(after.slots, target);
     if (updated?.status === "own") {
       return { groupId, status: "booked", message: after.feedback ?? "Booked" };
@@ -244,9 +300,10 @@ export class AptusClient {
     objectId: string,
     groupId: number,
     passDate: string,
-    target: CanonicalTarget
+    target: CanonicalTarget,
+    context: LogContext
   ): Promise<GroupActionResult> {
-    const before = await this.fetchCalendar(objectId, groupId, passDate);
+    const before = await this.fetchCalendar(objectId, groupId, passDate, context);
     const slot = findMatchingSlot(before.slots, target);
     if (!slot) {
       return actionFailure(groupId, "CANCEL_SLOT_NOT_FOUND", "Timeslot does not exist in group calendar", {
@@ -264,11 +321,11 @@ export class AptusClient {
       });
     }
 
-    await this.requestWithAuth(objectId, slot.unbookUrl, {
+    await this.requestWithAuth(objectId, slot.unbookUrl, context, {
       refererPath: `/CustomerBooking/BookingCalendar?bookingGroupId=${groupId}&passDate=${passDate}`
     });
 
-    const after = await this.fetchCalendar(objectId, groupId, passDate);
+    const after = await this.fetchCalendar(objectId, groupId, passDate, context);
     const updated = findMatchingSlot(after.slots, target);
     if (!updated || updated.status !== "own") {
       return { groupId, status: "cancelled", message: after.feedback ?? "Cancelled" };
@@ -280,23 +337,48 @@ export class AptusClient {
     });
   }
 
-  private async requestWithAuth(objectId: string, path: string, options?: RequestOptions): Promise<HttpResult> {
-    await this.ensureAuthenticated(objectId);
+  private async requestWithAuth(
+    objectId: string,
+    path: string,
+    context: LogContext,
+    options?: RequestOptions
+  ): Promise<HttpResult> {
+    await this.ensureAuthenticated(objectId, context);
 
     let session = this.sessions.get(objectId)!;
-    let response = await this.requestRaw(session, path, options);
+    let response = await this.requestRaw(session, path, options, context);
 
     if (looksLikeSessionExpired(response)) {
+      this.log(
+        "info",
+        context,
+        {
+          path: response.path,
+          status: response.status,
+          location: response.location
+        },
+        "Aptus session appears expired, reauthenticating"
+      );
       this.sessions.delete(objectId);
       const loginLocation = isLoginRedirect(response) && response.location
         ? response.location
         : "/AptusPortal/Account/Login";
-      await this.login(objectId, loginLocation);
+      await this.login(objectId, loginLocation, context);
       session = this.sessions.get(objectId)!;
-      response = await this.requestRaw(session, path, options);
+      response = await this.requestRaw(session, path, options, context);
     }
 
     if (isLoginRedirect(response) || response.status === 401) {
+      this.log(
+        "warn",
+        context,
+        {
+          path: response.path,
+          status: response.status,
+          location: response.location
+        },
+        "Aptus authentication failed after retry"
+      );
       throw new AppError({
         statusCode: 401,
         code: "AUTH_FAILED",
@@ -310,6 +392,16 @@ export class AptusClient {
     }
 
     if (isAccountErrorRedirect(response)) {
+      this.log(
+        "warn",
+        context,
+        {
+          path: response.path,
+          status: response.status,
+          location: response.location
+        },
+        "Aptus returned Account/Error redirect"
+      );
       throw new AppError({
         statusCode: 502,
         code: "UPSTREAM_ACCOUNT_ERROR",
@@ -325,16 +417,18 @@ export class AptusClient {
     return response;
   }
 
-  private async ensureAuthenticated(objectId: string): Promise<void> {
+  private async ensureAuthenticated(objectId: string, context: LogContext): Promise<void> {
     if (this.sessions.has(objectId)) return;
-    await this.login(objectId, "/AptusPortal/Account/Login");
+    this.log("info", context, {}, "Aptus session missing, performing login");
+    await this.login(objectId, "/AptusPortal/Account/Login", context);
   }
 
-  private async login(objectId: string, loginLocation: string): Promise<void> {
+  private async login(objectId: string, loginLocation: string, context: LogContext): Promise<void> {
     const session: SessionState = { cookies: new Map(), authenticatedAt: Date.now() };
 
     const loginPath = normalizePortalPath(loginLocation, this.origin, this.portalPath);
-    const loginPage = await this.requestRawFollowingRedirects(session, loginPath, {}, 8);
+    this.log("info", context, { loginPath }, "Logging into Aptus");
+    const loginPage = await this.requestRawFollowingRedirects(session, loginPath, {}, 8, context);
     const form = parseLoginForm(loginPage.body, loginPage.path);
 
     const postPath = normalizePortalPath(form.actionPath, this.origin, this.portalPath);
@@ -348,18 +442,34 @@ export class AptusClient {
       PasswordSalt: form.passwordSalt
     });
 
-    const post = await this.requestRaw(session, postPath, {
-      method: "POST",
-      body: payload.toString(),
-      refererPath: loginPath,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Origin: this.origin
-      }
-    });
+    const post = await this.requestRaw(
+      session,
+      postPath,
+      {
+        method: "POST",
+        body: payload.toString(),
+        refererPath: loginPath,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Origin: this.origin
+        }
+      },
+      context
+    );
 
     if (!session.cookies.has(".ASPXAUTH")) {
       const feedback = parseFeedbackDialog(post.body) ?? form.feedback;
+      this.log(
+        "warn",
+        context,
+        {
+          path: post.path,
+          status: post.status,
+          location: post.location,
+          feedback
+        },
+        "Aptus login did not yield .ASPXAUTH cookie"
+      );
       throw new AppError({
         statusCode: 401,
         code: "AUTH_FAILED",
@@ -375,9 +485,15 @@ export class AptusClient {
 
     session.authenticatedAt = Date.now();
     this.sessions.set(objectId, session);
+    this.log("info", context, { authAgeMs: 0 }, "Aptus login successful");
   }
 
-  private async requestRaw(session: SessionState, path: string, options?: RequestOptions): Promise<HttpResult> {
+  private async requestRaw(
+    session: SessionState,
+    path: string,
+    options?: RequestOptions,
+    context?: LogContext
+  ): Promise<HttpResult> {
     const method = options?.method ?? "GET";
     const url = toAbsolutePortalUrl(path, this.origin, this.portalPath);
 
@@ -401,38 +517,85 @@ export class AptusClient {
       headers.Cookie = cookieHeader;
     }
 
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: options?.body,
-      redirect: "manual"
-    });
+    const start = Date.now();
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method,
+        headers,
+        body: options?.body,
+        redirect: "manual"
+      });
+    } catch (error) {
+      const known = asError(error);
+      this.log(
+        "error",
+        context,
+        {
+          path: toPathWithQuery(url),
+          method,
+          message: known.message
+        },
+        "Aptus upstream request failed"
+      );
+      throw new AppError({
+        statusCode: 502,
+        code: "UPSTREAM_NETWORK_ERROR",
+        message: "Failed to reach Aptus upstream",
+        upstream: { path: toPathWithQuery(url) },
+        details: { reason: known.message }
+      });
+    }
 
     for (const rawSetCookie of readSetCookies(response.headers)) {
       mergeCookie(session.cookies, rawSetCookie);
     }
 
-    return {
+    const result = {
       status: response.status,
       body: await response.text(),
       path: toPathWithQuery(response.url || url),
       location: response.headers.get("location") ?? undefined
     };
+    this.log(
+      "debug",
+      context,
+      {
+        path: result.path,
+        status: result.status,
+        location: result.location,
+        method,
+        durationMs: Date.now() - start
+      },
+      "Aptus upstream response"
+    );
+    return result;
   }
 
   private async requestRawFollowingRedirects(
     session: SessionState,
     initialPath: string,
     options: RequestOptions,
-    maxRedirects: number
+    maxRedirects: number,
+    context?: LogContext
   ): Promise<HttpResult> {
     let currentPath = initialPath;
 
     for (let i = 0; i <= maxRedirects; i++) {
-      const response = await this.requestRaw(session, currentPath, options);
+      const response = await this.requestRaw(session, currentPath, options, context);
       if (!(response.status >= 300 && response.status < 400 && response.location)) {
         return response;
       }
+      this.log(
+        "debug",
+        context,
+        {
+          fromPath: response.path,
+          location: response.location,
+          status: response.status
+        },
+        "Following Aptus redirect"
+      );
       currentPath = normalizePortalPath(response.location, this.origin, this.portalPath);
     }
 
@@ -443,6 +606,53 @@ export class AptusClient {
       upstream: { path: currentPath }
     });
   }
+
+  private buildLogContext(
+    objectId: string,
+    operation: LogContext["operation"],
+    requestId?: string
+  ): LogContext {
+    return {
+      requestId,
+      objectKey: hashObjectId(objectId),
+      operation
+    };
+  }
+
+  private log(
+    level: "debug" | "info" | "warn" | "error",
+    context: LogContext | undefined,
+    data: Record<string, unknown>,
+    message: string
+  ): void {
+    const logger = this.logger;
+    if (!logger) return;
+
+    const payload: Record<string, unknown> = { ...data };
+    if (context) {
+      payload.operation = context.operation;
+      payload.objectKey = context.objectKey;
+      if (context.requestId) payload.reqId = context.requestId;
+    }
+    switch (level) {
+      case "debug":
+        logger.debug?.(payload, message);
+        break;
+      case "info":
+        logger.info?.(payload, message);
+        break;
+      case "warn":
+        logger.warn?.(payload, message);
+        break;
+      case "error":
+        logger.error?.(payload, message);
+        break;
+    }
+  }
+}
+
+function hashObjectId(objectId: string): string {
+  return createHash("sha256").update(objectId).digest("hex").slice(0, 12);
 }
 
 function actionFailure(

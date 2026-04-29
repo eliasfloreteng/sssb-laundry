@@ -268,13 +268,17 @@ export class AptusClient {
     let session = this.sessions.get(objectId)!;
     let response = await this.requestRaw(session, path, options);
 
-    if (isLoginRedirect(response)) {
-      await this.login(objectId, response.location ?? "/AptusPortal/Account/Login");
+    if (looksLikeSessionExpired(response)) {
+      this.sessions.delete(objectId);
+      const loginLocation = isLoginRedirect(response) && response.location
+        ? response.location
+        : "/AptusPortal/Account/Login";
+      await this.login(objectId, loginLocation);
       session = this.sessions.get(objectId)!;
       response = await this.requestRaw(session, path, options);
     }
 
-    if (isLoginRedirect(response)) {
+    if (isLoginRedirect(response) || response.status === 401) {
       throw new AppError({
         statusCode: 401,
         code: "AUTH_FAILED",
@@ -827,6 +831,18 @@ function isLoginRedirect(response: HttpResult): boolean {
 function isAccountErrorRedirect(response: HttpResult): boolean {
   if (!(response.status >= 300 && response.status < 400)) return false;
   return (response.location ?? "").includes("/Account/Error");
+}
+
+function looksLikeSessionExpired(response: HttpResult): boolean {
+  if (isLoginRedirect(response)) return true;
+  if (isAccountErrorRedirect(response)) return true;
+  if (response.status === 401) return true;
+  if (response.status === 200 && containsLoginForm(response.body)) return true;
+  return false;
+}
+
+function containsLoginForm(body: string): boolean {
+  return body.includes('name="PasswordSalt"') && body.includes('name="UserName"');
 }
 
 function decodeHtmlAmpersands(input: string): string {

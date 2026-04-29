@@ -1106,7 +1106,10 @@ function toPathWithQuery(urlLike: string): string {
 
 function isLoginRedirect(response: HttpResult): boolean {
   if (!(response.status >= 300 && response.status < 400)) return false;
-  return (response.location ?? "").includes("/Account/Login");
+  if ((response.location ?? "").includes("/Account/Login")) return true;
+  // Aptus may omit the Location header on AJAX (X-Requested-With) redirects
+  // and only embed the destination in the "Object moved" HTML body.
+  return /href="[^"]*\/Account\/Login/i.test(response.body);
 }
 
 function isAccountErrorRedirect(response: HttpResult): boolean {

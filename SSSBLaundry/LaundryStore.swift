@@ -27,6 +27,7 @@ final class LaundryStore {
     var isLoadingMore = false
     var reachedEnd = false
     var lastOutcome: ActionOutcome?
+    var lastError: APIError?
     var authFailed = false
 
     private let api: APIClient
@@ -70,9 +71,10 @@ final class LaundryStore {
     }
 
     func refresh() async {
-        loadState = .loading
+        if weeks.isEmpty {
+            loadState = .loading
+        }
         reachedEnd = false
-        weeks.removeAll()
         await fetchWeek(date: today, replaceAll: true)
     }
 
@@ -97,6 +99,7 @@ final class LaundryStore {
             } catch let err as APIError {
                 fatalError = err
             } catch {
+                if Self.isCancellation(error) { return }
                 fatalError = APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription)
             }
         }
@@ -108,6 +111,7 @@ final class LaundryStore {
             } catch let err as APIError {
                 fatalError = err
             } catch {
+                if Self.isCancellation(error) { return }
                 fatalError = APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription)
             }
         }
@@ -138,8 +142,15 @@ final class LaundryStore {
         } catch let err as APIError {
             handleError(err)
         } catch {
+            if Self.isCancellation(error) { return }
             handleError(APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription))
         }
+    }
+
+    private static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        return false
     }
 
     private func refreshWeekContaining(timeslotId: String) async {
@@ -154,6 +165,8 @@ final class LaundryStore {
         loadState = .error(err)
         if err.code == "AUTH_FAILED" || err.code == "MISSING_OBJECT_ID" {
             authFailed = true
+        } else if !weeks.isEmpty {
+            lastError = err
         }
     }
 

@@ -29,16 +29,17 @@ struct LaundryGroup: Decodable, Identifiable, Hashable {
 
     static func commonDisplayPrefix(_ names: [String]) -> String {
         guard names.count >= 2 else { return "" }
-        var prefix = names[0]
-        for name in names.dropFirst() {
-            prefix = prefix.commonPrefix(with: name)
-            if prefix.isEmpty { return "" }
+        var shared: String?
+        for name in names {
+            guard let gruppRange = name.range(of: "Grupp") else { return "" }
+            let beforeGrupp = String(name[..<gruppRange.lowerBound])
+            if let existing = shared {
+                if existing != beforeGrupp { return "" }
+            } else {
+                shared = beforeGrupp
+            }
         }
-        if let gruppRange = prefix.range(of: "Grupp") {
-            return String(prefix[..<gruppRange.lowerBound])
-        }
-        guard let lastSpace = prefix.lastIndex(where: { $0.isWhitespace }) else { return "" }
-        return String(prefix[...lastSpace])
+        return shared ?? ""
     }
 
     static func trimmedDisplayName(_ name: String, prefix: String) -> String {

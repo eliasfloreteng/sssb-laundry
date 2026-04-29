@@ -3,6 +3,8 @@
 //  SSSBLaundry
 //
 
+import EventKit
+import EventKitUI
 import SwiftUI
 
 struct BookingSheet: View {
@@ -15,6 +17,21 @@ struct BookingSheet: View {
 
     @State private var selection: Set<Int> = []
     @State private var submitting = false
+    @State private var addingToCalendar = false
+    @State private var calendarAlert: CalendarAlert?
+    @State private var pendingEvent: PendingEvent?
+
+    private struct CalendarAlert: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
+    }
+
+    private struct PendingEvent: Identifiable {
+        let id = UUID()
+        let store: EKEventStore
+        let event: EKEvent
+    }
 
     var body: some View {
         NavigationStack {
@@ -44,6 +61,36 @@ struct BookingSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
+                if !ownGroupIds.isEmpty {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            addOwnBookingToCalendar()
+                        } label: {
+                            if addingToCalendar {
+                                ProgressView()
+                            } else {
+                                Image(systemName: "calendar.badge.plus")
+                            }
+                        }
+                        .disabled(addingToCalendar || submitting)
+                        .accessibilityLabel("Add to Calendar")
+                    }
+                }
+            }
+            .alert(item: $calendarAlert) { alert in
+                Alert(title: Text(alert.title), message: Text(alert.message), dismissButton: .default(Text("OK")))
+            }
+            .sheet(item: $pendingEvent) { pending in
+                EventEditView(store: pending.store, event: pending.event) { action in
+                    pendingEvent = nil
+                    if action == .saved {
+                        calendarAlert = CalendarAlert(
+                            title: "Added to Calendar",
+                            message: "\(timeslot.localDate) \(timeslot.startTime)–\(timeslot.endTime)"
+                        )
+                    }
+                }
+                .ignoresSafeArea()
             }
         }
         .presentationDetents([.medium, .large])
@@ -172,6 +219,27 @@ struct BookingSheet: View {
             selection.remove(item.groupId)
         } else {
             selection.insert(item.groupId)
+        }
+    }
+
+    private func addOwnBookingToCalendar() {
+        let names = ownGroupIds.sorted().map { id -> String in
+            let fullName = groupsById[id]?.displayName ?? "Group \(id)"
+            return LaundryGroup.trimmedDisplayName(fullName, prefix: groupNamePrefix)
+        }
+        addingToCalendar = true
+        Task {
+            do {
+                let prepared = try await CalendarService.prepareEvent(for: timeslot, machineNames: names)
+                addingToCalendar = false
+                pendingEvent = PendingEvent(store: prepared.store, event: prepared.event)
+            } catch {
+                addingToCalendar = false
+                calendarAlert = CalendarAlert(
+                    title: "Couldn’t add to Calendar",
+                    message: error.localizedDescription
+                )
+            }
         }
     }
 

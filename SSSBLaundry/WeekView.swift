@@ -51,6 +51,15 @@ struct WeekView: View {
                 .alert(item: outcomeBinding) { outcome in
                     outcomeAlert(for: outcome)
                 }
+                .alert(
+                    "Something went wrong",
+                    isPresented: errorAlertBinding,
+                    presenting: store.lastError
+                ) { _ in
+                    Button("OK", role: .cancel) { store.lastError = nil }
+                } message: { err in
+                    Text(err.message)
+                }
                 .task {
                     await store.loadInitial()
                 }
@@ -220,6 +229,13 @@ struct WeekView: View {
         Binding(
             get: { store.lastOutcome },
             set: { store.lastOutcome = $0 }
+        )
+    }
+
+    private var errorAlertBinding: Binding<Bool> {
+        Binding(
+            get: { store.lastError != nil },
+            set: { if !$0 { store.lastError = nil } }
         )
     }
 

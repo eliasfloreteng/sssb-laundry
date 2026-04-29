@@ -159,7 +159,7 @@ struct BookingSheet: View {
             Button(action: submit) {
                 HStack {
                     if submitting {
-                        ProgressView().tint(.white)
+                        ProgressView()
                     }
                     Text(actionTitle)
                         .font(.headline)

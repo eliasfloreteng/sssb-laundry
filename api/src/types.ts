@@ -4,6 +4,7 @@ export type GroupSlotStatus = "bookable" | "own" | "unavailable";
 
 export interface BookingGroup {
   id: number;
+  location: string | null;
   name: string;
 }
 

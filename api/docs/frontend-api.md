@@ -58,7 +58,7 @@ Response shape:
     "toDate": "2026-05-03",
     "timezone": "Europe/Stockholm"
   },
-  "groups": [{ "id": 162, "name": "Group 1" }],
+  "groups": [{ "id": 162, "location": "Domus Tvättstuga", "name": "Grupp 1" }],
   "timeslots": [
     {
       "id": "ts_...",

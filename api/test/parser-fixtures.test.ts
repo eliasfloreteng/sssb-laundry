@@ -25,6 +25,8 @@ describe.skipIf(!hasFixtures)("parser fixtures", () => {
     const groups = parseGroups(html);
     expect(groups.length).toBeGreaterThan(1);
     expect(groups[0]?.id).toBeTypeOf("number");
+    expect(groups[0]?.location).toContain("Tvättstuga");
+    expect(groups[0]?.name).toBe("Grupp 1");
   });
 
   it("parses own slot and cross-midnight slot", () => {

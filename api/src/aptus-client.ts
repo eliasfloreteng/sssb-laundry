@@ -586,9 +586,20 @@ export function parseGroups(html: string): BookingGroup[] {
     const match = onclick.match(/BookingCalendarOverview\?bookingGroupId=(\d+)/);
     if (!match) return;
 
+    const labelCell = $(element).find("td").eq(1);
+    const labelLines = extractLabelLines(labelCell.html() ?? $(element).html() ?? "");
+    const fallbackName = normalizeWhitespace($(element).attr("aria-label") ?? "") || normalizeWhitespace($(element).text());
+
+    const location = labelLines.length > 1 ? labelLines[0] : null;
+    const name =
+      labelLines.length > 1
+        ? normalizeWhitespace(labelLines.slice(1).join(" "))
+        : labelLines[0] ?? fallbackName;
+
     groups.push({
       id: Number(match[1]),
-      name: normalizeWhitespace($(element).text())
+      location,
+      name
     });
   });
 
@@ -746,6 +757,16 @@ function parseTimeRange(text: string): { start: string; end: string } | null {
 
 function normalizeWhitespace(text: string): string {
   return text.replace(/\s+/g, " ").trim();
+}
+
+function extractLabelLines(html: string): string[] {
+  const withLineBreaks = html.replace(/<br\s*\/?>/gi, "\n");
+  const $ = load(`<div>${withLineBreaks}</div>`);
+  return $("div")
+    .text()
+    .split("\n")
+    .map(normalizeWhitespace)
+    .filter(Boolean);
 }
 
 function dedupeBy<T>(items: T[], keySelector: (item: T) => string | number): T[] {

@@ -10,6 +10,11 @@ struct WeekView: View {
     @State private var selectedTimeslot: Timeslot?
     @State private var showingSettings = false
     @AppStorage(ObjectIdStore.key) private var objectId: String = ""
+    @AppStorage(ActiveHoursSetting.enabledKey) private var activeHoursEnabled: Bool = ActiveHoursSetting.defaultEnabled
+    @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
+    @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
+    @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
+    @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -18,31 +23,36 @@ struct WeekView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showAllTimeslots.toggle()
+                        } label: {
+                            Image(systemName: showAllTimeslots ? "eye.fill" : "eye.slash")
+                        }
+                        .accessibilityLabel(showAllTimeslots ? "Show only available timeslots" : "Show all timeslots")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button { showingSettings = true } label: {
                             Image(systemName: "person.crop.circle")
                         }
                     }
                 }
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    weekNavigator
-                }
                 .sheet(item: $selectedTimeslot) { ts in
                     BookingSheet(
                         timeslot: ts,
                         groupsById: store.groupsById,
+                        hiddenGroups: hiddenGroups,
+                        groupNamePrefix: groupNamePrefix,
                         store: store
                     )
                 }
                 .sheet(isPresented: $showingSettings) {
-                    SettingsView()
+                    SettingsView(allGroups: store.allGroups)
                 }
                 .alert(item: outcomeBinding) { outcome in
                     outcomeAlert(for: outcome)
                 }
                 .task {
-                    if store.week == nil {
-                        await store.loadInitial()
-                    }
+                    await store.loadInitial()
                 }
                 .refreshable {
                     await store.refresh()
@@ -57,27 +67,57 @@ struct WeekView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch store.loadState {
-        case .idle, .loading where store.week == nil:
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .error(let err) where store.week == nil:
-            errorState(err)
-        default:
-            if let week = store.week, !week.timeslots.isEmpty {
-                listView
-            } else if store.week != nil {
-                emptyState
-            } else {
+        if store.weeks.isEmpty {
+            switch store.loadState {
+            case .error(let err):
+                errorState(err)
+            default:
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        } else if filteredDays.isEmpty && store.reachedEnd {
+            emptyState
+        } else {
+            listView
+        }
+    }
+
+    private var hiddenGroups: Set<Int> {
+        ActiveGroupsSetting.parse(hiddenGroupsRaw)
+    }
+
+    private var groupNamePrefix: String {
+        let hidden = hiddenGroups
+        let visibleNames = store.allGroups
+            .filter { !hidden.contains($0.id) }
+            .map(\.displayName)
+        return LaundryGroup.commonDisplayPrefix(visibleNames)
+    }
+
+    private var filteredDays: [(date: String, slots: [Timeslot])] {
+        let days = store.timeslotsByDay
+        let hidden = hiddenGroups
+        let applyActiveHours = !showAllTimeslots && activeHoursEnabled && activeHoursStart != activeHoursEnd
+        return days.compactMap { day in
+            let slots = day.slots.filter { ts in
+                let activeGroups = ts.groups.filter { !hidden.contains($0.groupId) }
+                guard !activeGroups.isEmpty else { return false }
+                if !showAllTimeslots {
+                    let hasAvailable = activeGroups.contains { $0.status != .unavailable }
+                    guard hasAvailable else { return false }
+                }
+                if applyActiveHours {
+                    return ActiveHoursSetting.includes(timeslot: ts, startMinutes: activeHoursStart, endMinutes: activeHoursEnd)
+                }
+                return true
+            }
+            return slots.isEmpty ? nil : (day.date, slots)
         }
     }
 
     private var listView: some View {
         List {
-            ForEach(store.timeslotsByDay, id: \.date) { day in
+            ForEach(filteredDays, id: \.date) { day in
                 Section {
                     ForEach(day.slots) { ts in
                         Button {
@@ -85,7 +125,7 @@ struct WeekView: View {
                                 selectedTimeslot = ts
                             }
                         } label: {
-                            TimeslotRow(timeslot: ts, groupsById: store.groupsById)
+                            TimeslotRow(timeslot: ts, groupsById: store.groupsById, hiddenGroups: hiddenGroups, groupNamePrefix: groupNamePrefix)
                         }
                         .buttonStyle(.plain)
                         .disabled(!hasAnyInteractive(ts))
@@ -94,46 +134,36 @@ struct WeekView: View {
                     dayHeader(for: day.date)
                 }
             }
+
+            footerRow
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
     }
 
-    private var weekNavigator: some View {
-        HStack(spacing: 12) {
-            Button {
-                Task { await store.prevWeek() }
-            } label: {
-                Image(systemName: "chevron.left")
-                    .frame(width: 32, height: 32)
-            }
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.circle)
-
-            Spacer()
-
-            VStack(spacing: 0) {
-                Text(store.weekLabel)
-                    .font(.subheadline.weight(.semibold))
-                    .monospacedDigit()
-                Text("Week")
-                    .font(.caption2)
+    @ViewBuilder
+    private var footerRow: some View {
+        if store.reachedEnd {
+            HStack {
+                Spacer()
+                Text("No more timeslots")
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
+                Spacer()
             }
-
-            Spacer()
-
-            Button {
-                Task { await store.nextWeek() }
-            } label: {
-                Image(systemName: "chevron.right")
-                    .frame(width: 32, height: 32)
+            .padding(.vertical, 12)
+        } else {
+            HStack {
+                Spacer()
+                ProgressView()
+                Spacer()
             }
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.circle)
+            .padding(.vertical, 16)
+            .task(id: store.weeks.count) {
+                await store.loadMoreIfNeeded()
+            }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(.bar)
     }
 
     private func dayHeader(for dateString: String) -> some View {
@@ -153,7 +183,8 @@ struct WeekView: View {
     }
 
     private func hasAnyInteractive(_ ts: Timeslot) -> Bool {
-        ts.groups.contains { $0.status == .bookable || $0.status == .own }
+        let hidden = hiddenGroups
+        return ts.groups.contains { !hidden.contains($0.groupId) && ($0.status == .bookable || $0.status == .own) }
     }
 
     private var emptyState: some View {
@@ -161,7 +192,7 @@ struct WeekView: View {
             Image(systemName: "calendar.badge.exclamationmark")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text("No timeslots this week")
+            Text("No upcoming timeslots")
                 .font(.headline)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -200,7 +231,7 @@ struct WeekView: View {
         case .failed: title = "Failed"
         }
         let lines = outcome.results.map { r -> String in
-            let name = store.groupsById[r.groupId]?.name ?? "Group \(r.groupId)"
+            let name = store.groupsById[r.groupId]?.displayName ?? "Group \(r.groupId)"
             return "\(name): \(r.message ?? r.status)"
         }
         return Alert(

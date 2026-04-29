@@ -12,6 +12,8 @@ struct GroupChip: View {
     var body: some View {
         Text(name)
             .font(.caption.weight(.medium))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(background, in: Capsule())

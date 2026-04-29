@@ -20,6 +20,32 @@ struct Week: Decodable {
 struct LaundryGroup: Decodable, Identifiable, Hashable {
     let id: Int
     let name: String
+
+    var displayName: String {
+        name
+            .replacingOccurrences(of: "Vad skall bokas?", with: "")
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+    static func commonDisplayPrefix(_ names: [String]) -> String {
+        guard names.count >= 2 else { return "" }
+        var prefix = names[0]
+        for name in names.dropFirst() {
+            prefix = prefix.commonPrefix(with: name)
+            if prefix.isEmpty { return "" }
+        }
+        if let gruppRange = prefix.range(of: "Grupp") {
+            return String(prefix[..<gruppRange.lowerBound])
+        }
+        guard let lastSpace = prefix.lastIndex(where: { $0.isWhitespace }) else { return "" }
+        return String(prefix[...lastSpace])
+    }
+
+    static func trimmedDisplayName(_ name: String, prefix: String) -> String {
+        guard !prefix.isEmpty, name.hasPrefix(prefix) else { return name }
+        let trimmed = String(name.dropFirst(prefix.count))
+        return trimmed.isEmpty ? name : trimmed
+    }
 }
 
 struct Timeslot: Decodable, Identifiable, Hashable {
@@ -90,6 +116,47 @@ struct APIError: Decodable, Error, LocalizedError {
 
 struct APIErrorEnvelope: Decodable {
     let error: APIError
+}
+
+enum ActiveGroupsSetting {
+    static let hiddenIdsKey = "activeGroups.hiddenIds"
+
+    static func parse(_ raw: String) -> Set<Int> {
+        Set(raw.split(separator: ",").compactMap { Int($0) })
+    }
+
+    static func encode(_ ids: Set<Int>) -> String {
+        ids.sorted().map(String.init).joined(separator: ",")
+    }
+
+    static func isActive(groupId: Int, hidden: Set<Int>) -> Bool {
+        !hidden.contains(groupId)
+    }
+}
+
+enum ActiveHoursSetting {
+    static let enabledKey = "activeHours.enabled"
+    static let startKey = "activeHours.startMinutes"
+    static let endKey = "activeHours.endMinutes"
+
+    static let defaultEnabled = true
+    static let defaultStartMinutes = 6 * 60
+    static let defaultEndMinutes = 0
+
+    static func minutes(fromTimeString s: String) -> Int? {
+        let parts = s.split(separator: ":")
+        guard parts.count >= 2, let h = Int(parts[0]), let m = Int(parts[1]) else { return nil }
+        return h * 60 + m
+    }
+
+    static func includes(timeslot: Timeslot, startMinutes: Int, endMinutes: Int) -> Bool {
+        guard let m = minutes(fromTimeString: timeslot.startTime) else { return true }
+        if startMinutes == endMinutes { return true }
+        if startMinutes < endMinutes {
+            return m >= startMinutes && m < endMinutes
+        }
+        return m >= startMinutes || m < endMinutes
+    }
 }
 
 struct AnyCodable: Decodable {

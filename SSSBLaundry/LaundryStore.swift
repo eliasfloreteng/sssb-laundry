@@ -22,55 +22,66 @@ struct ActionOutcome: Identifiable {
 
 @Observable
 final class LaundryStore {
-    var week: WeekResponse?
+    var weeks: [WeekResponse] = []
     var loadState: LoadState = .idle
+    var isLoadingMore = false
+    var reachedEnd = false
     var lastOutcome: ActionOutcome?
     var authFailed = false
 
     private let api: APIClient
-    private var cursorDate: String
+    private let today: String
 
     init() {
         self.api = APIClient(objectIdProvider: { ObjectIdStore.get() })
-        self.cursorDate = Self.todayInStockholm()
+        self.today = Self.todayInStockholm()
     }
 
     var groupsById: [Int: LaundryGroup] {
-        guard let groups = week?.groups else { return [:] }
-        return Dictionary(uniqueKeysWithValues: groups.map { ($0.id, $0) })
+        var map: [Int: LaundryGroup] = [:]
+        for week in weeks {
+            for group in week.groups where map[group.id] == nil {
+                map[group.id] = group
+            }
+        }
+        return map
     }
 
-    var weekLabel: String {
-        guard let week = week?.week else { return " " }
-        return "\(formatHumanDate(week.fromDate)) – \(formatHumanDate(week.toDate))"
+    var allGroups: [LaundryGroup] {
+        groupsById.values.sorted { $0.id < $1.id }
     }
 
     var timeslotsByDay: [(date: String, slots: [Timeslot])] {
-        guard let timeslots = week?.timeslots else { return [] }
-        let grouped = Dictionary(grouping: timeslots, by: { $0.localDate })
+        var grouped: [String: [Timeslot]] = [:]
+        for week in weeks {
+            for timeslot in week.timeslots where timeslot.localDate >= today {
+                grouped[timeslot.localDate, default: []].append(timeslot)
+            }
+        }
         return grouped.keys.sorted().map { date in
             (date, grouped[date]!.sorted { $0.startAt < $1.startAt })
         }
     }
 
     func loadInitial() async {
-        await load(date: cursorDate)
+        guard weeks.isEmpty else { return }
+        loadState = .loading
+        await fetchWeek(date: today, replaceAll: true)
     }
 
     func refresh() async {
-        await load(date: cursorDate)
+        loadState = .loading
+        reachedEnd = false
+        weeks.removeAll()
+        await fetchWeek(date: today, replaceAll: true)
     }
 
-    func nextWeek() async {
-        guard let to = week?.week.toDate, let next = addDays(to: to, days: 1) else { return }
-        cursorDate = next
-        await load(date: cursorDate)
-    }
-
-    func prevWeek() async {
-        guard let from = week?.week.fromDate, let prev = addDays(to: from, days: -1) else { return }
-        cursorDate = prev
-        await load(date: cursorDate)
+    func loadMoreIfNeeded() async {
+        guard !isLoadingMore, !reachedEnd, let last = weeks.last else { return }
+        guard let next = addDays(to: last.week.toDate, days: 1) else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+        await fetchWeek(date: next, replaceAll: false)
     }
 
     func bookAndCancel(timeslotId: String, toBook: [Int], toCancel: [Int]) async {
@@ -107,21 +118,36 @@ final class LaundryStore {
         }
 
         lastOutcome = ActionOutcome(timeslot: timeslotId, overallStatus: overall, results: results)
-        await refresh()
+        await refreshWeekContaining(timeslotId: timeslotId)
     }
 
-    private func load(date: String) async {
-        loadState = .loading
+    private func fetchWeek(date: String, replaceAll: Bool) async {
         do {
             let resp = try await api.getWeek(date: date)
-            self.week = resp
-            self.cursorDate = resp.week.fromDate
-            self.loadState = .loaded
+            if replaceAll {
+                weeks = [resp]
+            } else if let existingIndex = weeks.firstIndex(where: { $0.week.fromDate == resp.week.fromDate }) {
+                weeks[existingIndex] = resp
+            } else {
+                weeks.append(resp)
+                if resp.timeslots.isEmpty {
+                    reachedEnd = true
+                }
+            }
+            loadState = .loaded
         } catch let err as APIError {
             handleError(err)
         } catch {
             handleError(APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription))
         }
+    }
+
+    private func refreshWeekContaining(timeslotId: String) async {
+        guard let week = weeks.first(where: { $0.timeslots.contains { $0.id == timeslotId } }) else {
+            await refresh()
+            return
+        }
+        await fetchWeek(date: week.week.fromDate, replaceAll: false)
     }
 
     private func handleError(_ err: APIError) {
@@ -157,17 +183,5 @@ final class LaundryStore {
         calendar.timeZone = TimeZone(identifier: "Europe/Stockholm")!
         guard let new = calendar.date(byAdding: .day, value: days, to: date) else { return nil }
         return formatter.string(from: new)
-    }
-
-    private func formatHumanDate(_ dateString: String) -> String {
-        let parser = DateFormatter()
-        parser.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        parser.dateFormat = "yyyy-MM-dd"
-        parser.locale = Locale(identifier: "en_US_POSIX")
-        guard let date = parser.date(from: dateString) else { return dateString }
-        let printer = DateFormatter()
-        printer.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        printer.dateFormat = "d MMM"
-        return printer.string(from: date)
     }
 }

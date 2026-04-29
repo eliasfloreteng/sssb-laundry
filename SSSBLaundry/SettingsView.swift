@@ -6,7 +6,13 @@
 import SwiftUI
 
 struct SettingsView: View {
+    let allGroups: [LaundryGroup]
+
     @AppStorage(ObjectIdStore.key) private var objectId: String = ""
+    @AppStorage(ActiveHoursSetting.enabledKey) private var activeHoursEnabled: Bool = ActiveHoursSetting.defaultEnabled
+    @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
+    @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
+    @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
     @Environment(\.dismiss) private var dismiss
     @State private var editing = false
     @State private var draft: String = ""
@@ -29,6 +35,46 @@ struct SettingsView: View {
                     Text("Object id")
                 } footer: {
                     Text("Used as the X-Object-Id header on every request.")
+                }
+
+                Section {
+                    if allGroups.isEmpty {
+                        Text("No groups loaded yet.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(allGroups) { group in
+                            Toggle(group.displayName, isOn: visibilityBinding(for: group.id))
+                        }
+                        if !hiddenSet.isEmpty {
+                            Button("Show all groups") {
+                                hiddenGroupsRaw = ""
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Visible groups")
+                } footer: {
+                    Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object id covers multiple buildings.")
+                }
+
+                Section {
+                    Toggle("Filter timeslots", isOn: $activeHoursEnabled)
+                    if activeHoursEnabled {
+                        DatePicker(
+                            "From",
+                            selection: startBinding,
+                            displayedComponents: .hourAndMinute
+                        )
+                        DatePicker(
+                            "To",
+                            selection: endBinding,
+                            displayedComponents: .hourAndMinute
+                        )
+                    }
+                } header: {
+                    Text("Active hours")
+                } footer: {
+                    Text("Only timeslots starting within this range are shown. The range can span midnight.")
                 }
 
                 Section {
@@ -68,5 +114,49 @@ struct SettingsView: View {
     private func signOut() {
         objectId = ""
         dismiss()
+    }
+
+    private var hiddenSet: Set<Int> {
+        ActiveGroupsSetting.parse(hiddenGroupsRaw)
+    }
+
+    private func visibilityBinding(for groupId: Int) -> Binding<Bool> {
+        Binding(
+            get: { !hiddenSet.contains(groupId) },
+            set: { isVisible in
+                var set = hiddenSet
+                if isVisible {
+                    set.remove(groupId)
+                } else {
+                    set.insert(groupId)
+                }
+                hiddenGroupsRaw = ActiveGroupsSetting.encode(set)
+            }
+        )
+    }
+
+    private var startBinding: Binding<Date> {
+        Binding(
+            get: { Self.date(fromMinutes: activeHoursStart) },
+            set: { activeHoursStart = Self.minutes(fromDate: $0) }
+        )
+    }
+
+    private var endBinding: Binding<Date> {
+        Binding(
+            get: { Self.date(fromMinutes: activeHoursEnd) },
+            set: { activeHoursEnd = Self.minutes(fromDate: $0) }
+        )
+    }
+
+    private static func date(fromMinutes minutes: Int) -> Date {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        return calendar.date(byAdding: .minute, value: minutes, to: startOfDay) ?? startOfDay
+    }
+
+    private static func minutes(fromDate date: Date) -> Int {
+        let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+        return (components.hour ?? 0) * 60 + (components.minute ?? 0)
     }
 }

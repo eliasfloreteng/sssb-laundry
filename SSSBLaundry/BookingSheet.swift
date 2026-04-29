@@ -8,6 +8,8 @@ import SwiftUI
 struct BookingSheet: View {
     let timeslot: Timeslot
     let groupsById: [Int: LaundryGroup]
+    let hiddenGroups: Set<Int>
+    let groupNamePrefix: String
     let store: LaundryStore
     @Environment(\.dismiss) private var dismiss
 
@@ -23,7 +25,7 @@ struct BookingSheet: View {
 
                 List {
                     Section {
-                        ForEach(timeslot.groups, id: \.groupId) { item in
+                        ForEach(visibleGroups, id: \.groupId) { item in
                             row(for: item)
                         }
                     } footer: {
@@ -70,7 +72,8 @@ struct BookingSheet: View {
     }
 
     private func row(for item: TimeslotGroup) -> some View {
-        let name = groupsById[item.groupId]?.name ?? "Group \(item.groupId)"
+        let fullName = groupsById[item.groupId]?.displayName ?? "Group \(item.groupId)"
+        let name = LaundryGroup.trimmedDisplayName(fullName, prefix: groupNamePrefix)
         let isSelected = selection.contains(item.groupId)
         let disabled = item.status == .unavailable
         return Button {
@@ -128,13 +131,17 @@ struct BookingSheet: View {
         }
     }
 
+    private var visibleGroups: [TimeslotGroup] {
+        timeslot.groups.filter { !hiddenGroups.contains($0.groupId) }
+    }
+
     private var ownGroupIds: Set<Int> {
-        Set(timeslot.groups.filter { $0.status == .own }.map(\.groupId))
+        Set(visibleGroups.filter { $0.status == .own }.map(\.groupId))
     }
 
     private var toBook: [Int] {
         selection.subtracting(ownGroupIds)
-            .filter { id in timeslot.groups.first { $0.groupId == id }?.status == .bookable }
+            .filter { id in visibleGroups.first { $0.groupId == id }?.status == .bookable }
             .sorted()
     }
 

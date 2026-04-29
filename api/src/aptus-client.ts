@@ -124,10 +124,7 @@ export class AptusClient {
   }
 
   private async getLaundryGroups(objectId: string): Promise<{ groups: BookingGroup[] }> {
-    const categoriesRes = await this.requestWithAuth(objectId, "/CustomerBooking/CustomerCategories", {
-      refererPath: "/CustomerBooking",
-      xRequestedWith: true
-    });
+    const categoriesRes = await this.requestDialogPage(objectId, "/CustomerBooking/CustomerCategories");
 
     const categories = parseCategories(categoriesRes.body);
     if (!categories.length) {
@@ -135,18 +132,17 @@ export class AptusClient {
         statusCode: 502,
         code: "UPSTREAM_PARSE_ERROR",
         message: "No Aptus categories found",
-        upstream: { path: categoriesRes.path, status: categoriesRes.status }
+        upstream: { path: categoriesRes.path, status: categoriesRes.status },
+        details: {
+          htmlPreview: normalizeWhitespace(categoriesRes.body).slice(0, 400)
+        }
       });
     }
 
     const category = categories[0];
-    const groupsRes = await this.requestWithAuth(
+    const groupsRes = await this.requestDialogPage(
       objectId,
-      `/CustomerBooking/CustomerLocationGroups?categoryId=${category.id}`,
-      {
-        refererPath: "/CustomerBooking",
-        xRequestedWith: true
-      }
+      `/CustomerBooking/CustomerLocationGroups?categoryId=${category.id}`
     );
 
     const groups = parseGroups(groupsRes.body);
@@ -155,11 +151,33 @@ export class AptusClient {
         statusCode: 502,
         code: "UPSTREAM_PARSE_ERROR",
         message: "No Aptus booking groups found",
-        upstream: { path: groupsRes.path, status: groupsRes.status }
+        upstream: { path: groupsRes.path, status: groupsRes.status },
+        details: {
+          categoryId: category.id,
+          htmlPreview: normalizeWhitespace(groupsRes.body).slice(0, 400)
+        }
       });
     }
 
     return { groups };
+  }
+
+  private async requestDialogPage(objectId: string, path: string): Promise<HttpResult> {
+    try {
+      const withXRequestedWith = await this.requestWithAuth(objectId, path, {
+        refererPath: "/CustomerBooking",
+        xRequestedWith: true
+      });
+      if (withXRequestedWith.body.trim()) return withXRequestedWith;
+    } catch (error) {
+      if (!(error instanceof AppError) || error.code !== "UPSTREAM_ACCOUNT_ERROR") {
+        throw error;
+      }
+    }
+
+    return this.requestWithAuth(objectId, path, {
+      refererPath: "/CustomerBooking"
+    });
   }
 
   private async fetchCalendar(objectId: string, groupId: number, passDate: string): Promise<ParsedCalendar> {
@@ -564,13 +582,17 @@ export function parseCategories(html: string): Array<{ id: number; name: string 
   const categories: Array<{ id: number; name: string }> = [];
 
   $("button.bookingNavigation").each((_index, element) => {
-    const onclick = $(element).attr("onclick") ?? "";
-    const match = onclick.match(/LoadLocationGroupDialog\(['"]?(\d+)['"]?\)/);
-    if (!match) return;
+    const button = $(element);
+    const onclick = button.attr("onclick") ?? "";
+    const id =
+      extractFirstNumberFromFunctionCall(onclick, "LoadLocationGroupDialog") ??
+      extractFirstNumberFromText(button.attr("data-category-id") ?? "") ??
+      extractFirstNumberFromText(button.find("a").attr("href") ?? "");
+    if (!id) return;
 
     categories.push({
-      id: Number(match[1]),
-      name: normalizeWhitespace($(element).text())
+      id,
+      name: normalizeWhitespace(button.text())
     });
   });
 
@@ -582,13 +604,18 @@ export function parseGroups(html: string): BookingGroup[] {
   const groups: BookingGroup[] = [];
 
   $("button.bookingNavigation").each((_index, element) => {
-    const onclick = $(element).attr("onclick") ?? "";
-    const match = onclick.match(/BookingCalendarOverview\?bookingGroupId=(\d+)/);
-    if (!match) return;
+    const button = $(element);
+    const id =
+      extractGroupIdFromText(button.attr("onclick") ?? "") ??
+      extractGroupIdFromText(button.attr("data-url") ?? "") ??
+      extractGroupIdFromText(button.attr("href") ?? "") ??
+      extractGroupIdFromText(button.find("a").attr("href") ?? "") ??
+      extractFirstNumberFromText(button.attr("data-booking-group-id") ?? "");
+    if (!id) return;
 
-    const labelCell = $(element).find("td").eq(1);
-    const labelLines = extractLabelLines(labelCell.html() ?? $(element).html() ?? "");
-    const fallbackName = normalizeWhitespace($(element).attr("aria-label") ?? "") || normalizeWhitespace($(element).text());
+    const labelCell = button.find("td").eq(1);
+    const labelLines = extractLabelLines(labelCell.html() ?? button.html() ?? "");
+    const fallbackName = normalizeWhitespace(button.attr("aria-label") ?? "") || normalizeWhitespace(button.text());
 
     const location = labelLines.length > 1 ? labelLines[0] : null;
     const name =
@@ -597,7 +624,7 @@ export function parseGroups(html: string): BookingGroup[] {
         : labelLines[0] ?? fallbackName;
 
     groups.push({
-      id: Number(match[1]),
+      id,
       location,
       name
     });
@@ -767,6 +794,29 @@ function extractLabelLines(html: string): string[] {
     .split("\n")
     .map(normalizeWhitespace)
     .filter(Boolean);
+}
+
+function extractGroupIdFromText(input: string): number | undefined {
+  const match = input.match(/bookingGroupId=(\d+)/i);
+  if (match) return Number(match[1]);
+
+  const overviewMatch = input.match(/BookingCalendarOverview[^0-9]*(\d+)/i);
+  if (overviewMatch) return Number(overviewMatch[1]);
+
+  return undefined;
+}
+
+function extractFirstNumberFromFunctionCall(input: string, name: string): number | undefined {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const callMatch = input.match(new RegExp(`${escapedName}\\(([^)]*)\\)`, "i"));
+  if (!callMatch) return undefined;
+  return extractFirstNumberFromText(callMatch[1]);
+}
+
+function extractFirstNumberFromText(input: string): number | undefined {
+  const match = input.match(/\d+/);
+  if (!match) return undefined;
+  return Number(match[0]);
 }
 
 function dedupeBy<T>(items: T[], keySelector: (item: T) => string | number): T[] {

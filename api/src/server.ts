@@ -53,6 +53,14 @@ export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstan
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof AppError) {
+      app.log.warn(
+        {
+          err: error,
+          code: error.code,
+          upstream: error.upstream
+        },
+        "Handled application error"
+      );
       reply.code(error.statusCode).send({
         error: {
           code: error.code,

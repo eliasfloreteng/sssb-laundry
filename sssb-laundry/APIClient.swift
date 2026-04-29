@@ -58,6 +58,13 @@ final class APIClient: @unchecked Sendable {
             throw URLError(.badServerResponse)
         }
         if !(200..<300).contains(http.statusCode) {
+            #if DEBUG
+            if let s = String(data: data, encoding: .utf8) {
+                print("[API] \(method) \(path) ← \(http.statusCode)", s.prefix(600))
+            } else {
+                print("[API] \(method) \(path) ← \(http.statusCode) (non-text body, \(data.count) bytes)")
+            }
+            #endif
             if let apiErr = try? decoder.decode(APIError.self, from: data) {
                 throw apiErr
             }
@@ -88,8 +95,8 @@ final class APIClient: @unchecked Sendable {
         return SlotsPage(items: items, nextCursor: nil)
     }
 
-    func book(objectId: String, date: String, passNo: Int, prefer: BookingPreference = .both) async throws {
-        let body = try encoder.encode(["prefer": prefer.rawValue])
+    func book(objectId: String, date: String, passNo: Int, prefer: BookingPreference) async throws {
+        let body = try encoder.encode(["prefer": prefer.apiValue])
         _ = try await request(
             path: "/slots/\(date)/\(passNo)/book",
             method: "POST",

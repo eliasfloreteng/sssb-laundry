@@ -50,17 +50,46 @@ final class SlotsViewModel: ObservableObject {
         isLoadingMore = false
     }
 
-    func book(slot: Slot, prefer: BookingPreference) async -> String? {
-        guard let objectId else { return "Not signed in" }
-        do {
-            try await APIClient.shared.book(objectId: objectId, date: slot.date, passNo: slot.passNo, prefer: prefer)
-            await load()
-            return nil
-        } catch let api as APIError {
-            return api.error.message
-        } catch {
-            return "Booking failed."
+    /// Result of a multi-group booking attempt. The view layer renders a green
+    /// "Booked: X" line for `bookedGroupNames` and a red "Y — <reason>" line
+    /// for each entry in `failures` (best-effort partial success).
+    struct BookOutcome {
+        let bookedGroupNames: [String]
+        let failures: [Failure]
+
+        struct Failure {
+            let groupName: String
+            let message: String
         }
+    }
+
+    func book(slot: Slot, groupIds: [String]) async -> BookOutcome {
+        guard let objectId else {
+            return BookOutcome(
+                bookedGroupNames: [],
+                failures: [.init(groupName: "", message: "Not signed in")]
+            )
+        }
+        var booked: [String] = []
+        var failed: [BookOutcome.Failure] = []
+        for id in groupIds {
+            let name = slot.groups.first(where: { $0.id == id })?.name ?? "Group #\(id)"
+            do {
+                try await APIClient.shared.book(
+                    objectId: objectId,
+                    date: slot.date,
+                    passNo: slot.passNo,
+                    prefer: .group(id: id)
+                )
+                booked.append(name)
+            } catch let api as APIError {
+                failed.append(.init(groupName: name, message: api.error.message))
+            } catch {
+                failed.append(.init(groupName: name, message: "Booking failed."))
+            }
+        }
+        await load()
+        return BookOutcome(bookedGroupNames: booked, failures: failed)
     }
 
     func cancelAll(slot: Slot) async -> String? {
@@ -136,7 +165,7 @@ struct SlotsView: View {
         }
         .listStyle(.insetGrouped)
         .navigationDestination(for: Slot.self) { slot in
-            SlotDetailView(slot: slot, vm: vm)
+            SlotDetailView(initialSlot: slot, vm: vm)
         }
     }
 

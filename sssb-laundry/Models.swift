@@ -36,7 +36,7 @@ struct Slot: Codable, Identifiable, Hashable {
     let groups: [SlotGroup]
     let bookable: Bool
     let bookedByMe: Bool
-    let preferred: String?
+    let bookableGroupIds: [String]
 
     var id: String { "\(date)-\(passNo)" }
 
@@ -84,15 +84,21 @@ struct APIError: Codable, Error, LocalizedError {
     var code: String { error.code }
 }
 
-enum BookingPreference: String, CaseIterable, Identifiable {
-    case both, one = "1", two = "2", any
-    var id: String { rawValue }
-    var label: String {
+/// What to send as the `prefer` value on `POST /slots/:date/:passNo/book`.
+///
+/// The wire protocol also accepts `"any"` and positional `"1"`, `"2"`, `"N"`
+/// values, but the iOS client only ever needs `.all` (book every bookable
+/// group in one server-side pass) or `.group(id:)` (target a specific group
+/// by id). The client always uses `.group(id:)` when the user picks
+/// concrete groups, since that gives per-group success/failure info.
+enum BookingPreference: Equatable {
+    case all
+    case group(id: String)
+
+    var apiValue: String {
         switch self {
-        case .both: return "Both groups"
-        case .one: return "Group 1"
-        case .two: return "Group 2"
-        case .any: return "Any group"
+        case .all: return "all"
+        case .group(let id): return id
         }
     }
 }

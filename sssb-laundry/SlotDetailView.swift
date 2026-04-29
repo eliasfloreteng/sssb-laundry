@@ -6,16 +6,25 @@
 import SwiftUI
 
 struct SlotDetailView: View {
-    let slot: Slot
+    let initialSlot: Slot
     @ObservedObject var vm: SlotsViewModel
 
-    @State private var preference: BookingPreference = .both
+    @State private var selectedGroupIds: Set<String> = []
     @State private var isWorking = false
     @State private var errorMessage: String?
     @State private var successMessage: String?
     @State private var showCancelConfirm = false
     @State private var showAddToCalendar = false
     @Environment(\.dismiss) private var dismiss
+
+    /// The freshest version of the slot from the view model's list, falling
+    /// back to the slot we navigated in with if it's no longer present (e.g.
+    /// after a paginated reload). Reading `vm.slots` here makes the body
+    /// reactive: when `book(...)` finishes and `load()` republishes, the
+    /// detail view re-renders with the new `bookedByMe` / `groups` state.
+    private var slot: Slot {
+        vm.slots.first(where: { $0.id == initialSlot.id }) ?? initialSlot
+    }
 
     var body: some View {
         ScrollView {
@@ -24,42 +33,17 @@ struct SlotDetailView: View {
 
                 card {
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Groups")
-                            .font(.headline)
+                        groupsCardHeader
+                        if showsCheckboxes {
+                            Text(selectionHint)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                         ForEach(slot.groups) { g in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(g.name)
-                                        .font(.subheadline.weight(.semibold))
-                                    Text(humanStatus(g.status))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                statusPill(g.status)
-                            }
+                            groupRow(g)
                             if g.id != slot.groups.last?.id {
                                 Divider()
                             }
-                        }
-                    }
-                }
-
-                if slot.bookable && !slot.bookedByMe {
-                    card {
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text("Booking preference")
-                                .font(.headline)
-                            Text("Choose which group(s) to book. Default matches the suggestion from the server.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-
-                            Picker("Preference", selection: $preference) {
-                                ForEach(BookingPreference.allCases) { p in
-                                    Text(p.label).tag(p)
-                                }
-                            }
-                            .pickerStyle(.segmented)
                         }
                     }
                 }
@@ -88,11 +72,8 @@ struct SlotDetailView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Slot")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            if let p = slot.preferred, let pref = BookingPreference(rawValue: p) {
-                preference = pref
-            }
-        }
+        .onAppear { seedDefaultSelection() }
+        .onChange(of: slot.bookableGroupIds) { _ in seedDefaultSelection() }
         .confirmationDialog(
             "Cancel this booking?",
             isPresented: $showCancelConfirm,
@@ -192,16 +173,19 @@ struct SlotDetailView: View {
             } label: {
                 HStack {
                     if isWorking { ProgressView().tint(.white) } else {
-                        Label("Book this slot", systemImage: "calendar.badge.plus")
+                        Label(bookButtonTitle, systemImage: "calendar.badge.plus")
                             .font(.headline)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 14))
+                .background(
+                    (selectedGroupIds.isEmpty ? Color.secondary : Color.accentColor),
+                    in: RoundedRectangle(cornerRadius: 14)
+                )
                 .foregroundStyle(.white)
             }
-            .disabled(isWorking)
+            .disabled(isWorking || selectedGroupIds.isEmpty)
         } else {
             Text("This slot isn't bookable right now.")
                 .font(.footnote)
@@ -215,12 +199,30 @@ struct SlotDetailView: View {
         isWorking = true
         errorMessage = nil
         successMessage = nil
-        if let err = await vm.book(slot: slot, prefer: preference) {
-            errorMessage = err
+        let outcome = await vm.book(slot: slot, groupIds: orderedSelection)
+        if outcome.failures.isEmpty {
+            successMessage = outcome.bookedGroupNames.count <= 1
+                ? "Booked! Check the Bookings tab."
+                : "Booked \(outcome.bookedGroupNames.joined(separator: ", "))."
+        } else if outcome.bookedGroupNames.isEmpty {
+            errorMessage = outcome.failures
+                .map { $0.message }
+                .joined(separator: "\n")
         } else {
-            successMessage = "Booked! Check the Bookings tab."
+            successMessage = "Booked: \(outcome.bookedGroupNames.joined(separator: ", "))."
+            errorMessage = outcome.failures
+                .map { "\($0.groupName) — \($0.message)" }
+                .joined(separator: "\n")
         }
         isWorking = false
+    }
+
+    /// Selection ordered to match `slot.groups` so the user-visible group
+    /// order is preserved when iterating booking calls.
+    private var orderedSelection: [String] {
+        slot.groups
+            .map(\.id)
+            .filter { selectedGroupIds.contains($0) }
     }
 
     private func performCancel() async {
@@ -302,5 +304,105 @@ struct SlotDetailView: View {
         case "past": return "Past"
         default: return raw
         }
+    }
+
+    // MARK: - Group selection (checkboxes)
+
+    /// Whether the merged Groups card should show interactive checkboxes.
+    /// We hide them once the slot is already booked (Cancel takes over) and
+    /// when there's nothing the user could plausibly book.
+    private var showsCheckboxes: Bool {
+        slot.bookable && !slot.bookedByMe && !slot.bookableGroupIds.isEmpty
+    }
+
+    /// Cap selections at 2 because Aptus enforces a max of 2 active bookings
+    /// per tenant. If only 1 group is bookable, the cap collapses to 1.
+    private var maxSelectable: Int {
+        min(2, slot.bookableGroupIds.count)
+    }
+
+    private var selectionHint: String {
+        let n = slot.bookableGroupIds.count
+        if n == 1 { return "Tap Book to confirm." }
+        if n == 2 { return "Both groups selected. Untap to skip one." }
+        return "Pick up to 2 groups to book — the active-booking limit is 2."
+    }
+
+    private var bookButtonTitle: String {
+        switch selectedGroupIds.count {
+        case 0: return "Pick a group to book"
+        case 1: return "Book this slot"
+        default: return "Book \(selectedGroupIds.count) groups"
+        }
+    }
+
+    @ViewBuilder
+    private var groupsCardHeader: some View {
+        HStack {
+            Text("Groups").font(.headline)
+            Spacer()
+            if showsCheckboxes && maxSelectable > 1 {
+                Text("\(selectedGroupIds.count) of \(maxSelectable) selected")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func groupRow(_ g: Slot.SlotGroup) -> some View {
+        let isBookable = slot.bookableGroupIds.contains(g.id)
+        let interactive = isBookable && showsCheckboxes
+        let isSelected = selectedGroupIds.contains(g.id)
+        let atCap = !isSelected && selectedGroupIds.count >= maxSelectable
+
+        Button {
+            guard interactive else { return }
+            if isSelected {
+                selectedGroupIds.remove(g.id)
+            } else if !atCap {
+                selectedGroupIds.insert(g.id)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                if interactive {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(checkboxTint(isSelected: isSelected, atCap: atCap))
+                        .accessibilityLabel(isSelected ? "Selected" : "Not selected")
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(g.name)
+                        .font(.subheadline.weight(.semibold))
+                    Text(humanStatus(g.status))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                statusPill(g.status)
+            }
+            .contentShape(Rectangle())
+            .opacity(interactive && atCap ? 0.55 : 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(!interactive)
+    }
+
+    private func checkboxTint(isSelected: Bool, atCap: Bool) -> Color {
+        if isSelected { return .accentColor }
+        if atCap { return .secondary.opacity(0.5) }
+        return .secondary
+    }
+
+    private func seedDefaultSelection() {
+        let bookable = slot.bookableGroupIds
+        // Drop any stale selection (e.g. group that was bookable on first
+        // load but isn't anymore after a refresh).
+        selectedGroupIds = selectedGroupIds.intersection(bookable)
+        guard selectedGroupIds.isEmpty else { return }
+        if bookable.count <= 2 {
+            selectedGroupIds = Set(bookable)
+        }
+        // 3+ bookable groups: leave empty, force the user to pick.
     }
 }

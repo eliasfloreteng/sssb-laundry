@@ -10,6 +10,7 @@ struct SignInView: View {
     @State private var objectId = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showAdvanced = false
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -95,15 +96,28 @@ struct SignInView: View {
 
                 Spacer()
 
-                Text("Your apartment number is used as your login to the SSSB booking system.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 24)
+                VStack(spacing: 12) {
+                    Text("Your apartment number is used as your login to the SSSB booking system.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+
+                    Button {
+                        showAdvanced = true
+                    } label: {
+                        Label("Advanced settings", systemImage: "gearshape")
+                            .font(.footnote)
+                    }
+                    .buttonStyle(.borderless)
+                }
+                .padding(.bottom, 24)
             }
         }
         .onAppear { focused = true }
+        .sheet(isPresented: $showAdvanced) {
+            AdvancedSettingsSheet()
+        }
     }
 
     private var canSubmit: Bool {
@@ -125,6 +139,48 @@ struct SignInView: View {
             }
             isLoading = false
         }
+    }
+}
+
+private struct AdvancedSettingsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("apiBaseURL") private var apiBaseURL: String = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack {
+                        TextField(
+                            "API URL",
+                            text: $apiBaseURL,
+                            prompt: Text(APIClient.defaultBaseURL)
+                        )
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                        .textContentType(.URL)
+                        if !apiBaseURL.isEmpty {
+                            Button("Reset") { apiBaseURL = "" }
+                                .buttonStyle(.borderless)
+                                .font(.footnote)
+                        }
+                    }
+                } header: {
+                    Text("API URL")
+                } footer: {
+                    Text("Leave blank to use the default. Changes apply to the next request.")
+                }
+            }
+            .navigationTitle("Advanced")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 

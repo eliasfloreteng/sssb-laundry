@@ -33,14 +33,13 @@ enum CalendarService {
         event.title = eventTitle(machineNames: machineNames)
         event.startDate = parseISO8601(timeslot.startAt) ?? Date()
         event.endDate = parseISO8601(timeslot.endAt) ?? event.startDate.addingTimeInterval(3 * 3600)
-        event.notes = "SSSB laundry booking"
-        event.addAlarm(EKAlarm(relativeOffset: -15 * 60))
+        event.addAlarm(EKAlarm(relativeOffset: 0))
         return PreparedEvent(store: store, event: event)
     }
 
     private static func eventTitle(machineNames: [String]) -> String {
-        if machineNames.isEmpty { return "SSSB Laundry" }
-        return "SSSB Laundry – \(machineNames.joined(separator: ", "))"
+        if machineNames.isEmpty { return "Tvätt" }
+        return "Tvätt \(machineNames.joined(separator: ", "))"
     }
 
     private static func parseISO8601(_ string: String) -> Date? {

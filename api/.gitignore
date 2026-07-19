@@ -2,3 +2,4 @@ requests/
 .DS_Store
 node_modules/
 dist/
+compose.override.yaml

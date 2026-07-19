@@ -5,11 +5,3 @@ services:
     restart: unless-stopped
     environment:
       - "LOG_LEVEL=debug"
-    networks:
-      - cloudflare-net
-networks:
-  cloudflare-net:
-    external: true
-x-dockge:
-  urls:
-    - https://sssb-laundry.eliasf.se

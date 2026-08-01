@@ -50,7 +50,9 @@ SSSBLaundry/
 
 ## Publishing an update to TestFlight
 
-The app ships via TestFlight under bundle id `se.floreteng.SSSBLaundry`. Each upload needs a unique build number; the marketing version only needs to change for user-visible releases.
+The app ships via TestFlight under bundle id `se.floreteng.SSSBLaundry`. Each upload needs a unique build number; the marketing version only needs to change for user-visible releases. TestFlight builds expire 90 days after upload — refreshing an expired build is just a build-number bump and a re-upload.
+
+`CURRENT_PROJECT_VERSION` in the pbxproj is the *next* build number to use only if every past upload was committed. If an upload fails with `ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE` ("The bundle version must be higher than the previously uploaded version"), check the actual latest build in App Store Connect and bump past it.
 
 1. **Bump the version** in the `SSSBLaundry` target → General, or directly in `SSSBLaundry.xcodeproj/project.pbxproj`:
    - `CURRENT_PROJECT_VERSION` — increment for every upload (e.g. `1` → `2`).
@@ -66,6 +68,24 @@ The app ships via TestFlight under bundle id `se.floreteng.SSSBLaundry`. Each up
 6. **Release to testers**:
    - Internal testers get the build automatically once processing finishes.
    - External testers need the build added to their group. The first build of a new `MARKETING_VERSION` triggers Beta App Review (typically <24h); subsequent build-number-only bumps within the same version skip review.
+
+### Uploading from the command line
+
+Instead of the Organizer, steps 3–4 can be done headlessly with the App Store Connect account already signed in to Xcode:
+
+```sh
+xcodebuild archive -project SSSBLaundry.xcodeproj -scheme SSSBLaundry \
+  -destination 'generic/platform=iOS' -archivePath /tmp/SSSBLaundry.xcarchive \
+  -allowProvisioningUpdates
+
+# ExportOptions.plist: method=app-store-connect, destination=upload,
+# teamID=XQ9HKBVB36, signingStyle=automatic, manageAppVersionAndBuildNumber=false
+env PATH=/usr/bin:/bin:/usr/sbin:/sbin xcodebuild -exportArchive \
+  -archivePath /tmp/SSSBLaundry.xcarchive -exportOptionsPlist ExportOptions.plist \
+  -exportPath /tmp/export -allowProvisioningUpdates
+```
+
+The stripped `PATH` matters: Xcode's IPA packaging step runs `/usr/bin/rsync` (openrsync) with `-E`, and if Homebrew's rsync is earlier on `PATH` it serves the other end of the transfer and rejects `--extended-attributes`, failing the export with a bare `error: exportArchive Copy failed`. The real cause is only visible in the `.xcdistributionlogs` bundle printed at the top of the output.
 
 ### Things to keep working
 

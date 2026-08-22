@@ -54,17 +54,21 @@ struct WeekView: View {
                 .sheet(isPresented: $showingSettings) {
                     SettingsView(allGroups: store.allGroups)
                 }
-                .alert(item: outcomeBinding) { outcome in
-                    outcomeAlert(for: outcome)
-                }
+                // One alert per view: SwiftUI silently drops the extras when
+                // several are stacked on the same view, which is how load and
+                // booking failures ended up showing nothing at all.
                 .alert(
-                    "Something went wrong",
+                    store.lastError.map(ErrorPresenter.headline) ?? "Something went wrong",
                     isPresented: errorAlertBinding,
                     presenting: store.lastError
                 ) { _ in
                     Button("OK", role: .cancel) { store.lastError = nil }
+                    Button("Try again") {
+                        store.lastError = nil
+                        Task { await store.refresh() }
+                    }
                 } message: { err in
-                    Text(err.message)
+                    Text(ErrorPresenter.explanation(for: err))
                 }
                 .task {
                     await store.loadInitial()
@@ -72,11 +76,10 @@ struct WeekView: View {
                 .refreshable {
                     await store.refresh()
                 }
-                .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {
-                    Button("Turn on reminders") { enableNotifications() }
-                    Button("Not now", role: .cancel) {}
-                } message: {
-                    Text(notificationPromptMessage)
+                .onChange(of: store.lastOutcome?.id) { _, _ in
+                    if store.lastOutcome?.didBook == true {
+                        offerNotificationsAfterBooking()
+                    }
                 }
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
@@ -89,6 +92,12 @@ struct WeekView: View {
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active { syncNotifications() }
                 }
+        }
+        .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {
+            Button("Turn on reminders") { enableNotifications() }
+            Button("Not now", role: .cancel) {}
+        } message: {
+            Text(notificationPromptMessage)
         }
     }
 
@@ -136,6 +145,8 @@ struct WeekView: View {
 
     private var listView: some View {
         List {
+            limitBanner
+
             ForEach(filteredDays, id: \.date) { day in
                 Section {
                     ForEach(day.slots) { ts in
@@ -159,6 +170,30 @@ struct WeekView: View {
                 .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
+    }
+
+    /// The two-booking limit counts across every day, so a full quota has to be
+    /// visible from the week list — otherwise the second day looks bookable.
+    @ViewBuilder
+    private var limitBanner: some View {
+        let held = store.heldBookings
+        if held.count >= LaundryStore.maxActiveBookings {
+            let list = held.map(\.whenLabel).formatted(.list(type: .and))
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Booking limit reached", systemImage: "exclamationmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.orange)
+                Text("You have your \(LaundryStore.maxActiveBookings) bookings (\(list)). Cancel one before booking another timeslot.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+        }
     }
 
     @ViewBuilder
@@ -222,7 +257,9 @@ struct WeekView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.largeTitle)
                 .foregroundStyle(.orange)
-            Text(err.message)
+            Text(ErrorPresenter.headline(for: err))
+                .font(.headline)
+            Text(ErrorPresenter.explanation(for: err))
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -233,18 +270,6 @@ struct WeekView: View {
             .buttonStyle(.borderedProminent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var outcomeBinding: Binding<ActionOutcome?> {
-        Binding(
-            get: { store.lastOutcome },
-            set: { newValue in
-                if newValue == nil, store.lastOutcome?.didBook == true {
-                    offerNotificationsAfterBooking()
-                }
-                store.lastOutcome = newValue
-            }
-        )
     }
 
     private var notificationPromptMessage: String {
@@ -262,6 +287,9 @@ struct WeekView: View {
         guard !notificationsEnabled, !notificationsPrompted else { return }
         Task {
             guard await NotificationService.authorizationStatus() == .notDetermined else { return }
+            // Wait out the booking sheet's dismissal — an alert raised mid-dismiss
+            // is dropped without a trace.
+            try? await Task.sleep(for: .milliseconds(700))
             showingNotificationPrompt = true
         }
     }
@@ -283,24 +311,6 @@ struct WeekView: View {
         Binding(
             get: { store.lastError != nil },
             set: { if !$0 { store.lastError = nil } }
-        )
-    }
-
-    private func outcomeAlert(for outcome: ActionOutcome) -> Alert {
-        let title: String
-        switch outcome.overallStatus {
-        case .success: title = "Done"
-        case .partial_success: title = "Partial success"
-        case .failed: title = "Failed"
-        }
-        let lines = outcome.results.map { r -> String in
-            let name = store.groupsById[r.groupId]?.name ?? "Group \(r.groupId)"
-            return "\(name): \(r.message ?? r.status)"
-        }
-        return Alert(
-            title: Text(title),
-            message: Text(lines.joined(separator: "\n")),
-            dismissButton: .default(Text("OK"))
         )
     }
 }

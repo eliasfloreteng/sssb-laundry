@@ -13,16 +13,52 @@ enum LoadState {
     case error(APIError)
 }
 
+/// One machine's answer, tagged with what was asked of it so failures can be
+/// explained in the right words.
+struct GroupOutcome: Identifiable {
+    let result: ActionResult
+    let action: BookingAction
+
+    var id: Int { result.groupId }
+    var groupId: Int { result.groupId }
+    var isSuccessful: Bool { result.isSuccessful }
+}
+
 struct ActionOutcome: Identifiable {
     let id = UUID()
     let timeslot: String
     let overallStatus: OverallStatus
-    let results: [ActionResult]
+    let results: [GroupOutcome]
+    /// Set when the request never got as far as a per-machine answer
+    /// (offline, auth rejected, timeslot gone).
+    let requestError: APIError?
 
     /// A group was newly booked (as opposed to cancelled or already held).
     var didBook: Bool {
-        results.contains { $0.status == "booked" }
+        results.contains { $0.result.status == "booked" }
     }
+
+    var failures: [GroupOutcome] {
+        results.filter { !$0.isSuccessful }
+    }
+
+    var isFullSuccess: Bool {
+        requestError == nil && failures.isEmpty && overallStatus != .failed
+    }
+}
+
+/// A timeslot the user currently holds, one entry per machine. Used both for
+/// reminders and for the "2 bookings at a time" limit.
+struct HeldBooking: Identifiable, Hashable {
+    let id: String
+    let timeslotId: String
+    let groupId: Int
+    let start: Date
+    let dayLabel: String
+    let startTime: String
+    let endTime: String
+
+    var whenLabel: String { "\(dayLabel) \(startTime)" }
 }
 
 @Observable
@@ -55,6 +91,60 @@ final class LaundryStore {
 
     var allGroups: [LaundryGroup] {
         groupsById.values.sorted { $0.id < $1.id }
+    }
+
+    /// SSSB allows two machine bookings per apartment at a time, counted across
+    /// every day — not per day and not per timeslot.
+    static let maxActiveBookings = 2
+
+    /// Bookings the user still holds (the timeslot has not ended yet), across
+    /// every loaded week. Hidden groups count: hiding is a display filter, but
+    /// the booking still occupies one of the two slots.
+    var heldBookings: [HeldBooking] {
+        let now = Date()
+        var seen: Set<String> = []
+        var held: [HeldBooking] = []
+        for week in weeks {
+            for timeslot in week.timeslots {
+                guard let start = Self.parseISO8601(timeslot.startAt) else { continue }
+                let end = Self.parseISO8601(timeslot.endAt) ?? start
+                guard end > now else { continue }
+                for group in timeslot.groups where group.status == .own {
+                    let id = "\(timeslot.id)#\(group.groupId)"
+                    guard seen.insert(id).inserted else { continue }
+                    held.append(
+                        HeldBooking(
+                            id: id,
+                            timeslotId: timeslot.id,
+                            groupId: group.groupId,
+                            start: start,
+                            dayLabel: Self.dayLabel(for: timeslot.localDate),
+                            startTime: timeslot.startTime,
+                            endTime: timeslot.endTime
+                        )
+                    )
+                }
+            }
+        }
+        return held.sorted { $0.start < $1.start }
+    }
+
+    var remainingBookings: Int {
+        max(0, Self.maxActiveBookings - heldBookings.count)
+    }
+
+    func heldBookings(excludingTimeslot timeslotId: String) -> [HeldBooking] {
+        heldBookings.filter { $0.timeslotId != timeslotId }
+    }
+
+    /// The freshest copy of a timeslot, so a sheet that stays open after a
+    /// failure shows the state the refresh brought back rather than the copy it
+    /// was opened with.
+    func timeslot(id: String) -> Timeslot? {
+        for week in weeks {
+            if let match = week.timeslots.first(where: { $0.id == id }) { return match }
+        }
+        return nil
     }
 
     var timeslotsByDay: [(date: String, slots: [Timeslot])] {
@@ -134,43 +224,56 @@ final class LaundryStore {
         await fetchWeek(date: next, replaceAll: false)
     }
 
-    func bookAndCancel(timeslotId: String, toBook: [Int], toCancel: [Int]) async {
-        var results: [ActionResult] = []
-        var overall: OverallStatus = .success
-        var fatalError: APIError?
+    /// Returns what actually happened so the caller can show it. `nil` means the
+    /// task was cancelled (view teardown), which is not something to report.
+    @discardableResult
+    func bookAndCancel(timeslotId: String, toBook: [Int], toCancel: [Int]) async -> ActionOutcome? {
+        var results: [GroupOutcome] = []
+        var overall: OverallStatus?
+        var requestError: APIError?
 
-        if !toBook.isEmpty {
-            do {
-                let resp = try await api.book(timeslotId: timeslotId, groupIds: toBook)
-                results.append(contentsOf: resp.results)
-                overall = combine(overall, resp.overallStatus)
-            } catch let err as APIError {
-                fatalError = err
-            } catch {
-                if Self.isCancellation(error) { return }
-                fatalError = APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription)
-            }
-        }
-        if fatalError == nil, !toCancel.isEmpty {
+        // Cancels run first: with only two bookings allowed at a time, swapping
+        // machines in one submit can only succeed if the old one is released
+        // before the new one is asked for.
+        if !toCancel.isEmpty {
             do {
                 let resp = try await api.cancel(timeslotId: timeslotId, groupIds: toCancel)
-                results.append(contentsOf: resp.results)
+                results.append(contentsOf: resp.results.map { GroupOutcome(result: $0, action: .cancel) })
                 overall = combine(overall, resp.overallStatus)
-            } catch let err as APIError {
-                fatalError = err
             } catch {
-                if Self.isCancellation(error) { return }
-                fatalError = APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription)
+                if Self.isCancellation(error) { return nil }
+                requestError = Self.apiError(from: error)
+            }
+        }
+        if requestError == nil, !toBook.isEmpty {
+            do {
+                let resp = try await api.book(timeslotId: timeslotId, groupIds: toBook)
+                results.append(contentsOf: resp.results.map { GroupOutcome(result: $0, action: .book) })
+                overall = combine(overall, resp.overallStatus)
+            } catch {
+                if Self.isCancellation(error) { return nil }
+                requestError = Self.apiError(from: error)
             }
         }
 
-        if let err = fatalError {
-            handleError(err)
-            return
-        }
+        let outcome = ActionOutcome(
+            timeslot: timeslotId,
+            overallStatus: requestError == nil ? (overall ?? .success) : .failed,
+            results: results,
+            requestError: requestError
+        )
+        lastOutcome = outcome
 
-        lastOutcome = ActionOutcome(timeslot: timeslotId, overallStatus: overall, results: results)
-        await refreshWeekContaining(timeslotId: timeslotId)
+        if let requestError {
+            // Auth failures still have to bounce the user back to sign-in; every
+            // other reason is reported where the user asked for the action.
+            if requestError.code == "AUTH_FAILED" || requestError.code == "MISSING_OBJECT_ID" {
+                authFailed = true
+            }
+        } else {
+            await refreshWeekContaining(timeslotId: timeslotId)
+        }
+        return outcome
     }
 
     private func fetchWeek(date: String, replaceAll: Bool) async {
@@ -188,11 +291,9 @@ final class LaundryStore {
             }
             loadState = .loaded
             await syncNotifications()
-        } catch let err as APIError {
-            handleError(err)
         } catch {
             if Self.isCancellation(error) { return }
-            handleError(APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription))
+            handleError(Self.apiError(from: error))
         }
     }
 
@@ -219,12 +320,18 @@ final class LaundryStore {
         }
     }
 
-    private func combine(_ a: OverallStatus, _ b: OverallStatus) -> OverallStatus {
+    private func combine(_ a: OverallStatus?, _ b: OverallStatus) -> OverallStatus {
+        guard let a else { return b }
         switch (a, b) {
         case (.failed, .failed): return .failed
         case (.success, .success): return .success
         default: return .partial_success
         }
+    }
+
+    private static func apiError(from error: Error) -> APIError {
+        if let apiError = error as? APIError { return apiError }
+        return APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription)
     }
 
     static func todayInStockholm() -> String {
@@ -235,25 +342,44 @@ final class LaundryStore {
         return formatter.string(from: Date())
     }
 
-    /// `startAt`/`endAt` may or may not carry fractional seconds, so retry without them.
-    static func parseISO8601(_ string: String) -> Date? {
+    // Formatters are expensive to build and these run over every loaded timeslot
+    // on each render (the booking limit is derived from them), so keep one each.
+    private static let fractionalISOFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: string) { return date }
+        return formatter
+    }()
+
+    private static let plainISOFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
-        return formatter.date(from: string)
+        return formatter
+    }()
+
+    private static let localDateParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+
+    private static let dayLabelPrinter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        formatter.dateFormat = "EEE d MMM"
+        return formatter
+    }()
+
+    /// `startAt`/`endAt` may or may not carry fractional seconds, so retry without them.
+    static func parseISO8601(_ string: String) -> Date? {
+        if let date = fractionalISOFormatter.date(from: string) { return date }
+        return plainISOFormatter.date(from: string)
     }
 
     private static func dayLabel(for localDate: String) -> String {
-        let parser = DateFormatter()
-        parser.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        parser.dateFormat = "yyyy-MM-dd"
-        parser.locale = Locale(identifier: "en_US_POSIX")
-        guard let date = parser.date(from: localDate) else { return localDate }
-        let printer = DateFormatter()
-        printer.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        printer.dateFormat = "EEE d MMM"
-        return printer.string(from: date)
+        guard let date = localDateParser.date(from: localDate) else { return localDate }
+        return dayLabelPrinter.string(from: date)
     }
 
     private func addDays(to dateString: String, days: Int) -> String? {

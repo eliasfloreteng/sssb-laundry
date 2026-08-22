@@ -158,3 +158,7 @@ struct AnyCodable: Decodable {
         }
     }
 }
+
+struct OKResponse: Decodable {
+    let ok: Bool
+}

@@ -4,6 +4,8 @@
 //
 
 import SwiftUI
+import UIKit
+import UserNotifications
 
 struct SettingsView: View {
     let allGroups: [LaundryGroup]
@@ -13,9 +15,15 @@ struct SettingsView: View {
     @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
+    @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
+    @AppStorage(NotificationSetting.alertKey) private var alert: BookingAlert = NotificationSetting.defaultAlert
+    @AppStorage(NotificationSetting.secondAlertKey) private var secondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
+    @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var editing = false
     @State private var draft: String = ""
+    @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var requestingAuthorization = false
 
     var body: some View {
         NavigationStack {
@@ -89,6 +97,32 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("Booking reminders", isOn: notificationsEnabledBinding)
+                        .disabled(requestingAuthorization)
+                    if notificationsEnabled {
+                        Picker("Alert", selection: $alert) {
+                            ForEach(BookingAlert.allCases) { option in
+                                Text(option.label).tag(option)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        Picker("Second alert", selection: $secondAlert) {
+                            ForEach(BookingAlert.allCases) { option in
+                                Text(option.label).tag(option)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                    if authorizationStatus == .denied {
+                        Button("Open iOS Settings") { openSystemSettings() }
+                    }
+                } header: {
+                    Text("Notifications")
+                } footer: {
+                    Text(notificationsFooter)
+                }
+
+                Section {
                     if editing {
                         Button("Save") { save() }
                             .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -112,7 +146,59 @@ struct SettingsView: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .task {
+                authorizationStatus = await PushService.authorizationStatus()
+                // The user may have flipped permission in iOS Settings behind our back.
+                if notificationsEnabled, authorizationStatus == .denied {
+                    notificationsEnabled = false
+                }
+                PushService.syncToServer()
+            }
+            // The server holds the schedule, so a changed offset has to go up
+            // before it means anything.
+            .onChange(of: alert) { _, _ in PushService.syncToServer() }
+            .onChange(of: secondAlert) { _, _ in PushService.syncToServer() }
         }
+    }
+
+    private var notificationsFooter: String {
+        if authorizationStatus == .denied {
+            return "Notifications are turned off for SSSB Laundry in iOS Settings. Turn them back on there to get booking reminders."
+        }
+        return "Reminders are sent by the server, so they arrive even if someone else books on your object id and the app is closed. A booking is released 15 minutes after it starts if you don't start the machine."
+    }
+
+    /// Turning the toggle on is what triggers the system permission prompt.
+    private var notificationsEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { notificationsEnabled },
+            set: { wantsEnabled in
+                guard wantsEnabled else {
+                    notificationsEnabled = false
+                    PushService.deregister()
+                    return
+                }
+                notificationsPrompted = true
+                requestingAuthorization = true
+                Task {
+                    let status = await PushService.authorizationStatus()
+                    if status == .notDetermined {
+                        await PushService.requestAuthorization()
+                    } else if status == .authorized {
+                        PushService.registerForRemoteNotifications()
+                    }
+                    authorizationStatus = await PushService.authorizationStatus()
+                    notificationsEnabled = authorizationStatus != .denied
+                    requestingAuthorization = false
+                    PushService.syncToServer()
+                }
+            }
+        )
+    }
+
+    private func openSystemSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 
     private func save() {
@@ -123,6 +209,9 @@ struct SettingsView: View {
     }
 
     private func signOut() {
+        // Deregister first: once the object id is gone the request can no longer
+        // be authenticated, and the server would keep pushing to this phone.
+        PushService.deregister(objectId: objectId)
         objectId = ""
         dismiss()
     }

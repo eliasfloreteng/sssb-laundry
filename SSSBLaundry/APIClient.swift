@@ -42,7 +42,41 @@ struct APIClient {
             .appendingPathComponent(path)
         var request = try makeRequest(url: url, method: "POST")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Lets the server skip this phone when it announces the booking to the
+        // other devices on the same object id.
+        if let token = NotificationSetting.deviceToken {
+            request.setValue(token, forHTTPHeaderField: "X-Device-Token")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["groupIds": groupIds])
+        return try await send(request)
+    }
+
+    @discardableResult
+    func registerDevice(
+        deviceToken: String,
+        environment: String,
+        enabled: Bool,
+        alertMinutes: Int?,
+        secondAlertMinutes: Int?
+    ) async throws -> OKResponse {
+        var request = try makeRequest(url: baseURL.appendingPathComponent("notifications/device"), method: "PUT")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = [
+            "deviceToken": deviceToken,
+            "environment": environment,
+            "enabled": enabled,
+            "alertMinutes": alertMinutes as Any? ?? NSNull(),
+            "secondAlertMinutes": secondAlertMinutes as Any? ?? NSNull()
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return try await send(request)
+    }
+
+    @discardableResult
+    func deregisterDevice(deviceToken: String) async throws -> OKResponse {
+        var request = try makeRequest(url: baseURL.appendingPathComponent("notifications/device"), method: "DELETE")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["deviceToken": deviceToken])
         return try await send(request)
     }
 

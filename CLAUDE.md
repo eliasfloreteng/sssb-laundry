@@ -15,6 +15,8 @@ Key files:
 - `Models.swift` — Decodable DTOs plus `ActiveHoursSetting` / `ActiveGroupsSetting` helpers.
 - `WeekView.swift` / `BookingSheet.swift` — main UI surfaces.
 - `CalendarService.swift` — EventKit write-only integration.
+- `PushService.swift` / `AppDelegate.swift` — APNs registration and preference sync.
+- `NotificationSettings.swift` — `BookingAlert` offsets and the `@AppStorage` keys.
 - `RootView.swift` — switches between `ObjectIdSetupView` and `WeekView` based on stored object id.
 
 ## Auth and identity
@@ -54,6 +56,37 @@ Key files:
 - `Info.plist` requires `NSCalendarsWriteOnlyAccessUsageDescription` (set via `INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription` in the pbxproj). The app uses `requestWriteOnlyAccessToEvents()` — full read access is intentionally not requested, so don't try to read existing events.
 - The `EKEventStore` must outlive the `EKEvent`; `PreparedEvent` carries both. Do not drop the store before the event editor commits.
 - Event title is `"Tvätt <groups>"` (Swedish) with no notes/description, and a single alarm at offset `0` (timeslot start). Keep it terse — the user reviews the event in the system editor before saving.
+
+## Push notifications
+
+Reminders are **server-driven**. The server polls the object id and sends the
+pushes, so a booking made by someone else on the same object id still notifies
+this device with the app closed. There is no local scheduling — an earlier
+`UNTimeIntervalNotificationTrigger` implementation was reverted on purpose
+(`1e5429a`); do not reintroduce it.
+
+- `@AppStorage` is the **source of truth** for the preferences; the server is a
+  mirror that `PushService.syncToServer()` overwrites. Sync on launch, on
+  permission granted, on either picker changing, on `scenePhase == .active`, and
+  after registration. Deregister on toggle-off, sign-out and `authFailed` —
+  otherwise the server keeps pushing a stranger's bookings to this phone.
+- `syncToServer` sends `enabled` as `NotificationSetting.isEnabled && authorized`,
+  so permission revoked in iOS Settings stops the server too, not just the UI.
+- `BookingAlert` raw values *are* the minutes the server stores (`-1` = off,
+  `0` = at start). Keep them aligned with `alertMinutes` in the API.
+- The permission prompt is offered **after a successful booking**, once, gated on
+  `notifications.prompted` and `.notDetermined`. It sleeps 700 ms first: an alert
+  raised while the booking sheet is dismissing is dropped without a trace. It is
+  attached to the `NavigationStack`, not to `content`, because the error alert
+  already owns that view and SwiftUI silently drops the second alert on a view.
+- `APIClient` sends `X-Device-Token` on book/cancel so the server can skip this
+  phone when it announces the booking to the other devices on the object id.
+- `SSSBLaundry.entitlements` carries `aps-environment` and the Time Sensitive
+  Notifications entitlement, wired via `CODE_SIGN_ENTITLEMENTS` in both build
+  configs. `UIBackgroundModes` is deliberately *not* set — these are visible
+  alert pushes, not silent ones.
+- `AppDelegate` exists only for the APNs token callback and foreground banners;
+  everything else stays pure SwiftUI.
 
 ## State and concurrency
 

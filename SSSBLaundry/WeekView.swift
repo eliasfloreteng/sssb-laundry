@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct WeekView: View {
     @State private var store = LaundryStore()
@@ -15,6 +16,11 @@ struct WeekView: View {
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
+    @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
+    @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
+    @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
+    @State private var showingNotificationPrompt = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -66,14 +72,64 @@ struct WeekView: View {
                 .task {
                     await store.loadInitial()
                 }
+                .onChange(of: store.lastOutcome?.id) { _, _ in
+                    if store.lastOutcome?.didBook == true {
+                        offerNotificationsAfterBooking()
+                    }
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    // Catches permission revoked in iOS Settings while we were away.
+                    if phase == .active { PushService.syncToServer() }
+                }
                 .refreshable {
                     await store.refresh()
                 }
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
+                        PushService.deregister(objectId: objectId)
                         objectId = ""
                     }
                 }
+        }
+        // Sits on the NavigationStack, not on `content`: the error alert already
+        // owns that view and SwiftUI silently drops a second one.
+        .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {
+            Button("Turn on reminders") { enableNotifications() }
+            Button("Not now", role: .cancel) {}
+        } message: {
+            Text(notificationPromptMessage)
+        }
+    }
+
+    private var notificationPromptMessage: String {
+        let lead: String
+        switch notificationAlert {
+        case .off, .atStart: lead = "when your booking starts"
+        default: lead = "\(notificationAlert.leadLabel) before your booking starts"
+        }
+        return "SSSB Laundry can notify you \(lead). Bookings are released 15 minutes after the start time if you don't start the machine."
+    }
+
+    /// Asked once, right after the first booking — that is when the reminder is
+    /// worth something, so that is when we ask for permission.
+    private func offerNotificationsAfterBooking() {
+        guard !notificationsEnabled, !notificationsPrompted else { return }
+        Task {
+            guard await PushService.authorizationStatus() == .notDetermined else { return }
+            // Wait out the booking sheet's dismissal — an alert raised mid-dismiss
+            // is dropped without a trace.
+            try? await Task.sleep(for: .milliseconds(700))
+            showingNotificationPrompt = true
+        }
+    }
+
+    private func enableNotifications() {
+        notificationsPrompted = true
+        Task {
+            let granted = await PushService.requestAuthorization()
+            notificationsEnabled = granted
+            // The token arrives asynchronously; the delegate syncs again once it does.
+            PushService.syncToServer()
         }
     }
 

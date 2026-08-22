@@ -40,10 +40,15 @@ struct ActionOutcome: Identifiable {
     var isFullSuccess: Bool {
         requestError == nil && failures.isEmpty && overallStatus != .failed
     }
+
+    /// A group was newly booked (as opposed to cancelled or already held).
+    var didBook: Bool {
+        results.contains { $0.result.status == "booked" }
+    }
 }
 
-/// A timeslot the user currently holds, one entry per machine. Used both for
-/// reminders and for the "2 bookings at a time" limit.
+/// A timeslot the user currently holds, one entry per machine. Drives the
+/// "2 bookings at a time" limit; reminders are scheduled by the server.
 struct HeldBooking: Identifiable, Hashable {
     let id: String
     let timeslotId: String

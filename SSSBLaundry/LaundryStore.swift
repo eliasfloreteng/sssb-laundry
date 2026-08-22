@@ -33,11 +33,6 @@ struct ActionOutcome: Identifiable {
     /// (offline, auth rejected, timeslot gone).
     let requestError: APIError?
 
-    /// A group was newly booked (as opposed to cancelled or already held).
-    var didBook: Bool {
-        results.contains { $0.result.status == "booked" }
-    }
-
     var failures: [GroupOutcome] {
         results.filter { !$0.isSuccessful }
     }
@@ -159,56 +154,6 @@ final class LaundryStore {
         }
     }
 
-    /// Every loaded timeslot the user has booked, flattened for notification
-    /// scheduling. Hidden groups are deliberately included: hiding is a display
-    /// filter, and a booking is still a booking the user must show up for.
-    var bookings: [Booking] {
-        let groups = groupsById
-        var seen: Set<String> = []
-        var result: [Booking] = []
-        for week in weeks {
-            for timeslot in week.timeslots {
-                let ownIds = timeslot.groups.filter { $0.status == .own }.map(\.groupId).sorted()
-                guard !ownIds.isEmpty, let start = Self.parseISO8601(timeslot.startAt) else { continue }
-                let id = "\(Int(start.timeIntervalSince1970))-" + ownIds.map(String.init).joined(separator: "_")
-                guard seen.insert(id).inserted else { continue }
-                let locations = Set(ownIds.compactMap { groups[$0]?.location }.filter { !$0.isEmpty })
-                result.append(
-                    Booking(
-                        id: id,
-                        start: start,
-                        end: Self.parseISO8601(timeslot.endAt) ?? start.addingTimeInterval(3 * 3600),
-                        dayLabel: Self.dayLabel(for: timeslot.localDate),
-                        startTime: timeslot.startTime,
-                        endTime: timeslot.endTime,
-                        machines: ownIds.map { groups[$0]?.name ?? "Group \($0)" },
-                        location: locations.count == 1 ? locations.first! : ""
-                    )
-                )
-            }
-        }
-        return result
-    }
-
-    /// End of the last week that has been paged in; bookings beyond it keep the
-    /// reminders they already have.
-    private var remindersCoveredThrough: Date? {
-        guard let last = weeks.last, let next = addDays(to: last.week.toDate, days: 1) else { return nil }
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.date(from: next)
-    }
-
-    func syncNotifications() async {
-        await NotificationService.sync(bookings: bookings, coveredThrough: remindersCoveredThrough)
-    }
-
-    func syncLiveActivity() async {
-        await LiveActivityService.sync(bookings: bookings)
-    }
-
     func loadInitial() async {
         guard weeks.isEmpty else { return }
         loadState = .loading
@@ -297,8 +242,6 @@ final class LaundryStore {
                 }
             }
             loadState = .loaded
-            await syncNotifications()
-            await syncLiveActivity()
         } catch {
             if Self.isCancellation(error) { return }
             handleError(Self.apiError(from: error))

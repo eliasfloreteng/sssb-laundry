@@ -4,7 +4,6 @@
 //
 
 import SwiftUI
-import UserNotifications
 
 struct WeekView: View {
     @State private var store = LaundryStore()
@@ -16,12 +15,6 @@ struct WeekView: View {
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
-    @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
-    @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
-    @AppStorage(NotificationSetting.secondAlertKey) private var notificationSecondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
-    @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
-    @State private var showingNotificationPrompt = false
-    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -76,34 +69,11 @@ struct WeekView: View {
                 .refreshable {
                     await store.refresh()
                 }
-                .onChange(of: store.lastOutcome?.id) { _, _ in
-                    if store.lastOutcome?.didBook == true {
-                        offerNotificationsAfterBooking()
-                    }
-                }
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
                         objectId = ""
-                        Task { await LiveActivityService.endAll() }
                     }
                 }
-                .onChange(of: notificationsEnabled) { _, _ in syncNotifications() }
-                .onChange(of: notificationAlert) { _, _ in syncNotifications() }
-                .onChange(of: notificationSecondAlert) { _, _ in syncNotifications() }
-                .onChange(of: scenePhase) { _, phase in
-                    // Coming forward inside the lead window is what starts the
-                    // Live Activity, so this is more than a refresh.
-                    if phase == .active {
-                        syncNotifications()
-                        Task { await store.syncLiveActivity() }
-                    }
-                }
-        }
-        .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {
-            Button("Turn on reminders") { enableNotifications() }
-            Button("Not now", role: .cancel) {}
-        } message: {
-            Text(notificationPromptMessage)
         }
     }
 
@@ -276,41 +246,6 @@ struct WeekView: View {
             .buttonStyle(.borderedProminent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var notificationPromptMessage: String {
-        let lead: String
-        switch notificationAlert {
-        case .off, .atStart: lead = "when your booking starts"
-        default: lead = "\(notificationAlert.leadLabel) before your booking starts"
-        }
-        return "SSSB Laundry can notify you \(lead). Bookings are released 15 minutes after the start time if you don't start the machine."
-    }
-
-    /// Asked once, right after the first booking — that is when the reminder is
-    /// worth something, so that is when we ask for permission.
-    private func offerNotificationsAfterBooking() {
-        guard !notificationsEnabled, !notificationsPrompted else { return }
-        Task {
-            guard await NotificationService.authorizationStatus() == .notDetermined else { return }
-            // Wait out the booking sheet's dismissal — an alert raised mid-dismiss
-            // is dropped without a trace.
-            try? await Task.sleep(for: .milliseconds(700))
-            showingNotificationPrompt = true
-        }
-    }
-
-    private func enableNotifications() {
-        notificationsPrompted = true
-        Task {
-            let granted = await NotificationService.requestAuthorization()
-            notificationsEnabled = granted
-            await store.syncNotifications()
-        }
-    }
-
-    private func syncNotifications() {
-        Task { await store.syncNotifications() }
     }
 
     private var errorAlertBinding: Binding<Bool> {

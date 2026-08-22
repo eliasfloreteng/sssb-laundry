@@ -15,8 +15,6 @@ Key files:
 - `Models.swift` — Decodable DTOs plus `ActiveHoursSetting` / `ActiveGroupsSetting` helpers.
 - `WeekView.swift` / `BookingSheet.swift` — main UI surfaces.
 - `CalendarService.swift` — EventKit write-only integration.
-- `NotificationService.swift` — local booking reminders (`UNUserNotificationCenter`) plus the `BookingAlert` offsets and `NotificationSetting` keys.
-- `LiveActivityService.swift` — app side of the Live Activity; `Shared/LaundryActivityAttributes.swift` and `SSSBLaundryWidgets/` are the shared model and the widget extension.
 - `RootView.swift` — switches between `ObjectIdSetupView` and `WeekView` based on stored object id.
 
 ## Auth and identity
@@ -56,31 +54,6 @@ Key files:
 - `Info.plist` requires `NSCalendarsWriteOnlyAccessUsageDescription` (set via `INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription` in the pbxproj). The app uses `requestWriteOnlyAccessToEvents()` — full read access is intentionally not requested, so don't try to read existing events.
 - The `EKEventStore` must outlive the `EKEvent`; `PreparedEvent` carries both. Do not drop the store before the event editor commits.
 - Event title is `"Tvätt <groups>"` (Swedish) with no notes/description, and a single alarm at offset `0` (timeslot start). Keep it terse — the user reviews the event in the system editor before saving.
-
-## Notifications
-
-- Reminders are **local** notifications only (`UNUserNotificationCenter`). There is no APNs setup, no push entitlement and no server-side push — "push notifications" here means scheduled local alerts. Nothing needs to be added to `Info.plist`.
-- Opt-in and off by default (`notifications.enabled`). Permission is requested from two places: the Settings toggle, and a one-shot alert after the first successful booking (`WeekView.offerNotificationsAfterBooking`, gated on `notifications.prompted` and `authorizationStatus == .notDetermined`). Don't ask anywhere else — iOS only ever shows the system prompt once.
-- Two offsets per booking, mirroring Calendar.app's Alert / Second alert: `notifications.alert` (default 10 minutes before) and `notifications.secondAlert` (default `.off`, usually set to "At start of booking"). Both are `BookingAlert` raw-value enums so `@AppStorage` can store them; `.off` is `-1` and `.atStart` is `0`, so the raw value doubles as "minutes before".
-- `LaundryStore.bookings` flattens every loaded own-booking into `Booking`, which both the notification schedule and the Live Activity consume. `LaundryStore.syncNotifications()` runs after every successful week fetch, and `WeekView` re-runs it on scene activation and on any notification-setting change. It is a full rewrite of the schedule, not a diff — never try to schedule a single reminder at book time.
-- The rewrite is **windowed**. `NotificationService.sync` only drops pending requests whose booking starts on or before `coveredThrough` (the end of the last paged-in week), because a cold launch only knows about the current week and must not cancel reminders for bookings further out. Each request carries its booking start in `userInfo["startEpoch"]` so the window can be applied. If you change identifiers or `userInfo`, keep that key.
-- Reminder identifiers are `booking.<startEpoch>-<sortedGroupIds>.<alertRawValue>` — deliberately derived from the timeslot start rather than the opaque `timeslotId`, which must not be persisted across server changes.
-- Hidden groups are **not** filtered out of reminders: hiding is a display filter, but a booking still has to be shown up for.
-- iOS caps an app at 64 pending local notifications; `sync` sorts by fire date and keeps the earliest 60.
-- `content.interruptionLevel = .timeSensitive` is set without the matching entitlement — iOS silently downgrades it to `.active`. Add `com.apple.developer.usernotifications.time-sensitive` if reminders should break through Focus.
-- `NotificationPresenter` is registered as the `UNUserNotificationCenter` delegate in `SSSBLaundryApp.init()` so reminders still show as a banner while the app is open.
-
-## Live Activity
-
-- The project has **three source roots**, all Xcode file-system-synchronized groups: `SSSBLaundry/` (app), `SSSBLaundryWidgets/` (the `com.apple.product-type.app-extension` widget target, bundle id `se.floreteng.SSSBLaundry.Widgets`), and `Shared/`, which is a member of *both* targets. `LaundryActivityAttributes` has to compile into both — put anything else they share in `Shared/`, never a second copy.
-- `SSSBLaundryWidgets/Info.plist` declares `NSExtensionPointIdentifier`, and is excluded from the extension's Copy Bundle Resources phase by a `PBXFileSystemSynchronizedBuildFileExceptionSet` in the pbxproj. Without that exception the build fails with "Multiple commands produce .../Info.plist" — keep it if you touch the synchronized group.
-- The app target needs `INFOPLIST_KEY_NSSupportsLiveActivities = YES`.
-- The activity covers one booking at a time: the earliest whose window (`start - 1 h` through `start + 15 min`) contains now. `LiveActivityService.sync` starts, advances and ends it, and is called from the same places as the notification sync, so **opening the app inside the lead window is what starts it**. `Activity.request` requires the foreground, which is why there is no other trigger.
-- Two phases: `.upcoming` counts down to the start, `.grace` counts down the 15 minutes before the machine releases the booking.
-- **The phase flip is driven by `staleDate`, not by an update.** The app is normally suspended by the time the slot starts, so `sync` sets `staleDate` to the phase boundary and the widget resolves `state.phase == .grace || context.isStale`. The in-app supervisor `Task` pushes the real update and the ending when the app happens to be alive; treat it as the fast path, not the mechanism.
-- Known limitation of having no push server: if the app is never reopened, nothing can end the activity at the deadline. It shows a spent countdown until the next launch reconciles it (or ActivityKit's own 8-hour cap). Ending it on time needs `pushType: .token` and a server.
-- Countdown ranges in the widget are built from the booking's own dates, never `Date.now` — a range whose lower bound has drifted past its upper bound traps at render time.
-- `ActivityContent(state:staleDate:)` cannot infer its generic from `.init(phase:)`; name `LaundryActivityAttributes.ContentState` explicitly.
 
 ## State and concurrency
 

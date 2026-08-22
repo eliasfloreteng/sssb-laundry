@@ -9,10 +9,6 @@ import SwiftUI
 
 @main
 struct SSSBLaundryApp: App {
-    init() {
-        NotificationPresenter.shared.register()
-    }
-
     var body: some Scene {
         WindowGroup {
             RootView()

@@ -193,16 +193,6 @@ struct BookingSheet: View {
                 )
             }
 
-            if let limitMessage {
-                notice(
-                    title: "Booking limit reached",
-                    message: limitMessage,
-                    details: [],
-                    icon: "exclamationmark.circle.fill",
-                    tint: .orange
-                )
-            }
-
             Button(action: submit) {
                 HStack {
                     if submitting {
@@ -215,16 +205,9 @@ struct BookingSheet: View {
                 .padding(.vertical, 12)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!hasChanges || submitting || overSlotLimit || overAccountLimit)
+            .disabled(!hasChanges || submitting || overSlotLimit)
 
-            if overSlotLimit {
-                Text("Maximum 2 machines per booking or cancellation.")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            Text(capacityLabel)
+            Text(limitHint)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -310,26 +293,15 @@ struct BookingSheet: View {
         projectedTotal > LaundryStore.maxActiveBookings
     }
 
-    private var limitMessage: String? {
+    /// One quiet line under the button. The account limit only informs — it no
+    /// longer disables the button, because it is a local count of what the
+    /// portal last reported: a booking that has already been auto-cancelled
+    /// upstream must never be what stops the user from booking again.
+    private var limitHint: String {
         let max = LaundryStore.maxActiveBookings
-        if overAccountLimit {
-            guard !otherBookings.isEmpty else {
-                return "You can have \(max) bookings at a time, so pick at most \(max) machines."
-            }
-            let list = otherBookings.map(\.whenLabel).formatted(.list(type: .and))
-            return "That would leave you with \(projectedTotal) bookings, and you can only have \(max) at a time. You already have \(list) — cancel one of those first, or select fewer machines here."
-        }
-        if hasChanges { return nil }
-        // Nothing selected yet, but there is nothing left to book either.
-        guard store.remainingBookings == 0, ownCountInSlot == 0, !otherBookings.isEmpty else { return nil }
-        let list = otherBookings.map(\.whenLabel).formatted(.list(type: .and))
-        return "You already have your \(max) bookings (\(list)). Cancel one of them before booking this timeslot."
-    }
-
-    private var capacityLabel: String {
-        let max = LaundryStore.maxActiveBookings
-        let held = store.heldBookings.count
-        return "\(held) of \(max) bookings in use across all days."
+        if overSlotLimit { return "Select at most \(max) machines." }
+        if overAccountLimit { return "That makes \(projectedTotal) of \(max) bookings — SSSB may turn it down." }
+        return "\(store.heldBookings.count) of \(max) bookings in use across all days."
     }
 
     private var actionTitle: String {
@@ -373,7 +345,7 @@ struct BookingSheet: View {
     }
 
     private func submit() {
-        guard hasChanges, !overSlotLimit, !overAccountLimit else { return }
+        guard hasChanges, !overSlotLimit else { return }
         feedback = nil
         submitting = true
         let attempted = (book: toBook, cancel: toCancel)

@@ -97,9 +97,17 @@ final class LaundryStore {
     /// every day — not per day and not per timeslot.
     static let maxActiveBookings = 2
 
-    /// Bookings the user still holds (the timeslot has not ended yet), across
-    /// every loaded week. Hidden groups count: hiding is a display filter, but
-    /// the booking still occupies one of the two slots.
+    /// Aptus releases a booking that was not activated within 15 minutes of its
+    /// start, so a missed timeslot stops occupying the quota at start + 15 —
+    /// not at the end of the slot. The portal gives no way to tell an activated
+    /// booking from an auto-cancelled one once that window has passed, so the
+    /// count errs towards freeing the quota: over-counting used to leave the
+    /// user unable to book anything until the missed slot finally ended.
+    static let activationGraceMinutes = 15
+
+    /// Bookings the user still holds, across every loaded week. Hidden groups
+    /// count: hiding is a display filter, but the booking still occupies one of
+    /// the two slots.
     var heldBookings: [HeldBooking] {
         let now = Date()
         var seen: Set<String> = []
@@ -107,8 +115,8 @@ final class LaundryStore {
         for week in weeks {
             for timeslot in week.timeslots {
                 guard let start = Self.parseISO8601(timeslot.startAt) else { continue }
-                let end = Self.parseISO8601(timeslot.endAt) ?? start
-                guard end > now else { continue }
+                let releasesAt = start.addingTimeInterval(TimeInterval(Self.activationGraceMinutes * 60))
+                guard releasesAt > now else { continue }
                 for group in timeslot.groups where group.status == .own {
                     let id = "\(timeslot.id)#\(group.groupId)"
                     guard seen.insert(id).inserted else { continue }
@@ -127,10 +135,6 @@ final class LaundryStore {
             }
         }
         return held.sorted { $0.start < $1.start }
-    }
-
-    var remainingBookings: Int {
-        max(0, Self.maxActiveBookings - heldBookings.count)
     }
 
     func heldBookings(excludingTimeslot timeslotId: String) -> [HeldBooking] {

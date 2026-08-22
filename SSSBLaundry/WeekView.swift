@@ -204,27 +204,21 @@ struct WeekView: View {
         .listStyle(.insetGrouped)
     }
 
-    /// The two-booking limit counts across every day, so a full quota has to be
-    /// visible from the week list — otherwise the second day looks bookable.
+    /// The two-booking limit counts across every day, so a full quota is worth
+    /// a mention in the week list — quietly. It is a local count of what the
+    /// portal last reported, not a rule the app enforces.
     @ViewBuilder
     private var limitBanner: some View {
         let held = store.heldBookings
         if held.count >= LaundryStore.maxActiveBookings {
             let list = held.map(\.whenLabel).formatted(.list(type: .and))
-            VStack(alignment: .leading, spacing: 4) {
-                Label("Booking limit reached", systemImage: "exclamationmark.circle.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.orange)
-                Text("You have your \(LaundryStore.maxActiveBookings) bookings (\(list)). Cancel one before booking another timeslot.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
-            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
+            Text("\(held.count) of \(LaundryStore.maxActiveBookings) bookings in use — \(list).")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
         }
     }
 

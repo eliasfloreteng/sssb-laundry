@@ -19,7 +19,7 @@ Find example requests in the `./requests` directory. This directory is gitignore
 - If the booking for one group fails, a partial success should be returned with the successful and failed bookings.
 - Errors should also be returned in a structured format with handling of unknown errors.
 - Focus on brevity and being concise in the implementation.
-- The application should be stateless except for saving the sessions in memory.
+- The application is stateless for the booking endpoints (sessions live in memory only). Push notifications are the one exception: device tokens, known bookings and the notification outbox are persisted in SQLite.
 - The list of timeslots should be able to return a cursor (date) for the next week of timeslots.
 - Cancellations should support multiple groups. Same partial success/failure handling as for bookings.
 - For the password encoding implement the same logic as the upstream application.
@@ -49,3 +49,51 @@ Find example requests in the `./requests` directory. This directory is gitignore
 - Some endpoints redirect to `/Account/Error` when they receive `X-Requested-With: XMLHttpRequest` without a matching `Referer`.
 - All cookies `ASP.NET_SessionId`, `__RequestVerificationToken_L0FwdHVzUG9ydGFs0` and `.ASPXAUTH` need to be sent on subsequent requests.
 - The `passDate` param at `/AptusPortal/CustomerBooking/BookingCalendar` dictates which week of timesslots to show. It is usually the monday of that week but any date from that week works.
+
+# Push notifications
+
+Server-driven APNs, because bookings made by anyone else on the same object id must
+notify even when the app is never opened (and because Live Activities will need the
+same channel later).
+
+- `src/db.ts` — `bun:sqlite` store (`DB_PATH`, default `./data/laundry.db`, WAL). Tables:
+  `devices`, `bookings`, `outbox`, `objects`. In Docker it lives on the `laundry-data`
+  volume; without that volume every redeploy silently drops every queued reminder.
+- `src/apns.ts` — zero-dependency APNs client: ES256 JWT via `node:crypto`
+  (`dsaEncoding: "ieee-p1363"` is raw R‖S, which is what JOSE wants — DER is rejected),
+  HTTP/2 via `node:http2`. Provider tokens are cached for 40 min (Apple refuses
+  refreshes under 20 min and tokens over 60 min).
+- `src/notifications.ts` — the poller and sender. Started only by `startServer()`;
+  `buildServer()` must stay timer-free because tests call it directly.
+
+## Invariants
+
+- **A failed scrape is not "the bookings vanished".** `pollObject` aborts and changes
+  nothing on upstream error. Deleting on a failed fetch would drop pending reminders
+  and re-announce everything once the fetch recovered.
+- **The first poll of an object id never announces.** Bookings found then already
+  exist as far as the user is concerned; `objects.first_polled_at` is what tells a
+  cold start from a genuine new booking.
+- **Bookings are keyed `(object_id, start_at, group_id)`, never by `timeslotId`.**
+  A timeslot id is content-derived from `{startAt, endAt}` and carries no user or
+  group identity, so it is regenerated at send time via `encodeTimeslotId`.
+- **The booking device is skipped on announcement.** `POST /book` reads an optional
+  `X-Device-Token` header and stores it as `bookings.origin_token`.
+- Object ids and device tokens are never logged. Use `hashObjectId()`.
+- `410`/`BadDeviceToken`/`Unregistered` deletes the device row. Never retry those.
+
+## Endpoints
+
+- `PUT /notifications/device` — `{ deviceToken, environment, enabled, alertMinutes,
+  secondAlertMinutes }`. Upserts and rebuilds that device's reminders immediately.
+- `DELETE /notifications/device` — `{ deviceToken }`.
+- `POST /notifications/test` — dev only (`NODE_ENV !== "production"`), fires a
+  reminder at every enabled device for the calling object id.
+
+## Environment
+
+`PUSH_ENABLED=true` plus `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_TOPIC`, and either
+`APNS_KEY_P8` (inline PEM, `\n`-escaped — the production path) or `APNS_KEY_PATH`
+(dev; the key lives in the gitignored `secrets/`). Tunables: `PUSH_POLL_MINUTES`
+(default 10), `PUSH_POLL_WEEKS` (default 3). Polling is expensive — one
+`listTimeslots` is categories + groups + one BookingCalendar per group.

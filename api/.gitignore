@@ -4,6 +4,11 @@ node_modules/
 dist/
 compose.override.yaml
 
+# APNs signing key and local SQLite state
+secrets/
+*.p8
+data/
+
 # Env
 .env
 .env.*

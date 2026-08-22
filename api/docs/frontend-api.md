@@ -198,6 +198,70 @@ Common client-facing error codes:
 - `AUTH_FAILED`
 - `UNKNOWN_ERROR`
 
+## Push Notifications
+
+Reminders are scheduled and sent by the server, so bookings made by anyone else on
+the same object id notify this device even when the app is never opened.
+
+### `PUT /notifications/device`
+
+Registers or updates this device. Send it whenever the token or the preferences
+change; it is an idempotent upsert keyed on `deviceToken`.
+
+Headers: `X-Object-Id: <object-id>`
+
+```json
+{
+  "deviceToken": "<64 hex chars>",
+  "environment": "sandbox",
+  "enabled": true,
+  "alertMinutes": 10,
+  "secondAlertMinutes": null
+}
+```
+
+- `environment`: `sandbox` for a debug build, `production` for TestFlight/App Store
+- `alertMinutes` / `secondAlertMinutes`: minutes before the timeslot start, `0` for
+  "at start", `null` for off
+- Response: `{ "ok": true }`
+
+### `DELETE /notifications/device`
+
+Body `{ "deviceToken": "..." }`. Call on sign-out and when reminders are turned off,
+otherwise the server keeps pushing this object id's bookings to the device.
+
+### `X-Device-Token` on book/cancel
+
+`POST /timeslots/:timeslotId/book` accepts an optional `X-Device-Token` header. The
+server records which device made the booking so that device is skipped when the
+"New laundry booking" push is fanned out to the other devices on the object id.
+
+### Payloads
+
+```json
+{
+  "aps": {
+    "alert": { "title": "Laundry in 10 minutes", "body": "Mon 4 May 07:00-10:00 · Grupp 1" },
+    "sound": "default",
+    "interruption-level": "time-sensitive",
+    "thread-id": "booking.<startEpoch>-<groupIds>"
+  },
+  "kind": "reminder",
+  "timeslotId": "ts_...",
+  "groupIds": [162],
+  "startAt": "2026-05-04T07:00:00.000+02:00"
+}
+```
+
+`kind` is `reminder` or `new_booking`. `new_booking` carries no
+`interruption-level`. Do not persist `timeslotId` from a payload — refetch
+`/timeslots` before acting on it.
+
+### Errors
+
+- `PUSH_DISABLED` (503) — the server has no APNs configuration
+- `INVALID_DEVICE_TOKEN`, `INVALID_ENVIRONMENT`, `INVALID_ALERT_MINUTES` (400)
+
 ## Frontend Integration Notes
 
 - Always fetch `/timeslots` before booking/cancelling to get valid `timeslotId` and group ids

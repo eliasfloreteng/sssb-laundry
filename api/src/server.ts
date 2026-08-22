@@ -1,6 +1,9 @@
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
+import type { PushEnvironment } from "./db.js";
+import { createPushService, type PushService } from "./notifications.js";
+import { decodeTimeslotId } from "./timeslot-id.js";
 
 interface TimeslotsQuery {
   date?: string;
@@ -14,7 +17,23 @@ interface TimeslotParams {
   timeslotId: string;
 }
 
-export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstance {
+interface DeviceBody {
+  deviceToken?: unknown;
+  environment?: unknown;
+  enabled?: unknown;
+  alertMinutes?: unknown;
+  secondAlertMinutes?: unknown;
+}
+
+export interface LaundryServer extends FastifyInstance {
+  /** Present only when push is configured; started by startServer(), never by tests. */
+  push: PushService | null;
+}
+
+export function buildServer(args?: {
+  aptusClient?: AptusClient;
+  pushService?: PushService | null;
+}): LaundryServer {
   const logLevel = process.env.LOG_LEVEL ?? "info";
   const app = Fastify({
     logger: { level: logLevel },
@@ -23,6 +42,9 @@ export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstan
     }
   });
   const aptus = args?.aptusClient ?? new AptusClient({ logger: app.log });
+  // Built here so it shares the Aptus session cache and the request logger, but
+  // its timers are only started by startServer() — tests must stay timer-free.
+  const push = args?.pushService !== undefined ? args.pushService : createPushService(aptus, app.log);
 
   app.get("/health", async () => ({ ok: true }));
 
@@ -43,14 +65,65 @@ export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstan
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/book", async (request) => {
     const objectId = requireObjectId(request);
     const groupIds = parseGroupIds(request.body.groupIds);
-    return aptus.bookTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
+    const response = await aptus.bookTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
+
+    if (push) {
+      const booked = succeededGroupIds(response.results, BOOK_SUCCESS);
+      if (booked.length > 0) {
+        const { startAt, endAt } = decodeTimeslotId(request.params.timeslotId);
+        // The device that booked is recorded so the "new booking" push skips it.
+        push.onBooked(objectId, startAt, endAt, booked, deviceToken(request));
+      }
+    }
+
+    return response;
   });
 
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/cancel", async (request) => {
     const objectId = requireObjectId(request);
     const groupIds = parseGroupIds(request.body.groupIds);
-    return aptus.cancelTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
+    const response = await aptus.cancelTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
+
+    if (push) {
+      const cancelled = succeededGroupIds(response.results, CANCEL_SUCCESS);
+      if (cancelled.length > 0) {
+        const { startAt } = decodeTimeslotId(request.params.timeslotId);
+        push.onCancelled(objectId, startAt, cancelled);
+      }
+    }
+
+    return response;
   });
+
+  app.put<{ Body: DeviceBody }>("/notifications/device", async (request) => {
+    const objectId = requireObjectId(request);
+    if (!push) throw pushDisabled();
+    const body = request.body ?? {};
+    push.registerDevice({
+      token: parseDeviceToken(body.deviceToken),
+      objectId,
+      environment: parseEnvironment(body.environment),
+      enabled: body.enabled !== false,
+      alertMinutes: parseAlertMinutes(body.alertMinutes, "alertMinutes"),
+      secondAlertMinutes: parseAlertMinutes(body.secondAlertMinutes, "secondAlertMinutes")
+    });
+    return { ok: true };
+  });
+
+  app.delete<{ Body: DeviceBody }>("/notifications/device", async (request) => {
+    requireObjectId(request);
+    if (!push) throw pushDisabled();
+    push.unregisterDevice(parseDeviceToken((request.body ?? {}).deviceToken));
+    return { ok: true };
+  });
+
+  if (process.env.NODE_ENV !== "production") {
+    app.post("/notifications/test", async (request) => {
+      const objectId = requireObjectId(request);
+      if (!push) throw pushDisabled();
+      return { ok: true, devices: push.enqueueTestNotification(objectId) };
+    });
+  }
 
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof AppError) {
@@ -95,7 +168,69 @@ export function buildServer(args?: { aptusClient?: AptusClient }): FastifyInstan
     });
   });
 
-  return app;
+  const server = Object.assign(app, { push }) as unknown as LaundryServer;
+  return server;
+}
+
+/** Per-group statuses that count as a real state change worth notifying about. */
+const BOOK_SUCCESS = new Set(["booked"]);
+const CANCEL_SUCCESS = new Set(["cancelled", "not_booked"]);
+
+function succeededGroupIds(
+  results: { groupId: number; status: string }[],
+  accepted: Set<string>
+): number[] {
+  return results.filter((r) => accepted.has(r.status)).map((r) => r.groupId);
+}
+
+/** Optional: the app identifies its APNs token so it can be skipped on announcements. */
+function deviceToken(request: FastifyRequest): string | null {
+  const raw = request.headers["x-device-token"];
+  return typeof raw === "string" && /^[0-9a-fA-F]{64}$/.test(raw.trim())
+    ? raw.trim().toLowerCase()
+    : null;
+}
+
+function pushDisabled(): AppError {
+  return new AppError({
+    statusCode: 503,
+    code: "PUSH_DISABLED",
+    message: "Push notifications are not configured on this server"
+  });
+}
+
+function parseDeviceToken(value: unknown): string {
+  if (typeof value !== "string" || !/^[0-9a-fA-F]{64}$/.test(value.trim())) {
+    throw new AppError({
+      statusCode: 400,
+      code: "INVALID_DEVICE_TOKEN",
+      message: "deviceToken must be a 64-character hex APNs token"
+    });
+  }
+  return value.trim().toLowerCase();
+}
+
+function parseEnvironment(value: unknown): PushEnvironment {
+  if (value === "sandbox" || value === "production") return value;
+  throw new AppError({
+    statusCode: 400,
+    code: "INVALID_ENVIRONMENT",
+    message: "environment must be 'sandbox' or 'production'"
+  });
+}
+
+/** Minutes before the timeslot start; null/absent means that alert is off. */
+function parseAlertMinutes(value: unknown, field: string): number | null {
+  if (value === null || value === undefined) return null;
+  const numeric = Number(value);
+  if (!Number.isInteger(numeric) || numeric < 0 || numeric > 40320) {
+    throw new AppError({
+      statusCode: 400,
+      code: "INVALID_ALERT_MINUTES",
+      message: `${field} must be an integer between 0 and 40320, or null`
+    });
+  }
+  return numeric;
 }
 
 function requireObjectId(request: FastifyRequest): string {
@@ -154,7 +289,16 @@ function parseGroupIds(value: unknown): number[] {
 
 export async function startServer(): Promise<void> {
   const app = buildServer();
+  app.push?.start();
+
   const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? "0.0.0.0";
   await app.listen({ host, port });
+
+  for (const signal of ["SIGTERM", "SIGINT"] as const) {
+    process.once(signal, () => {
+      app.push?.stop();
+      void app.close().then(() => process.exit(0));
+    });
+  }
 }

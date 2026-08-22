@@ -15,6 +15,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock* ./
 COPY src ./src
 
+# Owned before the volume is mounted so the named volume inherits the ownership.
+RUN mkdir -p /data && chown bun:bun /data
+VOLUME ["/data"]
+ENV DB_PATH=/data/laundry.db
+
 USER bun
 
 EXPOSE 3000

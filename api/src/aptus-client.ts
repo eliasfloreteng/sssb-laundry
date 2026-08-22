@@ -55,7 +55,7 @@ interface CanonicalTarget {
   endAt: string;
 }
 
-interface LoggerLike {
+export interface LoggerLike {
   debug?: (obj: Record<string, unknown>, msg?: string) => void;
   info?: (obj: Record<string, unknown>, msg?: string) => void;
   warn?: (obj: Record<string, unknown>, msg?: string) => void;
@@ -651,7 +651,7 @@ export class AptusClient {
   }
 }
 
-function hashObjectId(objectId: string): string {
+export function hashObjectId(objectId: string): string {
   return createHash("sha256").update(objectId).digest("hex").slice(0, 12);
 }
 

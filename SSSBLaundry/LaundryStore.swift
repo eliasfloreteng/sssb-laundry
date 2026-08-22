@@ -18,6 +18,11 @@ struct ActionOutcome: Identifiable {
     let timeslot: String
     let overallStatus: OverallStatus
     let results: [ActionResult]
+
+    /// A group was newly booked (as opposed to cancelled or already held).
+    var didBook: Bool {
+        results.contains { $0.status == "booked" }
+    }
 }
 
 @Observable
@@ -62,6 +67,49 @@ final class LaundryStore {
         return grouped.keys.sorted().map { date in
             (date, grouped[date]!.sorted { $0.startAt < $1.startAt })
         }
+    }
+
+    /// Every loaded timeslot the user has booked, flattened for notification
+    /// scheduling. Hidden groups are deliberately included: hiding is a display
+    /// filter, and a booking is still a booking the user must show up for.
+    var bookingReminders: [BookingReminder] {
+        let groups = groupsById
+        var seen: Set<String> = []
+        var reminders: [BookingReminder] = []
+        for week in weeks {
+            for timeslot in week.timeslots {
+                let ownIds = timeslot.groups.filter { $0.status == .own }.map(\.groupId).sorted()
+                guard !ownIds.isEmpty, let start = Self.parseISO8601(timeslot.startAt) else { continue }
+                let id = "\(Int(start.timeIntervalSince1970))-" + ownIds.map(String.init).joined(separator: "_")
+                guard seen.insert(id).inserted else { continue }
+                reminders.append(
+                    BookingReminder(
+                        id: id,
+                        start: start,
+                        dayLabel: Self.dayLabel(for: timeslot.localDate),
+                        startTime: timeslot.startTime,
+                        endTime: timeslot.endTime,
+                        machines: ownIds.map { groups[$0]?.name ?? "Group \($0)" }
+                    )
+                )
+            }
+        }
+        return reminders
+    }
+
+    /// End of the last week that has been paged in; bookings beyond it keep the
+    /// reminders they already have.
+    private var remindersCoveredThrough: Date? {
+        guard let last = weeks.last, let next = addDays(to: last.week.toDate, days: 1) else { return nil }
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter.date(from: next)
+    }
+
+    func syncNotifications() async {
+        await NotificationService.sync(reminders: bookingReminders, coveredThrough: remindersCoveredThrough)
     }
 
     func loadInitial() async {
@@ -139,6 +187,7 @@ final class LaundryStore {
                 }
             }
             loadState = .loaded
+            await syncNotifications()
         } catch let err as APIError {
             handleError(err)
         } catch {
@@ -184,6 +233,27 @@ final class LaundryStore {
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter.string(from: Date())
+    }
+
+    /// `startAt`/`endAt` may or may not carry fractional seconds, so retry without them.
+    static func parseISO8601(_ string: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: string) { return date }
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: string)
+    }
+
+    private static func dayLabel(for localDate: String) -> String {
+        let parser = DateFormatter()
+        parser.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        parser.dateFormat = "yyyy-MM-dd"
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        guard let date = parser.date(from: localDate) else { return localDate }
+        let printer = DateFormatter()
+        printer.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        printer.dateFormat = "EEE d MMM"
+        return printer.string(from: date)
     }
 
     private func addDays(to dateString: String, days: Int) -> String? {

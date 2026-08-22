@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct WeekView: View {
     @State private var store = LaundryStore()
@@ -15,6 +16,12 @@ struct WeekView: View {
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
+    @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
+    @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
+    @AppStorage(NotificationSetting.secondAlertKey) private var notificationSecondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
+    @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
+    @State private var showingNotificationPrompt = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -65,10 +72,22 @@ struct WeekView: View {
                 .refreshable {
                     await store.refresh()
                 }
+                .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {
+                    Button("Turn on reminders") { enableNotifications() }
+                    Button("Not now", role: .cancel) {}
+                } message: {
+                    Text(notificationPromptMessage)
+                }
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
                         objectId = ""
                     }
+                }
+                .onChange(of: notificationsEnabled) { _, _ in syncNotifications() }
+                .onChange(of: notificationAlert) { _, _ in syncNotifications() }
+                .onChange(of: notificationSecondAlert) { _, _ in syncNotifications() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { syncNotifications() }
                 }
         }
     }
@@ -219,8 +238,45 @@ struct WeekView: View {
     private var outcomeBinding: Binding<ActionOutcome?> {
         Binding(
             get: { store.lastOutcome },
-            set: { store.lastOutcome = $0 }
+            set: { newValue in
+                if newValue == nil, store.lastOutcome?.didBook == true {
+                    offerNotificationsAfterBooking()
+                }
+                store.lastOutcome = newValue
+            }
         )
+    }
+
+    private var notificationPromptMessage: String {
+        let lead: String
+        switch notificationAlert {
+        case .off, .atStart: lead = "when your booking starts"
+        default: lead = "\(notificationAlert.leadLabel) before your booking starts"
+        }
+        return "SSSB Laundry can notify you \(lead). Bookings are released 15 minutes after the start time if you don't start the machine."
+    }
+
+    /// Asked once, right after the first booking — that is when the reminder is
+    /// worth something, so that is when we ask for permission.
+    private func offerNotificationsAfterBooking() {
+        guard !notificationsEnabled, !notificationsPrompted else { return }
+        Task {
+            guard await NotificationService.authorizationStatus() == .notDetermined else { return }
+            showingNotificationPrompt = true
+        }
+    }
+
+    private func enableNotifications() {
+        notificationsPrompted = true
+        Task {
+            let granted = await NotificationService.requestAuthorization()
+            notificationsEnabled = granted
+            await store.syncNotifications()
+        }
+    }
+
+    private func syncNotifications() {
+        Task { await store.syncNotifications() }
     }
 
     private var errorAlertBinding: Binding<Bool> {

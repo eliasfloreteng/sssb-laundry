@@ -15,6 +15,7 @@ Key files:
 - `Models.swift` — Decodable DTOs plus `ActiveHoursSetting` / `ActiveGroupsSetting` helpers.
 - `WeekView.swift` / `BookingSheet.swift` — main UI surfaces.
 - `CalendarService.swift` — EventKit write-only integration.
+- `NotificationService.swift` — local booking reminders (`UNUserNotificationCenter`) plus the `BookingAlert` offsets and `NotificationSetting` keys.
 - `RootView.swift` — switches between `ObjectIdSetupView` and `WeekView` based on stored object id.
 
 ## Auth and identity
@@ -54,6 +55,19 @@ Key files:
 - `Info.plist` requires `NSCalendarsWriteOnlyAccessUsageDescription` (set via `INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription` in the pbxproj). The app uses `requestWriteOnlyAccessToEvents()` — full read access is intentionally not requested, so don't try to read existing events.
 - The `EKEventStore` must outlive the `EKEvent`; `PreparedEvent` carries both. Do not drop the store before the event editor commits.
 - Event title is `"Tvätt <groups>"` (Swedish) with no notes/description, and a single alarm at offset `0` (timeslot start). Keep it terse — the user reviews the event in the system editor before saving.
+
+## Notifications
+
+- Reminders are **local** notifications only (`UNUserNotificationCenter`). There is no APNs setup, no push entitlement and no server-side push — "push notifications" here means scheduled local alerts. Nothing needs to be added to `Info.plist`.
+- Opt-in and off by default (`notifications.enabled`). Permission is requested from two places: the Settings toggle, and a one-shot alert after the first successful booking (`WeekView.offerNotificationsAfterBooking`, gated on `notifications.prompted` and `authorizationStatus == .notDetermined`). Don't ask anywhere else — iOS only ever shows the system prompt once.
+- Two offsets per booking, mirroring Calendar.app's Alert / Second alert: `notifications.alert` (default 10 minutes before) and `notifications.secondAlert` (default `.off`, usually set to "At start of booking"). Both are `BookingAlert` raw-value enums so `@AppStorage` can store them; `.off` is `-1` and `.atStart` is `0`, so the raw value doubles as "minutes before".
+- `LaundryStore.syncNotifications()` runs after every successful week fetch, and `WeekView` re-runs it on scene activation and on any notification-setting change. It is a full rewrite of the schedule, not a diff — never try to schedule a single reminder at book time.
+- The rewrite is **windowed**. `NotificationService.sync` only drops pending requests whose booking starts on or before `coveredThrough` (the end of the last paged-in week), because a cold launch only knows about the current week and must not cancel reminders for bookings further out. Each request carries its booking start in `userInfo["startEpoch"]` so the window can be applied. If you change identifiers or `userInfo`, keep that key.
+- Reminder identifiers are `booking.<startEpoch>-<sortedGroupIds>.<alertRawValue>` — deliberately derived from the timeslot start rather than the opaque `timeslotId`, which must not be persisted across server changes.
+- Hidden groups are **not** filtered out of reminders: hiding is a display filter, but a booking still has to be shown up for.
+- iOS caps an app at 64 pending local notifications; `sync` sorts by fire date and keeps the earliest 60.
+- `content.interruptionLevel = .timeSensitive` is set without the matching entitlement — iOS silently downgrades it to `.active`. Add `com.apple.developer.usernotifications.time-sensitive` if reminders should break through Focus.
+- `NotificationPresenter` is registered as the `UNUserNotificationCenter` delegate in `SSSBLaundryApp.init()` so reminders still show as a banner while the app is open.
 
 ## State and concurrency
 

@@ -6,6 +6,15 @@ services:
     environment:
       - "LOG_LEVEL=debug"
       - "DB_PATH=/data/laundry.db"
+      # APNs identifiers. The signing key itself comes from .env (APNS_KEY_P8).
+      - "PUSH_ENABLED=true"
+      - "APNS_KEY_ID=JJKLZDADS4"
+      - "APNS_TEAM_ID=XQ9HKBVB36"
+      - "APNS_TOPIC=se.floreteng.SSSBLaundry"
+    env_file:
+      # Holds APNS_KEY_P8 only. Absent on checkouts that don't send push.
+      - path: .env
+        required: false
     volumes:
       # Device tokens and queued reminders must survive a redeploy.
       - laundry-data:/data

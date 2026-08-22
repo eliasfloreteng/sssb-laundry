@@ -97,3 +97,15 @@ same channel later).
 (dev; the key lives in the gitignored `secrets/`). Tunables: `PUSH_POLL_MINUTES`
 (default 10), `PUSH_POLL_WEEKS` (default 3). Polling is expensive — one
 `listTimeslots` is categories + groups + one BookingCalendar per group.
+
+On this deployment the four identifiers live in `compose.yaml` (the repo is private and
+none of them is a credential); `APNS_KEY_P8` alone lives in the gitignored `.env`, pulled
+in via `env_file`. Regenerate it from the `.p8` after a key rotation:
+
+```sh
+bun -e 'const f=require("fs");const k=f.readFileSync("secrets/AuthKey_<KEYID>.p8","utf8").trim();
+f.writeFileSync(".env",`APNS_KEY_P8=${k.replace(/\r?\n/g,"\\n")}\n`)'
+```
+
+A bind mount of `secrets/` is not an option here: the container runs as uid 1000 (`bun`)
+and the host key is 0640 owned by uid 1001.

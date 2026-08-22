@@ -3,3 +3,17 @@ requests/
 node_modules/
 dist/
 compose.override.yaml
+
+# Env
+.env
+.env.*
+
+# Logs
+*.log
+
+# Test coverage
+coverage/
+
+# Claude Code
+CLAUDE.local.md
+.claude/settings.local.json

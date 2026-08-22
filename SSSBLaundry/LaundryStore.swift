@@ -162,29 +162,32 @@ final class LaundryStore {
     /// Every loaded timeslot the user has booked, flattened for notification
     /// scheduling. Hidden groups are deliberately included: hiding is a display
     /// filter, and a booking is still a booking the user must show up for.
-    var bookingReminders: [BookingReminder] {
+    var bookings: [Booking] {
         let groups = groupsById
         var seen: Set<String> = []
-        var reminders: [BookingReminder] = []
+        var result: [Booking] = []
         for week in weeks {
             for timeslot in week.timeslots {
                 let ownIds = timeslot.groups.filter { $0.status == .own }.map(\.groupId).sorted()
                 guard !ownIds.isEmpty, let start = Self.parseISO8601(timeslot.startAt) else { continue }
                 let id = "\(Int(start.timeIntervalSince1970))-" + ownIds.map(String.init).joined(separator: "_")
                 guard seen.insert(id).inserted else { continue }
-                reminders.append(
-                    BookingReminder(
+                let locations = Set(ownIds.compactMap { groups[$0]?.location }.filter { !$0.isEmpty })
+                result.append(
+                    Booking(
                         id: id,
                         start: start,
+                        end: Self.parseISO8601(timeslot.endAt) ?? start.addingTimeInterval(3 * 3600),
                         dayLabel: Self.dayLabel(for: timeslot.localDate),
                         startTime: timeslot.startTime,
                         endTime: timeslot.endTime,
-                        machines: ownIds.map { groups[$0]?.name ?? "Group \($0)" }
+                        machines: ownIds.map { groups[$0]?.name ?? "Group \($0)" },
+                        location: locations.count == 1 ? locations.first! : ""
                     )
                 )
             }
         }
-        return reminders
+        return result
     }
 
     /// End of the last week that has been paged in; bookings beyond it keep the
@@ -199,7 +202,11 @@ final class LaundryStore {
     }
 
     func syncNotifications() async {
-        await NotificationService.sync(reminders: bookingReminders, coveredThrough: remindersCoveredThrough)
+        await NotificationService.sync(bookings: bookings, coveredThrough: remindersCoveredThrough)
+    }
+
+    func syncLiveActivity() async {
+        await LiveActivityService.sync(bookings: bookings)
     }
 
     func loadInitial() async {
@@ -291,6 +298,7 @@ final class LaundryStore {
             }
             loadState = .loaded
             await syncNotifications()
+            await syncLiveActivity()
         } catch {
             if Self.isCancellation(error) { return }
             handleError(Self.apiError(from: error))

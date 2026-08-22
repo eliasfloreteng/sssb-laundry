@@ -84,13 +84,19 @@ struct WeekView: View {
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
                         objectId = ""
+                        Task { await LiveActivityService.endAll() }
                     }
                 }
                 .onChange(of: notificationsEnabled) { _, _ in syncNotifications() }
                 .onChange(of: notificationAlert) { _, _ in syncNotifications() }
                 .onChange(of: notificationSecondAlert) { _, _ in syncNotifications() }
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { syncNotifications() }
+                    // Coming forward inside the lead window is what starts the
+                    // Live Activity, so this is more than a refresh.
+                    if phase == .active {
+                        syncNotifications()
+                        Task { await store.syncLiveActivity() }
+                    }
                 }
         }
         .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {

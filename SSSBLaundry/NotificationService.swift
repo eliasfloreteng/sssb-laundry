@@ -85,14 +85,20 @@ enum NotificationSetting {
     }
 }
 
-/// One booked timeslot, flattened into everything a notification needs.
-struct BookingReminder {
+/// One booked timeslot, flattened into everything the reminder schedule and the
+/// Live Activity need.
+struct Booking {
     let id: String
     let start: Date
+    let end: Date
     let dayLabel: String
     let startTime: String
     let endTime: String
     let machines: [String]
+    let location: String
+
+    /// When the machine releases the booking again if it hasn't been started.
+    var deadline: Date { start.addingTimeInterval(laundryGracePeriod) }
 }
 
 enum NotificationService {
@@ -118,7 +124,7 @@ enum NotificationService {
     /// Only that window is rewritten: weeks are paged in lazily, so on a cold
     /// launch the store knows about the current week only and must not drop
     /// reminders it already scheduled for bookings further out.
-    static func sync(reminders: [BookingReminder], coveredThrough: Date?) async {
+    static func sync(bookings: [Booking], coveredThrough: Date?) async {
         let center = UNUserNotificationCenter.current()
         let enabled = NotificationSetting.isEnabled
         let alerts = NotificationSetting.activeAlerts
@@ -148,7 +154,7 @@ enum NotificationService {
 
         let now = Date()
         var scheduled: [(fireDate: Date, request: UNNotificationRequest)] = []
-        for reminder in reminders {
+        for reminder in bookings {
             for alert in alerts {
                 guard let minutes = alert.minutesBefore else { continue }
                 let fireDate = reminder.start.addingTimeInterval(-Double(minutes) * 60)
@@ -183,7 +189,7 @@ enum NotificationService {
         }
     }
 
-    private static func request(for reminder: BookingReminder, alert: BookingAlert, fireDate: Date) -> UNNotificationRequest {
+    private static func request(for reminder: Booking, alert: BookingAlert, fireDate: Date) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         content.sound = .default
         content.interruptionLevel = .timeSensitive

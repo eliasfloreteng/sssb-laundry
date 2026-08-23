@@ -17,6 +17,7 @@ Key files:
 - `CalendarService.swift` — EventKit write-only integration.
 - `PushService.swift` / `AppDelegate.swift` — APNs registration and preference sync.
 - `NotificationSettings.swift` — `BookingAlert` offsets and the `@AppStorage` keys.
+- `LiveActivityService.swift` — app side of the Live Activity; `Shared/LaundryActivityAttributes.swift` and `SSSBLaundryWidgets/` are the shared model and the widget extension.
 - `RootView.swift` — switches between `ObjectIdSetupView` and `WeekView` based on stored object id.
 
 ## Auth and identity
@@ -87,6 +88,20 @@ this device with the app closed. There is no local scheduling — an earlier
   alert pushes, not silent ones.
 - `AppDelegate` exists only for the APNs token callback and foreground banners;
   everything else stays pure SwiftUI.
+
+## Live Activity
+
+- The project has **three source roots**, all Xcode file-system-synchronized groups: `SSSBLaundry/` (app), `SSSBLaundryWidgets/` (the `com.apple.product-type.app-extension` widget target, bundle id `se.floreteng.SSSBLaundry.Widgets`), and `Shared/`, which is a member of *both* targets. `LaundryActivityAttributes` has to compile into both — put anything else they share in `Shared/`, never a second copy.
+- `SSSBLaundryWidgets/Info.plist` declares `NSExtensionPointIdentifier`, and is excluded from the extension's Copy Bundle Resources phase by a `PBXFileSystemSynchronizedBuildFileExceptionSet` in the pbxproj. Without that exception the build fails with "Multiple commands produce .../Info.plist" — keep it if you touch the synchronized group.
+- The app target needs `INFOPLIST_KEY_NSSupportsLiveActivities = YES`.
+- The activity covers one booking at a time: the earliest whose window (`start - 1 h` through `start + 15 min`) contains now. `LiveActivityService.sync` starts, advances and ends it, and runs after every week fetch and on `scenePhase == .active`, so **opening the app inside the lead window is what starts it**. `Activity.request` requires the foreground, which is why there is no other trigger.
+- Two phases: `.upcoming` counts down to the start, `.grace` counts down the 15 minutes before the machine releases the booking.
+- **The phase flip is driven by `staleDate`, not by an update.** The app is normally suspended by the time the slot starts, so `sync` sets `staleDate` to the phase boundary and the widget resolves `state.phase == .grace || context.isStale`. The in-app supervisor `Task` pushes the real update and the ending when the app happens to be alive; treat it as the fast path, not the mechanism.
+- Known limitation: the reminder pushes are visible alerts, not silent ones, so nothing wakes the app to end the activity at the deadline. If the app is never reopened it shows a spent countdown until the next launch reconciles it (or ActivityKit's own cap). Ending it on time needs `pushType: .token` and live-activity pushes from the server.
+- `LaundryStore.bookedSlots` folds `heldBookings` (one row per machine, because the two-booking quota is counted per machine) into one entry per timeslot. Its `id` is derived from the start epoch and the group ids, never the opaque `timeslotId`.
+- Countdown ranges in the widget are built from the booking's own dates, never `Date.now` — a range whose lower bound has drifted past its upper bound traps at render time.
+- `ActivityContent(state:staleDate:)` cannot infer its generic from `.init(phase:)`; name `LaundryActivityAttributes.ContentState` explicitly.
+- `laundryGracePeriod` in `Shared/` is the single source for the 15 minutes; `LaundryStore.activationGraceMinutes` derives from it.
 
 ## State and concurrency
 

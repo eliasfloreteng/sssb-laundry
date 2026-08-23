@@ -61,6 +61,23 @@ struct HeldBooking: Identifiable, Hashable {
     var whenLabel: String { "\(dayLabel) \(startTime)" }
 }
 
+/// A held timeslot with every machine it covers folded into one entry, which is
+/// what the Live Activity counts down. `HeldBooking` stays one row per machine
+/// because the two-booking quota is counted per machine.
+struct BookedSlot: Identifiable, Hashable {
+    let id: String
+    let start: Date
+    let startTime: String
+    let endTime: String
+    /// Machine names, already joined for display.
+    let machines: String
+    /// Empty unless every machine in the slot shares one location.
+    let location: String
+
+    /// When the machine releases the booking again if it hasn't been started.
+    var deadline: Date { start.addingTimeInterval(laundryGracePeriod) }
+}
+
 @Observable
 final class LaundryStore {
     var weeks: [WeekResponse] = []
@@ -103,7 +120,7 @@ final class LaundryStore {
     /// booking from an auto-cancelled one once that window has passed, so the
     /// count errs towards freeing the quota: over-counting used to leave the
     /// user unable to book anything until the missed slot finally ended.
-    static let activationGraceMinutes = 15
+    static let activationGraceMinutes = Int(laundryGracePeriod / 60)
 
     /// Bookings the user still holds, across every loaded week. Hidden groups
     /// count: hiding is a display filter, but the booking still occupies one of
@@ -139,6 +156,36 @@ final class LaundryStore {
 
     func heldBookings(excludingTimeslot timeslotId: String) -> [HeldBooking] {
         heldBookings.filter { $0.timeslotId != timeslotId }
+    }
+
+    /// The held bookings collapsed to one entry per timeslot. Already limited to
+    /// slots that haven't been released yet, since `heldBookings` drops those.
+    var bookedSlots: [BookedSlot] {
+        let groups = groupsById
+        var byTimeslot: [String: [HeldBooking]] = [:]
+        for booking in heldBookings {
+            byTimeslot[booking.timeslotId, default: []].append(booking)
+        }
+        return byTimeslot.values.compactMap { entries -> BookedSlot? in
+            guard let first = entries.first else { return nil }
+            let ids = entries.map(\.groupId).sorted()
+            let locations = Set(ids.compactMap { groups[$0]?.location }.filter { !$0.isEmpty })
+            return BookedSlot(
+                // Derived from the start and the groups rather than the opaque
+                // timeslotId, which must not outlive a server change.
+                id: "\(Int(first.start.timeIntervalSince1970))-" + ids.map(String.init).joined(separator: "_"),
+                start: first.start,
+                startTime: first.startTime,
+                endTime: first.endTime,
+                machines: ids.map { groups[$0]?.name ?? "Group \($0)" }.joined(separator: ", "),
+                location: locations.count == 1 ? locations.first! : ""
+            )
+        }
+        .sorted { $0.start < $1.start }
+    }
+
+    func syncLiveActivity() async {
+        await LiveActivityService.sync(slots: bookedSlots)
     }
 
     /// The freshest copy of a timeslot, so a sheet that stays open after a
@@ -251,6 +298,7 @@ final class LaundryStore {
                 }
             }
             loadState = .loaded
+            await syncLiveActivity()
         } catch {
             if Self.isCancellation(error) { return }
             handleError(Self.apiError(from: error))

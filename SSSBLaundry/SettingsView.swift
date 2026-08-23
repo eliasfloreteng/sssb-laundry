@@ -212,6 +212,7 @@ struct SettingsView: View {
         // Deregister first: once the object id is gone the request can no longer
         // be authenticated, and the server would keep pushing to this phone.
         PushService.deregister(objectId: objectId)
+        Task { await LiveActivityService.endAll() }
         objectId = ""
         dismiss()
     }

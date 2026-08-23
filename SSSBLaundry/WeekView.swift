@@ -78,8 +78,12 @@ struct WeekView: View {
                     }
                 }
                 .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
                     // Catches permission revoked in iOS Settings while we were away.
-                    if phase == .active { PushService.syncToServer() }
+                    PushService.syncToServer()
+                    // `Activity.request` needs the foreground, so coming forward
+                    // inside the lead window is what starts the Live Activity.
+                    Task { await store.syncLiveActivity() }
                 }
                 .refreshable {
                     await store.refresh()
@@ -87,6 +91,7 @@ struct WeekView: View {
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
                         PushService.deregister(objectId: objectId)
+                        Task { await LiveActivityService.endAll() }
                         objectId = ""
                     }
                 }

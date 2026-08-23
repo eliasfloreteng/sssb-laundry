@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		64AA000E2FA2000000D7078A /* SSSBLaundryWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 64AA00012FA2000000D7078A /* SSSBLaundryWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		64F3FB8D2FA1143A00D7078A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +25,45 @@
 			remoteGlobalIDString = 64F3FB7C2FA1143800D7078A;
 			remoteInfo = SSSBLaundry;
 		};
+		64AA000B2FA2000000D7078A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64F3FB752FA1143800D7078A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 64AA00072FA2000000D7078A;
+			remoteInfo = SSSBLaundryWidgets;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		64AA000D2FA2000000D7078A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				64AA000E2FA2000000D7078A /* SSSBLaundryWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		64F3FB7D2FA1143800D7078A /* SSSBLaundry.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SSSBLaundry.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F3FB8C2FA1143A00D7078A /* SSSBLaundryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SSSBLaundryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F3FB962FA1143A00D7078A /* SSSBLaundryUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SSSBLaundryUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		64AA00012FA2000000D7078A /* SSSBLaundryWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SSSBLaundryWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		64AA000F2FA2000000D7078A /* Exceptions for "SSSBLaundryWidgets" folder in "SSSBLaundryWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 64AA00072FA2000000D7078A /* SSSBLaundryWidgets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		64F3FB7F2FA1143800D7078A /* SSSBLaundry */ = {
@@ -43,6 +79,19 @@
 		64F3FB992FA1143A00D7078A /* SSSBLaundryUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SSSBLaundryUITests;
+			sourceTree = "<group>";
+		};
+		64AA00022FA2000000D7078A /* SSSBLaundryWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				64AA000F2FA2000000D7078A /* Exceptions for "SSSBLaundryWidgets" folder in "SSSBLaundryWidgets" target */,
+			);
+			path = SSSBLaundryWidgets;
+			sourceTree = "<group>";
+		};
+		64AA00032FA2000000D7078A /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +118,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		64AA00052FA2000000D7078A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +134,8 @@
 				64F3FB7F2FA1143800D7078A /* SSSBLaundry */,
 				64F3FB8F2FA1143A00D7078A /* SSSBLaundryTests */,
 				64F3FB992FA1143A00D7078A /* SSSBLaundryUITests */,
+				64AA00022FA2000000D7078A /* SSSBLaundryWidgets */,
+				64AA00032FA2000000D7078A /* Shared */,
 				64F3FB7E2FA1143800D7078A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +146,7 @@
 				64F3FB7D2FA1143800D7078A /* SSSBLaundry.app */,
 				64F3FB8C2FA1143A00D7078A /* SSSBLaundryTests.xctest */,
 				64F3FB962FA1143A00D7078A /* SSSBLaundryUITests.xctest */,
+				64AA00012FA2000000D7078A /* SSSBLaundryWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,13 +161,16 @@
 				64F3FB792FA1143800D7078A /* Sources */,
 				64F3FB7A2FA1143800D7078A /* Frameworks */,
 				64F3FB7B2FA1143800D7078A /* Resources */,
+				64AA000D2FA2000000D7078A /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				64AA000C2FA2000000D7078A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				64F3FB7F2FA1143800D7078A /* SSSBLaundry */,
+				64AA00032FA2000000D7078A /* Shared */,
 			);
 			name = SSSBLaundry;
 			packageProductDependencies = (
@@ -163,6 +225,29 @@
 			productReference = 64F3FB962FA1143A00D7078A /* SSSBLaundryUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		64AA00072FA2000000D7078A /* SSSBLaundryWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 64AA000A2FA2000000D7078A /* Build configuration list for PBXNativeTarget "SSSBLaundryWidgets" */;
+			buildPhases = (
+				64AA00042FA2000000D7078A /* Sources */,
+				64AA00052FA2000000D7078A /* Frameworks */,
+				64AA00062FA2000000D7078A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				64AA00022FA2000000D7078A /* SSSBLaundryWidgets */,
+				64AA00032FA2000000D7078A /* Shared */,
+			);
+			name = SSSBLaundryWidgets;
+			packageProductDependencies = (
+			);
+			productName = SSSBLaundryWidgets;
+			productReference = 64AA00012FA2000000D7078A /* SSSBLaundryWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +269,9 @@
 						CreatedOnToolsVersion = 26.4.1;
 						TestTargetID = 64F3FB7C2FA1143800D7078A;
 					};
+					64AA00072FA2000000D7078A = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 				};
 			};
 			buildConfigurationList = 64F3FB782FA1143800D7078A /* Build configuration list for PBXProject "SSSBLaundry" */;
@@ -203,6 +291,7 @@
 				64F3FB7C2FA1143800D7078A /* SSSBLaundry */,
 				64F3FB8B2FA1143A00D7078A /* SSSBLaundryTests */,
 				64F3FB952FA1143A00D7078A /* SSSBLaundryUITests */,
+				64AA00072FA2000000D7078A /* SSSBLaundryWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +312,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		64F3FB942FA1143A00D7078A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		64AA00062FA2000000D7078A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +349,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		64AA00042FA2000000D7078A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +368,11 @@
 			isa = PBXTargetDependency;
 			target = 64F3FB7C2FA1143800D7078A /* SSSBLaundry */;
 			targetProxy = 64F3FB972FA1143A00D7078A /* PBXContainerItemProxy */;
+		};
+		64AA000C2FA2000000D7078A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 64AA00072FA2000000D7078A /* SSSBLaundryWidgets */;
+			targetProxy = 64AA000B2FA2000000D7078A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -404,6 +512,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Add your laundry bookings to your calendar so you don't forget.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -441,6 +550,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Add your laundry bookings to your calendar so you don't forget.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -548,6 +658,68 @@
 			};
 			name = Release;
 		};
+		64AA00082FA2000000D7078A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = XQ9HKBVB36;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SSSBLaundryWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = se.floreteng.SSSBLaundry.Widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		64AA00092FA2000000D7078A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = XQ9HKBVB36;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SSSBLaundryWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = se.floreteng.SSSBLaundry.Widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -583,6 +755,15 @@
 			buildConfigurations = (
 				64F3FBA72FA1143A00D7078A /* Debug */,
 				64F3FBA82FA1143A00D7078A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		64AA000A2FA2000000D7078A /* Build configuration list for PBXNativeTarget "SSSBLaundryWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				64AA00082FA2000000D7078A /* Debug */,
+				64AA00092FA2000000D7078A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

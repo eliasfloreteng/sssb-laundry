@@ -8,6 +8,7 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - Book or cancel 1–2 groups per timeslot in a single action
 - Filter the list to active hours and to a subset of laundry groups (useful when an object id covers multiple buildings)
 - Add bookings to the system calendar with a reminder at the timeslot start
+- A Live Activity in the hour before a booking, counting down to the start and then through the 15 minutes before it is released
 - Pull-to-refresh and infinite scroll into future weeks
 
 ## Requirements
@@ -40,8 +41,14 @@ SSSBLaundry/
   Models.swift             Decodable DTOs and settings helpers
   LaundryStore.swift       @Observable store (week loading, actions)
   CalendarService.swift    EventKit integration
+  LiveActivityService.swift App side of the booking Live Activity
   ObjectIdStore.swift      UserDefaults wrapper for the object id
   Config.swift             Base URL
+Shared/
+  LaundryActivityAttributes.swift  ActivityKit model, built into both targets
+SSSBLaundryWidgets/
+  SSSBLaundryWidgetsBundle.swift   Widget extension entry point
+  LaundryLiveActivity.swift        Lock Screen and Dynamic Island views
 ```
 
 ## Tests

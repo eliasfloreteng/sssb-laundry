@@ -368,7 +368,7 @@ export class AptusClient {
       response = await this.requestRaw(session, path, options, context);
     }
 
-    if (isLoginRedirect(response) || response.status === 401) {
+    if (isLoginRedirect(response) || isLogOffRedirect(response) || response.status === 401) {
       this.log(
         "warn",
         context,
@@ -1104,21 +1104,33 @@ function toPathWithQuery(urlLike: string): string {
   return `${url.pathname}${url.search}`;
 }
 
-function isLoginRedirect(response: HttpResult): boolean {
+function isAccountRedirect(response: HttpResult, accountPath: string): boolean {
   if (!(response.status >= 300 && response.status < 400)) return false;
-  if ((response.location ?? "").includes("/Account/Login")) return true;
+  if ((response.location ?? "").includes(accountPath)) return true;
   // Aptus may omit the Location header on AJAX (X-Requested-With) redirects
   // and only embed the destination in the "Object moved" HTML body.
-  return /href="[^"]*\/Account\/Login/i.test(response.body);
+  return new RegExp(`href="[^"]*${accountPath}`, "i").test(response.body);
+}
+
+function isLoginRedirect(response: HttpResult): boolean {
+  return isAccountRedirect(response, "/Account/Login");
+}
+
+// The portal bounces to LogOff -- not to Login -- when the ASP.NET session
+// state has been dropped while the .ASPXAUTH ticket is still sent, which is
+// exactly the state a long-lived cached session reaches. It means "expired",
+// so it must trigger a reauthentication rather than surface as an error.
+function isLogOffRedirect(response: HttpResult): boolean {
+  return isAccountRedirect(response, "/Account/LogOff");
 }
 
 function isAccountErrorRedirect(response: HttpResult): boolean {
-  if (!(response.status >= 300 && response.status < 400)) return false;
-  return (response.location ?? "").includes("/Account/Error");
+  return isAccountRedirect(response, "/Account/Error");
 }
 
 function looksLikeSessionExpired(response: HttpResult): boolean {
   if (isLoginRedirect(response)) return true;
+  if (isLogOffRedirect(response)) return true;
   if (isAccountErrorRedirect(response)) return true;
   if (response.status === 401) return true;
   if (response.status === 200 && containsLoginForm(response.body)) return true;

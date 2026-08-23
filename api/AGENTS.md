@@ -44,6 +44,10 @@ Find example requests in the `./requests` directory. This directory is gitignore
 - All responses return HTML.
 - All times are in Europe/Stockholm (dates from the portal are without timezone). Be aware of DST.
 - Anti-forgery is only enforced on `POST /Account/Login`; other endpoints are plain GETs.
+- An expired session has **two** shapes: with no cookies the portal redirects to
+  `/Account/Login`, but when `.ASPXAUTH` is still sent after ASP.NET session state is gone
+  it redirects to `/Account/LogOff` instead. A long-lived cached session only ever hits the
+  second one, so both must trigger reauthentication.
 - `__RequestVerificationToken` cookie and form value must come from the same GET; do not mix them across requests.
 - The server responds with **empty body** to requests without a `User-Agent`. Always set one.
 - Some endpoints redirect to `/Account/Error` when they receive `X-Requested-With: XMLHttpRequest` without a matching `Referer`.

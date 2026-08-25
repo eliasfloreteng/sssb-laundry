@@ -29,17 +29,25 @@ struct WeekView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showAllTimeslots.toggle()
+                        Menu {
+                            // Inline picker so the two filters read as named
+                            // choices with a checkmark, rather than an eye
+                            // icon the reader has to decode.
+                            Picker("Show", selection: $showAllTimeslots) {
+                                Label("Only free times", systemImage: "checkmark.circle")
+                                    .tag(false)
+                                Label("Every time, also booked", systemImage: "clock")
+                                    .tag(true)
+                            }
+                            .pickerStyle(.inline)
+                            Divider()
+                            Button { showingSettings = true } label: {
+                                Label("Settings", systemImage: "gearshape")
+                            }
                         } label: {
-                            Image(systemName: showAllTimeslots ? "eye.fill" : "eye.slash")
+                            Image(systemName: "ellipsis.circle")
                         }
-                        .accessibilityLabel(showAllTimeslots ? "Show only available timeslots" : "Show all timeslots")
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { showingSettings = true } label: {
-                            Image(systemName: "person.crop.circle")
-                        }
+                        .accessibilityLabel("Menu")
                     }
                 }
                 .sheet(item: $selectedTimeslot) { ts in
@@ -112,7 +120,7 @@ struct WeekView: View {
         case .off, .atStart: lead = "when your booking starts"
         default: lead = "\(notificationAlert.leadLabel) before your booking starts"
         }
-        return "SSSB Laundry can notify you \(lead). Bookings are released 15 minutes after the start time if you don't start the machine."
+        return "SSSB Laundry can notify you \(lead). A session is released 15 minutes after its start time unless you activate it with your Aptus tag."
     }
 
     /// Asked once, right after the first booking — that is when the reminder is
@@ -209,15 +217,17 @@ struct WeekView: View {
         .listStyle(.insetGrouped)
     }
 
-    /// The two-booking limit counts across every day, so a full quota is worth
-    /// a mention in the week list — quietly. It is a local count of what the
-    /// portal last reported, not a rule the app enforces.
+    /// SSSB's "max future bookings" counts across every day, so a full quota is
+    /// worth a mention in the week list — quietly. It is a local count of what
+    /// the portal last reported, not a rule the app enforces, and it says
+    /// nothing at all until a laundry room with a published maximum is set in
+    /// Settings.
     @ViewBuilder
     private var limitBanner: some View {
-        let held = store.heldBookings
-        if held.count >= LaundryStore.maxActiveBookings {
+        let held = store.futureSessions
+        if let max = LaundryRooms.maxFutureBookings, held.count >= max {
             let list = held.map(\.whenLabel).formatted(.list(type: .and))
-            Text("\(held.count) of \(LaundryStore.maxActiveBookings) bookings in use — \(list).")
+            Text("\(held.count) of \(max) future sessions booked — \(list).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

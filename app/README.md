@@ -50,10 +50,31 @@ SSSBLaundry/
   Config.swift             Base URL
 Shared/
   LaundryActivityAttributes.swift  ActivityKit model, built into both targets
+  Assets.xcassets/                 AccentColor, likewise shared by both targets
 SSSBLaundryWidgets/
   SSSBLaundryWidgetsBundle.swift   Widget extension entry point
   LaundryLiveActivity.swift        Lock Screen and Dynamic Island views
+Tools/
+  GenerateAppIcon.swift            Regenerates the three AppIcon variants
 ```
+
+## Branding
+
+The accent colour is SSSB's brand blue, `#064A88`, with `#3E8BC8` — the lighter blue
+from the same palette — as the dark-appearance variant, because `#064A88` on a black
+background falls below any usable contrast ratio.
+
+The app icon is the `washer` SF Symbol at its default `.regular` weight, white on the
+brand blue. It is generated rather than drawn:
+
+```sh
+swift Tools/GenerateAppIcon.swift
+```
+
+That writes all three variants into `AppIcon.appiconset`. The light one is opaque (App
+Store validation rejects a marketing icon with an alpha channel); the dark and tinted
+ones are transparent, because iOS supplies its own backdrop behind those and only uses
+the glyph.
 
 ## Tests
 
@@ -84,6 +105,12 @@ SSSBLaundryWidgets/
   `SSSBLaundryWidgets/Info.plist` is excluded from the extension's Copy Bundle Resources
   by a `PBXFileSystemSynchronizedBuildFileExceptionSet` — without it the build fails with
   "Multiple commands produce .../Info.plist".
+- **`Color.accentColor` resolves against the *running* bundle**, which for a Live Activity
+  is the widget extension, not the app. That is why `AccentColor` lives in
+  `Shared/Assets.xcassets` and why both targets set
+  `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME`; with the colour in
+  `SSSBLaundry/Assets.xcassets` alone the Lock Screen and Dynamic Island silently fall
+  back to SwiftUI's default blue.
 - **The Live Activity's phase flip is driven by `staleDate`, not by an update.** The app
   is normally suspended by the time the slot starts, so the widget resolves
   `state.phase == .grace || context.isStale`; the in-app supervisor task is the fast

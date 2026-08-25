@@ -20,8 +20,10 @@ struct SettingsView: View {
     @AppStorage(NotificationSetting.secondAlertKey) private var secondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
     @Environment(\.dismiss) private var dismiss
-    @State private var editing = false
+    @State private var unlocked = false
     @State private var draft: String = ""
+    @State private var confirmingSignOut = false
+    @FocusState private var objectIdFocused: Bool
     @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @State private var requestingAuthorization = false
 
@@ -29,20 +31,43 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section {
-                    if editing {
+                    HStack {
                         TextField("1234-5678-901", text: $draft)
                             .font(.system(.body, design: .monospaced))
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
-                    } else {
-                        Text(objectId.isEmpty ? "Not set" : objectId)
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(objectId.isEmpty ? .secondary : .primary)
+                            .keyboardType(.asciiCapable)
+                            .focused($objectIdFocused)
+                            .submitLabel(.done)
+                            .onSubmit { commit() }
+                            // Locked, the field is a plain read-only value: it can
+                            // be long-pressed to copy but not tapped into.
+                            .allowsHitTesting(unlocked)
+
+                        Button {
+                            if unlocked {
+                                commit()
+                            } else {
+                                unlocked = true
+                                objectIdFocused = true
+                            }
+                        } label: {
+                            Image(systemName: unlocked ? "lock.open" : "lock")
+                                .foregroundStyle(unlocked ? Color.accentColor : .secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(unlocked ? "Lock object id" : "Unlock object id to change it")
+                    }
+                    .contextMenu {
+                        Button("Copy", systemImage: "doc.on.doc") {
+                            UIPasteboard.general.string = objectId
+                        }
+                        .disabled(objectId.isEmpty)
                     }
                 } header: {
                     Text("Object id")
                 } footer: {
-                    Text("Used as the X-Object-Id header on every request.")
+                    Text("Sent as the X-Object-Id header on every request. Tap the lock to change it, or clear the field to sign out.")
                 }
 
                 if allGroups.isEmpty {
@@ -122,31 +147,26 @@ struct SettingsView: View {
                     Text(notificationsFooter)
                 }
 
-                Section {
-                    if editing {
-                        Button("Save") { save() }
-                            .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        Button("Cancel", role: .cancel) {
-                            editing = false
-                            draft = objectId
-                        }
-                    } else {
-                        Button("Change object id") {
-                            draft = objectId
-                            editing = true
-                        }
-                        Button("Sign out", role: .destructive) { signOut() }
-                    }
-                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button("Done") {
+                        commit()
+                        // Leave the sheet up if commit raised the sign-out alert.
+                        if !confirmingSignOut { dismiss() }
+                    }
                 }
             }
+            .alert("Sign out?", isPresented: $confirmingSignOut) {
+                Button("Cancel", role: .cancel) { draft = objectId }
+                Button("Sign out", role: .destructive) { signOut() }
+            } message: {
+                Text("Clearing the object id signs you out. Bookings made on it stay, but this phone stops seeing them and reminders end.")
+            }
             .task {
+                draft = objectId
                 authorizationStatus = await PushService.authorizationStatus()
                 // The user may have flipped permission in iOS Settings behind our back.
                 if notificationsEnabled, authorizationStatus == .denied {
@@ -158,6 +178,10 @@ struct SettingsView: View {
             // before it means anything.
             .onChange(of: alert) { _, _ in PushService.syncToServer() }
             .onChange(of: secondAlert) { _, _ in PushService.syncToServer() }
+            // Tapping away from the field is as much a commit as hitting Done.
+            .onChange(of: objectIdFocused) { _, isFocused in
+                if !isFocused, unlocked { commit() }
+            }
         }
     }
 
@@ -201,11 +225,29 @@ struct SettingsView: View {
         UIApplication.shared.open(url)
     }
 
-    private func save() {
+    /// Locks the field again and applies whatever is in it. An empty field means
+    /// sign out, which is confirmed first so it can't happen by fumbling.
+    private func commit() {
+        objectIdFocused = false
+        unlocked = false
         let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard trimmed != objectId else {
+            draft = objectId
+            return
+        }
+        guard !trimmed.isEmpty else {
+            confirmingSignOut = true
+            return
+        }
+        // The server pushes per object id, so the old registration has to go or
+        // this phone keeps getting reminders for an apartment it left.
+        if !objectId.isEmpty {
+            PushService.deregister(objectId: objectId)
+            Task { await LiveActivityService.endAll() }
+        }
         objectId = trimmed
-        editing = false
+        draft = trimmed
+        PushService.syncToServer()
     }
 
     private func signOut() {
@@ -214,6 +256,7 @@ struct SettingsView: View {
         PushService.deregister(objectId: objectId)
         Task { await LiveActivityService.endAll() }
         objectId = ""
+        draft = ""
         dismiss()
     }
 

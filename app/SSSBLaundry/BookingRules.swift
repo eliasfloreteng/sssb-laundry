@@ -30,13 +30,13 @@ enum BookingRules {
     ///
     /// What the limit counts is spelled out because SSSB’s table does not: its
     /// "max future bookings" counts booked times, not machine groups, so taking
-    /// both groups of one time uses one of the one or two a resident is
-    /// allowed, not both.
+    /// several groups of one time uses one of the one or two a resident is
+    /// allowed, not one each.
     static let residentRules = [
         "Tag in with your Aptus tag when you start. You can’t tag in before the booked time.",
         "A session you haven’t tagged into within 15 minutes is released to everyone again.",
         "You can hold one or two sessions ahead at a time, depending on your laundry room.",
-        "Both groups of one time count as a single session, not two.",
+        "Multiple groups of one time still count as a single session.",
         "Cancel a session you won’t use, so someone else can take it."
     ]
 }

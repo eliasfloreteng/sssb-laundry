@@ -20,6 +20,8 @@ struct WeekView: View {
     @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
     @State private var showingNotificationPrompt = false
+    @State private var showingDatePicker = false
+    @State private var jumpDate = Date()
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -28,6 +30,9 @@ struct WeekView: View {
                 .navigationTitle("Laundry")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        jumpToDateButton
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             // Named actions rather than a bare eye icon the
@@ -107,6 +112,63 @@ struct WeekView: View {
         } message: {
             Text(notificationPromptMessage)
         }
+    }
+
+    /// A calendar button rather than another entry in the menu: jumping is a
+    /// navigation, and the icon carries the current position — the picker opens
+    /// on whatever day the list starts at.
+    @ViewBuilder
+    private var jumpToDateButton: some View {
+        if store.isJumping {
+            ProgressView()
+        } else {
+            Button {
+                jumpDate = LaundryStore.date(from: store.anchorDate) ?? Date()
+                showingDatePicker = true
+            } label: {
+                Image(systemName: "calendar")
+            }
+            .accessibilityLabel("Jump to date")
+            .popover(isPresented: $showingDatePicker) {
+                datePicker
+            }
+        }
+    }
+
+    private var datePicker: some View {
+        VStack(spacing: 8) {
+            DatePicker(
+                "Jump to date",
+                selection: $jumpDate,
+                in: jumpLowerBound...,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .labelsHidden()
+            if !store.isViewingToday {
+                Button("Back to today") { jump(to: store.today) }
+            }
+        }
+        // The grid is a Stockholm calendar, so the day the user taps is the day
+        // the API is asked for — wherever the phone thinks it is.
+        .environment(\.timeZone, LaundryStore.stockholm)
+        .padding()
+        .frame(minWidth: 320)
+        .presentationCompactAdaptation(.popover)
+        .onChange(of: jumpDate) { _, picked in
+            jump(to: LaundryStore.day(from: picked))
+        }
+    }
+
+    /// Aptus books nothing in the past, so yesterday is not somewhere to go.
+    private var jumpLowerBound: Date {
+        LaundryStore.date(from: store.today) ?? Date()
+    }
+
+    private func jump(to date: String) {
+        guard date != store.anchorDate else { return }
+        showingDatePicker = false
+        Task { await store.jump(to: date) }
     }
 
     private var notificationPromptMessage: String {
@@ -214,6 +276,9 @@ struct WeekView: View {
                 .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
+        // A jump is a different list, not a scroll: rebuilding it puts the day
+        // the user picked at the top instead of keeping the old offset.
+        .id(store.anchorDate)
     }
 
     @ViewBuilder
@@ -240,17 +305,19 @@ struct WeekView: View {
         }
     }
 
+    private static let dayLabelFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeZone = LaundryStore.stockholm
+        formatter.dateFormat = "EEEE d MMM"
+        return formatter
+    }()
+
+    private static func dayLabel(for dateString: String) -> String {
+        LaundryStore.date(from: dateString).map { dayLabelFormatter.string(from: $0) } ?? dateString
+    }
+
     private func dayHeader(for dateString: String) -> some View {
-        let parser = DateFormatter()
-        parser.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        parser.dateFormat = "yyyy-MM-dd"
-        parser.locale = Locale(identifier: "en_US_POSIX")
-        let date = parser.date(from: dateString)
-        let printer = DateFormatter()
-        printer.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        printer.dateFormat = "EEEE d MMM"
-        let label = date.map { printer.string(from: $0) } ?? dateString
-        return Text(label)
+        Text(Self.dayLabel(for: dateString))
             .textCase(nil)
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(.primary)
@@ -269,8 +336,24 @@ struct WeekView: View {
             Image(systemName: "calendar.badge.exclamationmark")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text("No upcoming timeslots")
-                .font(.headline)
+            if store.isViewingToday {
+                Text("No upcoming timeslots")
+                    .font(.headline)
+            } else {
+                // Landing past the end of the window is the ordinary way a jump
+                // finds nothing, so say so and offer the way back rather than
+                // leaving the user on a list they cannot scroll out of.
+                Text("Nothing from \(Self.dayLabel(for: store.anchorDate))")
+                    .font(.headline)
+                Text("SSSB only opens bookings a few weeks ahead.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Button("Back to today") {
+                    Task { await store.jumpToToday() }
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 4)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

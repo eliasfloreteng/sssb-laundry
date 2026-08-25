@@ -87,23 +87,43 @@ final class LaundryStore {
     var lastError: APIError?
     var authFailed = false
 
+    /// The first day the list shows. Today until the user jumps somewhere else,
+    /// and back to today when they jump home.
+    private(set) var anchorDate: String
+    /// A jump is a whole new list, so it gets its own flag rather than borrowing
+    /// `isLoadingMore` (which the footer spinner is bound to).
+    var isJumping = false
+
     private let api: APIClient
-    private let today: String
+    let today: String
+
+    /// Group metadata, accumulated. The same groups come back with every week,
+    /// and a jump that lands past the end of the availability window brings back
+    /// none at all — names for already-held bookings must not disappear with it.
+    private var knownGroups: [Int: LaundryGroup] = [:]
+
+    /// Every booking the user holds, keyed by the week it arrived in. A week
+    /// response is the authority on its own dates, so refetching one replaces
+    /// its entry and a cancelled booking drops out. Kept apart from `weeks`,
+    /// which a jump throws away: the session limit and the Live Activity have to
+    /// keep counting bookings the browsing list no longer shows.
+    private var ownBookingsByWeek: [String: [HeldBooking]] = [:]
+
+    /// Bumped whenever the list is re-anchored, so a page request that was
+    /// already in flight cannot append its week to the list that replaced it.
+    private var generation = 0
 
     init() {
         self.api = APIClient(objectIdProvider: { ObjectIdStore.get() })
-        self.today = Self.todayInStockholm()
+        let today = Self.todayInStockholm()
+        self.today = today
+        self.anchorDate = today
     }
 
-    var groupsById: [Int: LaundryGroup] {
-        var map: [Int: LaundryGroup] = [:]
-        for week in weeks {
-            for group in week.groups where map[group.id] == nil {
-                map[group.id] = group
-            }
-        }
-        return map
-    }
+    /// Whether the list is still the one that starts at today.
+    var isViewingToday: Bool { anchorDate == today }
+
+    var groupsById: [Int: LaundryGroup] { knownGroups }
 
     var allGroups: [LaundryGroup] {
         groupsById.values.sorted { $0.id < $1.id }
@@ -122,35 +142,42 @@ final class LaundryStore {
     /// user unable to book anything until the missed slot finally ended.
     static let activationGraceMinutes = Int(laundryGracePeriod / 60)
 
-    /// Bookings the user still holds, one per group, across every loaded week.
+    /// Bookings the user still holds, one per group, across every week that has
+    /// been loaded — including weeks a jump has since dropped from the list.
     /// Hidden groups count: hiding is a display filter, and the booking is still
     /// real upstream.
     var heldBookings: [HeldBooking] {
         let now = Date()
         var seen: Set<String> = []
         var held: [HeldBooking] = []
-        for week in weeks {
-            for timeslot in week.timeslots {
-                guard let start = Self.parseISO8601(timeslot.startAt) else { continue }
-                let releasesAt = start.addingTimeInterval(TimeInterval(Self.activationGraceMinutes * 60))
-                guard releasesAt > now else { continue }
-                for group in timeslot.groups where group.status == .own {
-                    let id = "\(timeslot.id)#\(group.groupId)"
-                    guard seen.insert(id).inserted else { continue }
-                    held.append(
-                        HeldBooking(
-                            id: id,
-                            timeslotId: timeslot.id,
-                            groupId: group.groupId,
-                            start: start,
-                            startTime: timeslot.startTime,
-                            endTime: timeslot.endTime
-                        )
-                    )
-                }
+        for bookings in ownBookingsByWeek.values {
+            for booking in bookings {
+                let releasesAt = booking.start.addingTimeInterval(TimeInterval(Self.activationGraceMinutes * 60))
+                guard releasesAt > now, seen.insert(booking.id).inserted else { continue }
+                held.append(booking)
             }
         }
         return held.sorted { $0.start < $1.start }
+    }
+
+    private static func ownBookings(in week: WeekResponse) -> [HeldBooking] {
+        var bookings: [HeldBooking] = []
+        for timeslot in week.timeslots {
+            guard let start = parseISO8601(timeslot.startAt) else { continue }
+            for group in timeslot.groups where group.status == .own {
+                bookings.append(
+                    HeldBooking(
+                        id: "\(timeslot.id)#\(group.groupId)",
+                        timeslotId: timeslot.id,
+                        groupId: group.groupId,
+                        start: start,
+                        startTime: timeslot.startTime,
+                        endTime: timeslot.endTime
+                    )
+                )
+            }
+        }
+        return bookings
     }
 
     func heldBookings(excludingTimeslot timeslotId: String) -> [HeldBooking] {
@@ -219,7 +246,7 @@ final class LaundryStore {
         let now = Date()
         var grouped: [String: [Timeslot]] = [:]
         for week in weeks {
-            for timeslot in week.timeslots where Self.belongsInList(timeslot, today: today, now: now) {
+            for timeslot in week.timeslots where Self.belongsInList(timeslot, from: anchorDate, today: today, now: now) {
                 grouped[timeslot.localDate, default: []].append(timeslot)
             }
         }
@@ -228,12 +255,15 @@ final class LaundryStore {
         }
     }
 
-    /// Today onwards — plus a booking from yesterday that is still running. A
-    /// slot that crosses midnight belongs to the day it started on, so cutting
-    /// the list at today would take a session off the screen at midnight with
-    /// the machines still going.
-    private static func belongsInList(_ timeslot: Timeslot, today: String, now: Date) -> Bool {
-        if timeslot.localDate >= today { return true }
+    /// The anchor day onwards — plus, on the list that starts at today, a
+    /// booking from yesterday that is still running. A slot that crosses
+    /// midnight belongs to the day it started on, so cutting the list at today
+    /// would take a session off the screen at midnight with the machines still
+    /// going. A list the user jumped ahead to is a different question: last
+    /// night's wash has no business at the top of it.
+    private static func belongsInList(_ timeslot: Timeslot, from anchor: String, today: String, now: Date) -> Bool {
+        if timeslot.localDate >= anchor { return true }
+        guard anchor == today else { return false }
         guard timeslot.groups.contains(where: { $0.status == .own }),
               let end = parseISO8601(timeslot.endAt) else { return false }
         return end > now
@@ -242,20 +272,44 @@ final class LaundryStore {
     func loadInitial() async {
         guard weeks.isEmpty else { return }
         loadState = .loading
-        await fetchWeek(date: today, replaceAll: true)
+        await reanchor(to: anchorDate)
     }
 
     func refresh() async {
         if weeks.isEmpty {
             loadState = .loading
         }
-        reachedEnd = false
-        await fetchWeek(date: today, replaceAll: true)
+        // Stays where the user left it: a pull is easy to trigger by accident
+        // while browsing a week they went looking for.
+        await reanchor(to: anchorDate)
+    }
+
+    /// Starts the list again at `date`, throwing away the pages either side of
+    /// it. Bookings already seen survive in `ownBookingsByWeek`.
+    func jump(to date: String) async {
+        guard !isJumping else { return }
+        isJumping = true
+        defer { isJumping = false }
+        // The anchor moves only once the week behind it is on screen, so a
+        // failed jump leaves the list the user was reading intact.
+        if await reanchor(to: date) {
+            anchorDate = date
+        }
+    }
+
+    func jumpToToday() async {
+        await jump(to: today)
+    }
+
+    @discardableResult
+    private func reanchor(to date: String) async -> Bool {
+        generation &+= 1
+        return await fetchWeek(date: date, replaceAll: true)
     }
 
     func loadMoreIfNeeded() async {
-        guard !isLoadingMore, !reachedEnd, let last = weeks.last else { return }
-        guard let next = addDays(to: last.week.toDate, days: 1) else { return }
+        guard !isLoadingMore, !isJumping, !reachedEnd, let last = weeks.last else { return }
+        guard let next = Self.addDays(to: last.week.toDate, days: 1) else { return }
         isLoadingMore = true
         defer { isLoadingMore = false }
         await fetchWeek(date: next, replaceAll: false)
@@ -313,12 +367,30 @@ final class LaundryStore {
         return outcome
     }
 
-    private func fetchWeek(date: String, replaceAll: Bool) async {
+    /// Returns whether the week landed. A cancelled request counts as a
+    /// non-answer: it leaves the list exactly as it was.
+    @discardableResult
+    private func fetchWeek(date: String, replaceAll: Bool) async -> Bool {
+        let token = generation
         do {
             let resp = try await api.getWeek(date: date)
+            // The list was re-anchored while this was in flight, so it is a page
+            // of a list that no longer exists.
+            guard token == generation else { return false }
+
+            for group in resp.groups where knownGroups[group.id] == nil {
+                knownGroups[group.id] = group
+            }
+            ownBookingsByWeek[resp.week.fromDate] = Self.ownBookings(in: resp)
+
             if replaceAll {
                 weeks = [resp]
+                // Aptus opens a contiguous run of weeks from today, so an empty
+                // week at the anchor means there is nothing beyond it either.
+                reachedEnd = resp.timeslots.isEmpty
             } else if let existingIndex = weeks.firstIndex(where: { $0.week.fromDate == resp.week.fromDate }) {
+                // A week we already had, fetched again after a booking — it says
+                // nothing about where the list ends.
                 weeks[existingIndex] = resp
             } else {
                 weeks.append(resp)
@@ -328,9 +400,11 @@ final class LaundryStore {
             }
             loadState = .loaded
             await syncLiveActivity()
+            return true
         } catch {
-            if Self.isCancellation(error) { return }
+            if Self.isCancellation(error) { return false }
             handleError(Self.apiError(from: error))
+            return false
         }
     }
 
@@ -371,12 +445,31 @@ final class LaundryStore {
         return APIError.local(code: "UNKNOWN_ERROR", message: error.localizedDescription)
     }
 
-    static func todayInStockholm() -> String {
+    static let stockholm = TimeZone(identifier: "Europe/Stockholm")!
+
+    /// Every date the app deals in is a Stockholm calendar day, whatever the
+    /// device's own timezone says.
+    private static let dayFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
+        formatter.timeZone = stockholm
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.string(from: Date())
+        return formatter
+    }()
+
+    static func todayInStockholm() -> String {
+        dayFormatter.string(from: Date())
+    }
+
+    /// The Stockholm day a `Date` falls on — how a date picker's answer becomes
+    /// something the API will accept.
+    static func day(from date: Date) -> String {
+        dayFormatter.string(from: date)
+    }
+
+    /// Midnight in Stockholm on that day.
+    static func date(from day: String) -> Date? {
+        dayFormatter.date(from: day)
     }
 
     // Formatters are expensive to build and these run over every loaded timeslot
@@ -399,15 +492,11 @@ final class LaundryStore {
         return plainISOFormatter.date(from: string)
     }
 
-    private func addDays(to dateString: String, days: Int) -> String? {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        guard let date = formatter.date(from: dateString) else { return nil }
+    static func addDays(to dateString: String, days: Int) -> String? {
+        guard let date = date(from: dateString) else { return nil }
         var calendar = Calendar(identifier: .iso8601)
-        calendar.timeZone = TimeZone(identifier: "Europe/Stockholm")!
+        calendar.timeZone = stockholm
         guard let new = calendar.date(byAdding: .day, value: days, to: date) else { return nil }
-        return formatter.string(from: new)
+        return day(from: new)
     }
 }

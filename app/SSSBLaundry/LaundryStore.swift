@@ -54,11 +54,8 @@ struct HeldBooking: Identifiable, Hashable {
     let timeslotId: String
     let groupId: Int
     let start: Date
-    let dayLabel: String
     let startTime: String
     let endTime: String
-
-    var whenLabel: String { "\(dayLabel) \(startTime)" }
 }
 
 /// A held timeslot with every group it covers folded into one entry. This is
@@ -69,15 +66,12 @@ struct HeldBooking: Identifiable, Hashable {
 struct BookedSlot: Identifiable, Hashable {
     let id: String
     let start: Date
-    let dayLabel: String
     let startTime: String
     let endTime: String
     /// Aptus group names, already joined for display.
     let machines: String
     /// Empty unless every group in the slot shares one laundry room.
     let location: String
-
-    var whenLabel: String { "\(dayLabel) \(startTime)" }
 
     /// When Aptus releases the session again if it has not been activated.
     var deadline: Date { start.addingTimeInterval(laundryGracePeriod) }
@@ -149,7 +143,6 @@ final class LaundryStore {
                             timeslotId: timeslot.id,
                             groupId: group.groupId,
                             start: start,
-                            dayLabel: Self.dayLabel(for: timeslot.localDate),
                             startTime: timeslot.startTime,
                             endTime: timeslot.endTime
                         )
@@ -199,7 +192,6 @@ final class LaundryStore {
                 // timeslotId, which must not outlive a server change.
                 id: "\(Int(first.start.timeIntervalSince1970))-" + ids.map(String.init).joined(separator: "_"),
                 start: first.start,
-                dayLabel: first.dayLabel,
                 startTime: first.startTime,
                 endTime: first.endTime,
                 machines: ids.map { groups[$0]?.name ?? "Group \($0)" }.joined(separator: ", "),
@@ -389,30 +381,10 @@ final class LaundryStore {
         return formatter
     }()
 
-    private static let localDateParser: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
-
-    private static let dayLabelPrinter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        formatter.dateFormat = "EEE d MMM"
-        return formatter
-    }()
-
     /// `startAt`/`endAt` may or may not carry fractional seconds, so retry without them.
     static func parseISO8601(_ string: String) -> Date? {
         if let date = fractionalISOFormatter.date(from: string) { return date }
         return plainISOFormatter.date(from: string)
-    }
-
-    private static func dayLabel(for localDate: String) -> String {
-        guard let date = localDateParser.date(from: localDate) else { return localDate }
-        return dayLabelPrinter.string(from: date)
     }
 
     private func addDays(to dateString: String, days: Int) -> String? {

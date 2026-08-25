@@ -15,7 +15,6 @@ struct WeekView: View {
     @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
-    @AppStorage(LaundryRooms.selectedIdKey) private var laundryRoomId: String = ""
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
     @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
     @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
@@ -186,8 +185,6 @@ struct WeekView: View {
 
     private var listView: some View {
         List {
-            limitBanner
-
             ForEach(filteredDays, id: \.date) { day in
                 Section {
                     ForEach(day.slots) { ts in
@@ -211,26 +208,6 @@ struct WeekView: View {
                 .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
-    }
-
-    /// SSSB's "max future bookings" counts across every day, so a full quota is
-    /// worth a mention in the week list — quietly. It is a local count of what
-    /// the portal last reported, not a rule the app enforces, and it says
-    /// nothing at all until a laundry room with a published maximum is set in
-    /// Settings.
-    @ViewBuilder
-    private var limitBanner: some View {
-        let held = store.futureSessions
-        if let max = LaundryRooms.room(id: laundryRoomId)?.maxFutureBookings, held.count >= max {
-            let list = held.map(\.whenLabel).formatted(.list(type: .and))
-            Text("\(held.count) of \(max) sessions booked — \(list).")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-        }
     }
 
     @ViewBuilder

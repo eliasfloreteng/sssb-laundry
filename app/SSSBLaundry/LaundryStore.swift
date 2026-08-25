@@ -113,6 +113,20 @@ final class LaundryStore {
     /// already in flight cannot append its week to the list that replaced it.
     private var generation = 0
 
+    /// How many weeks in a row have come back with nothing to act on. Aptus
+    /// keeps rendering its weekly grid long past the last date it will actually
+    /// book, so the end of the list does not look like an empty response — it
+    /// looks like a full week of slots with no book button on any of them.
+    private var barrenWeeks = 0
+
+    /// Whether any week since the anchor has carried something to act on. Until
+    /// one has, a barren week proves nothing: late on a Sunday every slot left
+    /// in the current week has already started, and the list must still page
+    /// into next week. Once a good week has been seen, the next barren one is
+    /// the horizon — the alternative reading, a whole week every slot of which
+    /// somebody else took while later weeks stayed free, does not happen.
+    private var sawUsableWeek = false
+
     init() {
         self.api = APIClient(objectIdProvider: { ObjectIdStore.get() })
         let today = Self.todayInStockholm()
@@ -122,6 +136,28 @@ final class LaundryStore {
 
     /// Whether the list is still the one that starts at today.
     var isViewingToday: Bool { anchorDate == today }
+
+    /// Why the list has nothing to show, so the empty state can say which
+    /// rather than giving one answer to three different questions.
+    enum EmptyReason {
+        /// A day past the end of what Aptus is prepared to book. The everyday
+        /// case: SSSB opens the schedule a fixed distance ahead, and a jump can
+        /// land beyond it. Two barren weeks running is the evidence — every slot
+        /// on them free of any book button — and on a list the user went looking
+        /// for, the horizon is the cause. "Every slot taken for a fortnight" is
+        /// the alternative reading, and it does not happen.
+        case beyondBookingWindow
+        /// The schedule is there and today is on it, but there is nothing left
+        /// to take: each timeslot is either someone else's or already running.
+        case nothingFree
+        /// No schedule at all for this object number.
+        case noTimeslots
+    }
+
+    var emptyReason: EmptyReason {
+        if !isViewingToday { return .beyondBookingWindow }
+        return weeks.contains { !$0.timeslots.isEmpty } ? .nothingFree : .noTimeslots
+    }
 
     var groupsById: [Int: LaundryGroup] { knownGroups }
 
@@ -158,6 +194,22 @@ final class LaundryStore {
             }
         }
         return held.sorted { $0.start < $1.start }
+    }
+
+    private static func isEnded(barrenWeeks: Int, sawUsableWeek: Bool) -> Bool {
+        barrenWeeks >= (sawUsableWeek ? 1 : 2)
+    }
+
+    /// Nothing in this week the user could act on: no slot they hold, and none
+    /// still to come that Aptus offers a book button for. Deliberately blind to
+    /// the hidden-groups setting — that is a display filter, and where the list
+    /// ends is not a matter of what the user chose to look at.
+    private static func isBarren(_ week: WeekResponse, now: Date) -> Bool {
+        !week.timeslots.contains { timeslot in
+            timeslot.groups.contains { group in
+                group.status == .own || (group.canBook && !timeslot.hasStarted(asOf: now))
+            }
+        }
     }
 
     private static func ownBookings(in week: WeekResponse) -> [HeldBooking] {
@@ -383,20 +435,21 @@ final class LaundryStore {
             }
             ownBookingsByWeek[resp.week.fromDate] = Self.ownBookings(in: resp)
 
+            let barren = Self.isBarren(resp, now: Date())
             if replaceAll {
                 weeks = [resp]
-                // Aptus opens a contiguous run of weeks from today, so an empty
-                // week at the anchor means there is nothing beyond it either.
-                reachedEnd = resp.timeslots.isEmpty
+                barrenWeeks = barren ? 1 : 0
+                sawUsableWeek = !barren
+                reachedEnd = Self.isEnded(barrenWeeks: barrenWeeks, sawUsableWeek: sawUsableWeek)
             } else if let existingIndex = weeks.firstIndex(where: { $0.week.fromDate == resp.week.fromDate }) {
                 // A week we already had, fetched again after a booking — it says
                 // nothing about where the list ends.
                 weeks[existingIndex] = resp
             } else {
                 weeks.append(resp)
-                if resp.timeslots.isEmpty {
-                    reachedEnd = true
-                }
+                barrenWeeks = barren ? barrenWeeks + 1 : 0
+                sawUsableWeek = sawUsableWeek || !barren
+                reachedEnd = Self.isEnded(barrenWeeks: barrenWeeks, sawUsableWeek: sawUsableWeek)
             }
             loadState = .loaded
             await syncLiveActivity()

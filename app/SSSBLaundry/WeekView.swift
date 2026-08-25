@@ -457,31 +457,50 @@ struct WeekView: View {
         return ts.hasOwnGroup(hidden: hidden) || !ts.actionableGroups(hidden: hidden).isEmpty
     }
 
+    /// Three different nothings, said in three different ways: a date SSSB has
+    /// not opened yet is not the same answer as a week somebody else has taken
+    /// every slot of.
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "calendar.badge.exclamationmark")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-            if store.isViewingToday {
-                Text("No upcoming timeslots")
-                    .font(.headline)
-            } else {
-                // Landing past the end of the window is the ordinary way a jump
-                // finds nothing, so say so and offer the way back rather than
-                // leaving the user on a list they cannot scroll out of.
-                Text("Nothing from \(LaundryFormat.dayLabel(store.anchorDate))")
-                    .font(.headline)
-                Text("SSSB only opens bookings a few weeks ahead.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+        ContentUnavailableView {
+            Label(emptyTitle, systemImage: emptyIcon)
+        } description: {
+            Text(emptyMessage)
+        } actions: {
+            if !store.isViewingToday {
+                // Without this the user is left on a list they cannot scroll
+                // out of — there is nothing above the anchor to scroll to.
                 Button("Back to today") {
                     Task { await store.jumpToToday() }
                 }
                 .buttonStyle(.borderedProminent)
-                .padding(.top, 4)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyTitle: String {
+        switch store.emptyReason {
+        case .beyondBookingWindow: "Not open for booking yet"
+        case .nothingFree: "No free timeslots"
+        case .noTimeslots: "No upcoming timeslots"
+        }
+    }
+
+    private var emptyIcon: String {
+        switch store.emptyReason {
+        case .beyondBookingWindow: "calendar.badge.clock"
+        case .nothingFree, .noTimeslots: "calendar.badge.exclamationmark"
+        }
+    }
+
+    private var emptyMessage: String {
+        switch store.emptyReason {
+        case .beyondBookingWindow:
+            "SSSB opens the laundry schedule a few weeks ahead. Nothing from \(LaundryFormat.dayLabel(store.anchorDate)) can be booked yet."
+        case .nothingFree:
+            "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back."
+        case .noTimeslots:
+            "Nothing is scheduled for this laundry room right now."
+        }
     }
 
     private func errorState(_ err: APIError) -> some View {

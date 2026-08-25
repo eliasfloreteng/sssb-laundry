@@ -172,9 +172,21 @@ the glyph.
   (`LaundryStore.anchorDate`), so held bookings live in `ownBookingsByWeek` rather than
   being read back out of `weeks` — the session limit and the Live Activity have to keep
   counting bookings the list no longer shows. A week response is the authority on its
-  own dates, so refetching one replaces its entry and a cancellation drops out. Aptus
-  opens a contiguous run of weeks from today, which is why an empty week at the anchor
-  is taken to mean the end of the window rather than a gap.
+  own dates, so refetching one replaces its entry and a cancellation drops out.
+- **Aptus renders its weekly grid long past the last date it will book**, so the end of
+  the list does not look like an empty response — it looks like a full week of slots
+  with no book button on any of them (checked 2026-08-25: the horizon was 4 Oct, and the
+  week after it still came back with 70 timeslots, every group `unavailable`). Paging on
+  `timeslots.isEmpty` therefore never stops. `LaundryStore.isBarren` is the real test —
+  nothing held, nothing still to come with a book button — and `reachedEnd` wants two
+  barren weeks running until a usable one has been seen, because late on a Sunday every
+  slot left in the current week has already started.
+- **Past the window and fully booked are the same bytes.** Both come back
+  `status: "unavailable"`, `canBook: false`; nothing upstream separates "nobody may book
+  this yet" from "somebody already did". `LaundryStore.EmptyReason` therefore reads the
+  anchor, not the slots: a barren stretch on a date the user jumped to is the horizon,
+  because a fortnight with every slot taken does not happen. Don't try to tell them
+  apart from `status`.
 - **A booking is never filtered out of the week list.** Active hours, the free-slots
   filter and the cut at today are all about what is worth browsing; a slot the user
   actually holds is shown whatever they are set to, stays on the list once it has

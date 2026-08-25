@@ -71,8 +71,6 @@ struct SettingsView: View {
                     Text("The object number from your rental agreement — Aptus uses it as both username and password. Tap the lock to change it, or clear the field to sign out.")
                 }
 
-                laundryRoomSection
-
                 if allGroups.isEmpty {
                     Section {
                         Text("No groups loaded yet.")
@@ -150,6 +148,7 @@ struct SettingsView: View {
                     Text(notificationsFooter)
                 }
 
+                laundryRoomSection
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -209,9 +208,9 @@ struct SettingsView: View {
         } header: {
             Text("Your laundry room")
         } footer: {
-            Text(selectedRoom == nil
-                 ? "Set your address to see the rules SSSB publishes for your laundry room. Until then the app shows no booking limits."
-                 : "The rules SSSB publishes for this address — SSSB calls the access time \"time after booking\": your tag still opens the room for that long once the session has ended. Aptus enforces all of this, not the app.")
+            if selectedRoom == nil {
+                Text("Set your address to see SSSB's rules for your laundry room.")
+            }
         }
     }
 

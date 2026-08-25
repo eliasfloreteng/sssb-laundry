@@ -203,7 +203,7 @@ struct SettingsView: View {
             if let room = selectedRoom {
                 LabeledContent("Laundry room", value: room.room)
                 LabeledContent("Max future bookings", value: room.maxFutureBookingsLabel)
-                LabeledContent("Time after booking", value: room.timeAfterBookingLabel)
+                LabeledContent("Access after a session", value: room.timeAfterBookingLabel)
                 LabeledContent("Max booking per week/month", value: room.quotaLabel)
             }
         } header: {
@@ -211,7 +211,7 @@ struct SettingsView: View {
         } footer: {
             Text(selectedRoom == nil
                  ? "Set your address to see the rules SSSB publishes for your laundry room. Until then the app shows no booking limits."
-                 : "The rules SSSB publishes for this address. Aptus enforces them, not the app.")
+                 : "The rules SSSB publishes for this address — SSSB calls the access time \"time after booking\": your tag still opens the room for that long once the session has ended. Aptus enforces all of this, not the app.")
         }
     }
 

@@ -75,6 +75,10 @@ resident sees on screen:
 | object number   | The `1234-5678-901` from the rental agreement; sign-in              |
 | Aptus tag       | The fob you tag in with, within 15 minutes of the start             |
 
+SSSB's "time after booking" is how long your tag still opens the laundry room once
+the session has ended — 60 minutes at all but eight addresses, none at six of them.
+The app shows it as "access after a session".
+
 Not "machine" (a group is several), not "object id" (SSSB says number), and never
 "category" — those are deliberately hidden from the client.
 

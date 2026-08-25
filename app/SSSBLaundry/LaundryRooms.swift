@@ -12,10 +12,11 @@ import Foundation
 /// own typos included, so a diff against the source stays readable.
 ///
 /// The rules genuinely differ between rooms: max future bookings is 1 for most
-/// addresses, 2 for the inner-city ones and unlimited on Kammakargatan, and the
-/// weekly/monthly quota ranges from none to 2/week. Nothing here is enforced by
-/// the app — Aptus decides — these numbers only let the app say what the rules
-/// are instead of guessing.
+/// addresses, 2 for the inner-city ones and unlimited on Kammakargatan, the
+/// weekly/monthly quota ranges from none to 2/week, and the access time after a
+/// session is 60 minutes everywhere except eight addresses. Nothing here is
+/// enforced by the app — Aptus decides — these numbers only let the app say
+/// what the rules are instead of guessing.
 struct LaundryRoom: Identifiable, Hashable {
     /// The resident's street address, as SSSB lists it in the dropdown.
     let address: String
@@ -23,7 +24,9 @@ struct LaundryRoom: Identifiable, Hashable {
     let room: String
     /// How many future laundry sessions may be held at once. `nil` is "no maximum".
     let maxFutureBookings: Int?
-    /// SSSB's "Time after booking", in minutes. Their label, their semantics.
+    /// SSSB's "Time after booking": how long your tag still opens the laundry
+    /// room after the session itself has ended, so the last load can be taken
+    /// out. 60 minutes almost everywhere; six rooms give none at all.
     let minutesAfterBooking: Int
     /// SSSB's "Max booking per week/month". `nil` is "no maximum value".
     let quota: Quota?
@@ -51,8 +54,10 @@ struct LaundryRoom: Identifiable, Hashable {
         return "\(quota.count) per \(quota.period.rawValue)"
     }
 
+    /// Reads as the answer to "how long can I stay after?", which is why zero
+    /// is spelled out rather than shown as "0 min".
     var timeAfterBookingLabel: String {
-        "\(minutesAfterBooking) min"
+        minutesAfterBooking == 0 ? "None" : "\(minutesAfterBooking) min"
     }
 }
 

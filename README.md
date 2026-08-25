@@ -17,14 +17,16 @@ at `https://sssb-laundry.eliasf.se`.
 
 - The whole week of timeslots for your apartment, with infinite scroll into future weeks
 - Book or cancel 1–2 laundry groups in a single action, with per-group results
+- The booking rules SSSB publishes for your laundry room, picked by street address
 - Push reminders before a booking — sent by the server, so a booking someone else in the
   apartment made still reaches your phone with the app closed
 - A Live Activity in the hour before the slot, counting down to the start and then
-  through the 15 minutes before the machine is released again
+  through the 15 minutes before the session is released again
 - Optional calendar event with a reminder at the timeslot start
 
-Sign-in is the SSSB **object id** (`1234-5678-901`), which is what Aptus itself uses as
-both username and password. It is stored on the device and sent as `X-Object-Id`.
+Sign-in is the SSSB **object number** (`1234-5678-901`) — SSSB's own word for it, and
+what Aptus uses as both username and password. It is stored on the device and sent as
+the `X-Object-Id` header.
 
 ## Running it
 

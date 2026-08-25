@@ -13,7 +13,7 @@ enum LoadState {
     case error(APIError)
 }
 
-/// One machine's answer, tagged with what was asked of it so failures can be
+/// One group's answer, tagged with what was asked of it so failures can be
 /// explained in the right words.
 struct GroupOutcome: Identifiable {
     let result: ActionResult
@@ -29,7 +29,7 @@ struct ActionOutcome: Identifiable {
     let timeslot: String
     let overallStatus: OverallStatus
     let results: [GroupOutcome]
-    /// Set when the request never got as far as a per-machine answer
+    /// Set when the request never got as far as a per-group answer
     /// (offline, auth rejected, timeslot gone).
     let requestError: APIError?
 
@@ -47,7 +47,7 @@ struct ActionOutcome: Identifiable {
     }
 }
 
-/// A timeslot the user currently holds, one entry per machine. Drives the
+/// A timeslot the user currently holds, one entry per group. Drives the
 /// "2 bookings at a time" limit; reminders are scheduled by the server.
 struct HeldBooking: Identifiable, Hashable {
     let id: String
@@ -61,20 +61,25 @@ struct HeldBooking: Identifiable, Hashable {
     var whenLabel: String { "\(dayLabel) \(startTime)" }
 }
 
-/// A held timeslot with every machine it covers folded into one entry, which is
-/// what the Live Activity counts down. `HeldBooking` stays one row per machine
-/// because the two-booking quota is counted per machine.
+/// A held timeslot with every group it covers folded into one entry. This is
+/// the unit SSSB counts as a laundry session — one per booked time, however
+/// many groups it covers — and it is what the Live Activity counts down.
+/// `HeldBooking` stays one row per group, because that is what gets booked and
+/// cancelled upstream.
 struct BookedSlot: Identifiable, Hashable {
     let id: String
     let start: Date
+    let dayLabel: String
     let startTime: String
     let endTime: String
-    /// Machine names, already joined for display.
+    /// Aptus group names, already joined for display.
     let machines: String
-    /// Empty unless every machine in the slot shares one location.
+    /// Empty unless every group in the slot shares one laundry room.
     let location: String
 
-    /// When the machine releases the booking again if it hasn't been started.
+    var whenLabel: String { "\(dayLabel) \(startTime)" }
+
+    /// When Aptus releases the session again if it has not been activated.
     var deadline: Date { start.addingTimeInterval(laundryGracePeriod) }
 }
 
@@ -110,9 +115,10 @@ final class LaundryStore {
         groupsById.values.sorted { $0.id < $1.id }
     }
 
-    /// SSSB allows two machine bookings per apartment at a time, counted across
-    /// every day — not per day and not per timeslot.
-    static let maxActiveBookings = 2
+    /// Aptus accepts at most two groups in one booking action. This is the
+    /// portal's own hard limit and applies everywhere, unlike the per-room
+    /// quota in `LaundryRooms`.
+    static let maxGroupsPerBooking = 2
 
     /// Aptus releases a booking that was not activated within 15 minutes of its
     /// start, so a missed timeslot stops occupying the quota at start + 15 —
@@ -122,9 +128,9 @@ final class LaundryStore {
     /// user unable to book anything until the missed slot finally ended.
     static let activationGraceMinutes = Int(laundryGracePeriod / 60)
 
-    /// Bookings the user still holds, across every loaded week. Hidden groups
-    /// count: hiding is a display filter, but the booking still occupies one of
-    /// the two slots.
+    /// Bookings the user still holds, one per group, across every loaded week.
+    /// Hidden groups count: hiding is a display filter, and the booking is still
+    /// real upstream.
     var heldBookings: [HeldBooking] {
         let now = Date()
         var seen: Set<String> = []
@@ -158,6 +164,24 @@ final class LaundryStore {
         heldBookings.filter { $0.timeslotId != timeslotId }
     }
 
+    /// The sessions SSSB counts against "max future bookings": one per booked
+    /// timeslot, and only the ones that have not started yet. A session already
+    /// under way is no longer a future booking — once the current slot starts,
+    /// the next one can be booked again even though the machines are still
+    /// running. Groups within a slot do not count separately.
+    var futureSessions: [BookedSlot] {
+        let now = Date()
+        return bookedSlots.filter { $0.start > now }
+    }
+
+    /// `futureSessions` without the slot a sheet is currently editing, so the
+    /// sheet can add its own pending outcome back in. Matched on the start
+    /// instant, which is what `BookedSlot` is keyed by.
+    func futureSessions(excludingTimeslot timeslotId: String) -> [BookedSlot] {
+        let excluded = Set(heldBookings.filter { $0.timeslotId == timeslotId }.map(\.start))
+        return futureSessions.filter { !excluded.contains($0.start) }
+    }
+
     /// The held bookings collapsed to one entry per timeslot. Already limited to
     /// slots that haven't been released yet, since `heldBookings` drops those.
     var bookedSlots: [BookedSlot] {
@@ -175,6 +199,7 @@ final class LaundryStore {
                 // timeslotId, which must not outlive a server change.
                 id: "\(Int(first.start.timeIntervalSince1970))-" + ids.map(String.init).joined(separator: "_"),
                 start: first.start,
+                dayLabel: first.dayLabel,
                 startTime: first.startTime,
                 endTime: first.endTime,
                 machines: ids.map { groups[$0]?.name ?? "Group \($0)" }.joined(separator: ", "),

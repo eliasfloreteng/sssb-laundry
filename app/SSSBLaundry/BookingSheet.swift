@@ -12,6 +12,7 @@ struct BookingSheet: View {
     let groupsById: [Int: LaundryGroup]
     let hiddenGroups: Set<Int>
     let store: LaundryStore
+    @AppStorage(LaundryRooms.selectedIdKey) private var laundryRoomId: String = ""
     @Environment(\.dismiss) private var dismiss
 
     @State private var selection: Set<Int> = []
@@ -34,7 +35,7 @@ struct BookingSheet: View {
     }
 
     /// What went wrong, in the words the user needs: one headline, one reason,
-    /// and a line per machine when the machines disagreed with each other.
+    /// and a line per group when the groups disagreed with each other.
     private struct ActionFeedback: Equatable {
         let title: String
         let message: String
@@ -67,7 +68,7 @@ struct BookingSheet: View {
                             }
                         } footer: {
                             if index == sections.count - 1 {
-                                Text("Select up to 2 machines per booking. Bookings auto-cancel if not started within 15 minutes.")
+                                Text("Pick up to \(LaundryStore.maxGroupsPerBooking) groups — together they are one laundry session. Activate it with your Aptus tag within 15 minutes of the start, or it is released.")
                             }
                         }
                     }
@@ -207,10 +208,12 @@ struct BookingSheet: View {
             .buttonStyle(.borderedProminent)
             .disabled(!hasChanges || submitting || overSlotLimit)
 
-            Text(limitHint)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if let limitHint {
+                Text(limitHint)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 
@@ -255,7 +258,7 @@ struct BookingSheet: View {
         Set(visibleGroups.filter { $0.status == .own }.map(\.groupId))
     }
 
-    /// Hidden machines are filtered out of the UI but still hold a booking, so
+    /// Hidden groups are filtered out of the UI but still hold a booking, so
     /// the limit has to count them.
     private var ownCountInSlot: Int {
         current.groups.filter { $0.status == .own }.count
@@ -276,32 +279,62 @@ struct BookingSheet: View {
     }
 
     private var overSlotLimit: Bool {
-        toBook.count > 2 || toCancel.count > 2
+        toBook.count > LaundryStore.maxGroupsPerBooking || toCancel.count > LaundryStore.maxGroupsPerBooking
     }
 
-    private var otherBookings: [HeldBooking] {
-        store.heldBookings(excludingTimeslot: current.id)
+    /// The maximum SSSB publishes for the laundry room set in Settings. `nil`
+    /// when no room is set or the room has no maximum, and then the app says
+    /// nothing about a limit rather than inventing one.
+    private var maxFutureSessions: Int? {
+        LaundryRooms.room(id: laundryRoomId)?.maxFutureBookings
     }
 
-    /// Bookings the user would hold once this sheet's changes went through —
-    /// across every day, which is how SSSB counts them.
+    private var otherFutureSessions: Int {
+        store.futureSessions(excludingTimeslot: current.id).count
+    }
+
+    /// Whether this slot would still be a *future* session after the changes.
+    /// A session that has already started no longer counts against the quota —
+    /// the machines may still be running, but SSSB counts bookings ahead of you.
+    private var slotCountsAsFuture: Bool {
+        guard let start = LaundryStore.parseISO8601(current.startAt) else { return true }
+        return start > Date()
+    }
+
+    /// Future sessions the user would hold once this sheet's changes went
+    /// through, counted across every day the way SSSB counts them: one per
+    /// booked time, not one per group.
     private var projectedTotal: Int {
-        otherBookings.count + ownCountInSlot - toCancel.count + toBook.count
+        let stillHeldHere = ownCountInSlot - toCancel.count + toBook.count > 0
+        let thisSlot = (stillHeldHere && slotCountsAsFuture) ? 1 : 0
+        return otherFutureSessions + thisSlot
     }
 
     private var overAccountLimit: Bool {
-        projectedTotal > LaundryStore.maxActiveBookings
+        guard let max = maxFutureSessions else { return false }
+        return projectedTotal > max
     }
 
-    /// One quiet line under the button. The account limit only informs — it no
-    /// longer disables the button, because it is a local count of what the
-    /// portal last reported: a booking that has already been auto-cancelled
-    /// upstream must never be what stops the user from booking again.
-    private var limitHint: String {
-        let max = LaundryStore.maxActiveBookings
-        if overSlotLimit { return "Select at most \(max) machines." }
-        if overAccountLimit { return "That makes \(projectedTotal) of \(max) bookings — SSSB may turn it down." }
-        return "\(store.heldBookings.count) of \(max) bookings in use across all days."
+    /// One quiet line under the button, or nothing at all when there is neither
+    /// a published limit nor a booking to report. The account limit only
+    /// informs — it does not disable the button, because it is a local count of
+    /// what the portal last reported: a booking that has already been
+    /// auto-cancelled upstream must never be what stops the user booking again.
+    private var limitHint: String? {
+        if overSlotLimit {
+            return "Aptus takes at most \(LaundryStore.maxGroupsPerBooking) groups in one booking."
+        }
+        let held = store.futureSessions.count
+        guard let max = maxFutureSessions else {
+            guard held > 0 else { return nil }
+            return held == 1
+                ? "1 future session booked."
+                : "\(held) future sessions booked."
+        }
+        if overAccountLimit {
+            return "That would be \(projectedTotal) future sessions, and your laundry room allows \(max) — SSSB may turn it down."
+        }
+        return "\(held) of \(max) future sessions booked."
     }
 
     private var actionTitle: String {
@@ -331,7 +364,7 @@ struct BookingSheet: View {
         addingToCalendar = true
         Task {
             do {
-                let prepared = try await CalendarService.prepareEvent(for: current, machineNames: names, location: location)
+                let prepared = try await CalendarService.prepareEvent(for: current, groupNames: names, location: location)
                 addingToCalendar = false
                 pendingEvent = PendingEvent(store: prepared.store, event: prepared.event)
             } catch {
@@ -383,11 +416,11 @@ struct BookingSheet: View {
         }
 
         let succeeded = outcome.results.filter(\.isSuccessful)
-        // Every machine gets a line, successes included — after a partial failure
+        // Every group gets a line, successes included — after a partial failure
         // the only thing that helps is knowing exactly where things landed.
         let details = outcome.results.map { item in
             let name = groupsById[item.groupId]?.name ?? "Group \(item.groupId)"
-            return ErrorPresenter.summary(for: item.result, action: item.action, machine: name)
+            return ErrorPresenter.summary(for: item.result, action: item.action, group: name)
         }
 
         let title: String
@@ -400,7 +433,7 @@ struct BookingSheet: View {
                 : "Nothing was booked — the timeslot is unchanged."
         } else {
             title = "Only part of it worked"
-            message = "\(succeeded.count) of \(outcome.results.count) machines went through:"
+            message = "\(succeeded.count) of \(outcome.results.count) groups went through:"
         }
         return ActionFeedback(title: title, message: message, details: details)
     }

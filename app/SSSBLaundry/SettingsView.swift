@@ -15,6 +15,7 @@ struct SettingsView: View {
     @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
+    @AppStorage(LaundryRooms.selectedIdKey) private var laundryRoomId: String = ""
     @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
     @AppStorage(NotificationSetting.alertKey) private var alert: BookingAlert = NotificationSetting.defaultAlert
     @AppStorage(NotificationSetting.secondAlertKey) private var secondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
@@ -56,7 +57,7 @@ struct SettingsView: View {
                                 .foregroundStyle(unlocked ? Color.accentColor : .secondary)
                         }
                         .buttonStyle(.borderless)
-                        .accessibilityLabel(unlocked ? "Lock object id" : "Unlock object id to change it")
+                        .accessibilityLabel(unlocked ? "Lock object number" : "Unlock object number to change it")
                     }
                     .contextMenu {
                         Button("Copy", systemImage: "doc.on.doc") {
@@ -65,10 +66,12 @@ struct SettingsView: View {
                         .disabled(objectId.isEmpty)
                     }
                 } header: {
-                    Text("Object id")
+                    Text("Object number")
                 } footer: {
-                    Text("Sent as the X-Object-Id header on every request. Tap the lock to change it, or clear the field to sign out.")
+                    Text("The object number from your rental agreement — Aptus uses it as both username and password. Tap the lock to change it, or clear the field to sign out.")
                 }
+
+                laundryRoomSection
 
                 if allGroups.isEmpty {
                     Section {
@@ -77,7 +80,7 @@ struct SettingsView: View {
                     } header: {
                         Text("Visible groups")
                     } footer: {
-                        Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object id covers multiple buildings.")
+                        Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object number covers several buildings.")
                     }
                 } else {
                     let sections = locationSections
@@ -95,7 +98,7 @@ struct SettingsView: View {
                             Text(section.location.isEmpty ? "Visible groups" : section.location)
                         } footer: {
                             if index == sections.count - 1 {
-                                Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object id covers multiple buildings.")
+                                Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object number covers several buildings. Names are Aptus's own.")
                             }
                         }
                     }
@@ -163,7 +166,7 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { draft = objectId }
                 Button("Sign out", role: .destructive) { signOut() }
             } message: {
-                Text("Clearing the object id signs you out. Bookings made on it stay, but this phone stops seeing them and reminders end.")
+                Text("Clearing the object number signs you out. Bookings made on it stay, but this phone stops seeing them and reminders end.")
             }
             .task {
                 draft = objectId
@@ -185,11 +188,42 @@ struct SettingsView: View {
         }
     }
 
+    /// SSSB publishes different rules per laundry room, and nothing identifies
+    /// which one an object number belongs to, so the address is asked for. It
+    /// stays optional: unset means the app shows no limits at all rather than
+    /// asserting one that is wrong for three quarters of SSSB's addresses.
+    @ViewBuilder
+    private var laundryRoomSection: some View {
+        Section {
+            NavigationLink {
+                LaundryRoomPicker(selectedId: $laundryRoomId)
+            } label: {
+                LabeledContent("Your address", value: selectedRoom?.address ?? "Not set")
+            }
+            if let room = selectedRoom {
+                LabeledContent("Laundry room", value: room.room)
+                LabeledContent("Max future bookings", value: room.maxFutureBookingsLabel)
+                LabeledContent("Time after booking", value: room.timeAfterBookingLabel)
+                LabeledContent("Max booking per week/month", value: room.quotaLabel)
+            }
+        } header: {
+            Text("Your laundry room")
+        } footer: {
+            Text(selectedRoom == nil
+                 ? "Set your address to see the rules SSSB publishes for your laundry room. Until then the app shows no booking limits."
+                 : "The rules SSSB publishes for this address. Aptus enforces them, not the app.")
+        }
+    }
+
+    private var selectedRoom: LaundryRoom? {
+        LaundryRooms.room(id: laundryRoomId)
+    }
+
     private var notificationsFooter: String {
         if authorizationStatus == .denied {
             return "Notifications are turned off for SSSB Laundry in iOS Settings. Turn them back on there to get booking reminders."
         }
-        return "Reminders are sent by the server, so they arrive even if someone else books on your object id and the app is closed. A booking is released 15 minutes after it starts if you don't start the machine."
+        return "Reminders are sent by the server, so they arrive even if someone else books on your object number and the app is closed. A session is released 15 minutes after it starts unless you activate it with your Aptus tag."
     }
 
     /// Turning the toggle on is what triggers the system permission prompt.

@@ -149,8 +149,8 @@ extension ActivityViewContext where Attributes == LaundryActivityAttributes {
 
     var headline: String {
         switch resolvedPhase {
-        case .upcoming: return "until your slot starts"
-        case .grace: return "to start the machine"
+        case .upcoming: return "until your session starts"
+        case .grace: return "to tag in"
         }
     }
 

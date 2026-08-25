@@ -29,7 +29,7 @@ struct LaundryActivityAttributes: ActivityAttributes {
     /// Derived from the timeslot start and the booked groups rather than the
     /// opaque `timeslotId`, which must not be persisted across server changes.
     var bookingId: String
-    /// Machine names, already joined for display.
+    /// Aptus group names, already joined for display.
     var machines: String
     var location: String
     /// `HH:mm` in Europe/Stockholm, straight from the API — never re-derived
@@ -38,6 +38,6 @@ struct LaundryActivityAttributes: ActivityAttributes {
     var endTime: String
     var startAt: Date
 
-    /// When the machine releases the booking again if it hasn't been started.
+    /// When Aptus releases the session again if it has not been activated.
     var deadline: Date { startAt.addingTimeInterval(laundryGracePeriod) }
 }

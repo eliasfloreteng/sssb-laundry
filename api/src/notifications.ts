@@ -432,7 +432,7 @@ function reminderTitle(offsetMinutes: number | null): string {
 function reminderBody(body: string, offsetMinutes: number | null): string {
   // Close to the start the grace period is the actionable part of the message.
   if (offsetMinutes !== null && offsetMinutes > 15) return body;
-  return `${body}\nStart the machine within 15 minutes or the booking is released.`;
+  return `${body}\nActivate with your Aptus tag within 15 minutes or the session is released.`;
 }
 
 export function leadLabel(minutes: number): string {

@@ -23,14 +23,14 @@ struct PreparedEvent {
 }
 
 enum CalendarService {
-    static func prepareEvent(for timeslot: Timeslot, machineNames: [String], location: String? = nil) async throws -> PreparedEvent {
+    static func prepareEvent(for timeslot: Timeslot, groupNames: [String], location: String? = nil) async throws -> PreparedEvent {
         let store = EKEventStore()
         let granted = try await store.requestWriteOnlyAccessToEvents()
         guard granted else { throw CalendarServiceError.accessDenied }
 
         let event = EKEvent(eventStore: store)
         event.calendar = store.defaultCalendarForNewEvents
-        event.title = eventTitle(machineNames: machineNames)
+        event.title = eventTitle(groupNames: groupNames)
         if let location, !location.isEmpty {
             event.location = location
         }
@@ -40,9 +40,12 @@ enum CalendarService {
         return PreparedEvent(store: store, event: event)
     }
 
-    private static func eventTitle(machineNames: [String]) -> String {
-        if machineNames.isEmpty { return "Tvätt" }
-        return "Tvätt \(machineNames.joined(separator: ", "))"
+    /// Swedish on purpose: the event lands in a calendar next to the rest of
+    /// the resident's life, and "Tvätt" is what SSSB's own booking board says.
+    /// The group names are Aptus's labels, kept verbatim.
+    private static func eventTitle(groupNames: [String]) -> String {
+        if groupNames.isEmpty { return "Tvätt" }
+        return "Tvätt \(groupNames.joined(separator: ", "))"
     }
 
     private static func parseISO8601(_ string: String) -> Date? {

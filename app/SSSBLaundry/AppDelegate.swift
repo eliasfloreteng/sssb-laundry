@@ -46,7 +46,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         // A reminder is worth seeing even with the app open — the whole point is
-        // that the machine has to be started within 15 minutes.
+        // that the session has to be activated within 15 minutes.
         [.banner, .sound, .list]
     }
 }

@@ -6,7 +6,8 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 
 - View the full week of laundry timeslots for your apartment
 - Book or cancel 1–2 groups per timeslot in a single action
-- Filter the list to active hours and to a subset of laundry groups (useful when an object id covers multiple buildings)
+- Filter the list to active hours and to a subset of laundry groups (useful when an object number covers several buildings)
+- Show the booking rules SSSB publishes for your laundry room, picked by street address
 - Add bookings to the system calendar with a reminder at the timeslot start
 - A Live Activity in the hour before a booking, counting down to the start and then through the 15 minutes before it is released
 - Pull-to-refresh and infinite scroll into future weeks
@@ -15,14 +16,14 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 
 - Xcode 26+
 - iOS 26.0+
-- A valid SSSB object id (format: `1234-5678-901`)
+- A valid SSSB object number (format: `1234-5678-901`)
 - The backend running at the URL set in `SSSBLaundry/Config.swift` (default: `https://sssb-laundry.eliasf.se`). Run it locally with `cd ../api && bun run dev`; its routes are documented in [`../api/README.md`](../api/README.md).
 
 ## Getting started
 
 1. Open `SSSBLaundry.xcodeproj` in Xcode (from the repo root: `open app/SSSBLaundry.xcodeproj`).
 2. Select an iOS 26 simulator or device and run the `SSSBLaundry` scheme.
-3. On first launch, enter your object id. It is stored in `UserDefaults` and sent as the `X-Object-Id` header on every request.
+3. On first launch, enter your object number. It is stored in `UserDefaults` and sent as the `X-Object-Id` header on every request.
 
 ## Project layout
 
@@ -34,7 +35,9 @@ SSSBLaundry/
   TimeslotRow.swift        Single timeslot row
   BookingSheet.swift       Book/cancel sheet for one timeslot
   EventEditView.swift      Calendar event editor wrapper
-  SettingsView.swift       Object id, visible groups, active hours
+  SettingsView.swift       Object number, laundry room, visible groups, active hours
+  LaundryRoomPicker.swift  Street-address picker for the laundry room rules
+  LaundryRooms.swift       SSSB's per-room rules, transcribed from sssb.se
   ObjectIdSetupView.swift  First-run sign-in
   GroupChip.swift          Group status chip
   APIClient.swift          HTTP client (URLSession)
@@ -57,6 +60,23 @@ SSSBLaundryWidgets/
 Tools/
   GenerateAppIcon.swift            Regenerates the three AppIcon variants
 ```
+
+## Vocabulary
+
+The app uses SSSB's own words, with Aptus's labels wherever Aptus is what the
+resident sees on screen:
+
+| Term            | Means                                                              |
+| --------------- | ------------------------------------------------------------------ |
+| laundry room    | The room, at the address SSSB lists for your building               |
+| session         | One booked time — what SSSB counts and what "max future bookings" caps |
+| group           | Aptus's own `Grupp 1` / `Grupp 2` within a room; a booking covers 1–2 |
+| timeslot        | A bookable window in the week list, before it is anyone's session   |
+| object number   | The `1234-5678-901` from the rental agreement; sign-in              |
+| Aptus tag       | The fob you tag in with, within 15 minutes of the start             |
+
+Not "machine" (a group is several), not "object id" (SSSB says number), and never
+"category" — those are deliberately hidden from the client.
 
 ## Branding
 
@@ -121,6 +141,18 @@ the glyph.
 - **Calendar access is write-only** (`requestWriteOnlyAccessToEvents()`), so existing
   events can't be read. The `EKEventStore` must outlive the `EKEvent` — `PreparedEvent`
   carries both.
+- **`LaundryRooms.all` is transcribed, not fetched.** SSSB fills the dropdown on
+  <https://www.sssb.se/en/book-a-laundry-room/> from
+  `wp-content/themes/sssb_pilot2/js/laundry.js`; that array is mirrored verbatim,
+  their typos included, so a diff against the source stays readable. Nothing in the
+  app is enforced from it — Aptus decides — and an unset room means the app shows no
+  limits rather than asserting one, because "max future bookings" is 1 for 53 of the
+  74 addresses and 2 for only 19.
+- **"Max future bookings" counts sessions, not groups, and only future ones.** One
+  booked time is one session however many groups it covers (`BookedSlot`), and a
+  session that has already started stops counting — the machines may still be
+  running, but the next slot can be booked. `LaundryStore.maxGroupsPerBooking` is a
+  different limit: Aptus's own cap of two groups in one booking action.
 - **Hidden groups are stored as a comma-separated string of ids**
   (`activeGroups.hiddenIds`), because `@AppStorage` can't hold a `Set<Int>`. Go through
   `ActiveGroupsSetting.parse`/`encode` rather than rolling your own.
@@ -168,5 +200,5 @@ The stripped `PATH` matters: Xcode's IPA packaging step runs `/usr/bin/rsync` (o
 
 - `NSCalendarsWriteOnlyAccessUsageDescription` must stay set (via `INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription` in the pbxproj) — App Review rejects builds that prompt for calendar access without it.
 - The backend at the URL in `Config.swift` must be reachable during Beta App Review.
-- App Store Connect → App Review Information should list a working demo object id so reviewers can get past the sign-in screen.
+- App Store Connect → App Review Information should list a working demo object number so reviewers can get past the sign-in screen.
 - Encryption export compliance: `ITSAppUsesNonExemptEncryption` should remain `NO` (HTTPS-only, no custom crypto). Set it in Info.plist to skip the per-build prompt.

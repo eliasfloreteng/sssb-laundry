@@ -7,7 +7,7 @@ import ActivityKit
 import Foundation
 
 /// Puts the nearest booking on the Lock Screen and in the Dynamic Island: a
-/// countdown to the start, then the 15 minutes before the machine releases it.
+/// countdown to the start, then the 15 minutes before Aptus releases it.
 enum LiveActivityService {
     /// Fires the phase change and the ending while the app is still alive.
     private static var supervisor: Task<Void, Never>?

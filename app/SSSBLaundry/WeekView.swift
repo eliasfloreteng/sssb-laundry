@@ -15,6 +15,7 @@ struct WeekView: View {
     @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
     @AppStorage(ActiveHoursSetting.endKey) private var activeHoursEnd: Int = ActiveHoursSetting.defaultEndMinutes
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
+    @AppStorage(LaundryRooms.selectedIdKey) private var laundryRoomId: String = ""
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
     @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
     @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
@@ -225,7 +226,7 @@ struct WeekView: View {
     @ViewBuilder
     private var limitBanner: some View {
         let held = store.futureSessions
-        if let max = LaundryRooms.maxFutureBookings, held.count >= max {
+        if let max = LaundryRooms.room(id: laundryRoomId)?.maxFutureBookings, held.count >= max {
             let list = held.map(\.whenLabel).formatted(.list(type: .and))
             Text("\(held.count) of \(max) future sessions booked — \(list).")
                 .font(.caption)

@@ -16,6 +16,29 @@ xcuserdata/
 .build/
 .swiftpm/
 
+# Bun
+node_modules/
+dist/
+coverage/
+
+# Example requests against Aptus — they carry real object ids and sessions
+requests/
+
+# APNs signing key and local SQLite state
+secrets/
+*.p8
+data/
+
+# Env
+.env
+.env.*
+
+# Host-specific deploy config, lives next to compose.yaml on the server
+compose.override.yaml
+
+# Logs
+*.log
+
 # Claude Code
 CLAUDE.local.md
-.claude/settings.local.json
+**/.claude/settings.local.json

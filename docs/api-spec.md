@@ -1,6 +1,8 @@
-# Laundry Booking API (Frontend Integration)
+# Laundry Booking API
 
-Structured JSON API contract for frontend clients.
+The contract between [`../api`](../api), which serves it, and [`../app`](../app), which
+consumes it. Hand-maintained, not generated: when a route, header, status code or DTO
+changes on one side, this file and the other side change in the same commit.
 
 ## Base URL
 

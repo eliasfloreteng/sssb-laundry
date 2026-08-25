@@ -1,6 +1,6 @@
-# SSSB Laundry
+# SSSB Laundry — iOS app
 
-A native iOS app for browsing and booking laundry timeslots in SSSB student housing. Built with SwiftUI.
+A native iOS app for browsing and booking laundry timeslots in SSSB student housing. Built with SwiftUI. The backend it talks to is [`../api`](../api) in this same repo.
 
 ## Features
 
@@ -16,11 +16,11 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - Xcode 26+
 - iOS 26.0+
 - A valid SSSB object id (format: `1234-5678-901`)
-- The companion backend service running at the URL set in `SSSBLaundry/Config.swift` (default: `https://sssb-laundry.eliasf.se`). The HTTP contract is documented in [`api-spec.md`](./api-spec.md).
+- The backend running at the URL set in `SSSBLaundry/Config.swift` (default: `https://sssb-laundry.eliasf.se`). Run it locally with `cd ../api && bun run dev`; the HTTP contract is documented in [`../docs/api-spec.md`](../docs/api-spec.md).
 
 ## Getting started
 
-1. Open `SSSBLaundry.xcodeproj` in Xcode.
+1. Open `SSSBLaundry.xcodeproj` in Xcode (from the repo root: `open app/SSSBLaundry.xcodeproj`).
 2. Select an iOS 26 simulator or device and run the `SSSBLaundry` scheme.
 3. On first launch, enter your object id. It is stored in `UserDefaults` and sent as the `X-Object-Id` header on every request.
 

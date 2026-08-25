@@ -1,0 +1,27 @@
+# Deploy entrypoint for the API half of the repo. It sits at the root because the
+# server checks this repo out as the stack directory, and both Dockge and a plain
+# `docker compose up` look for the compose file there. The build context is ./api,
+# so api/.dockerignore is what applies.
+name: sssb-laundry-api
+
+services:
+  sssb-laundry-api:
+    build:
+      context: ./api
+    restart: unless-stopped
+    environment:
+      - "LOG_LEVEL=debug"
+      - "DB_PATH=/data/laundry.db"
+      - "PUSH_ENABLED=true"
+    env_file:
+      # APNS_KEY_ID, APNS_TEAM_ID, APNS_TOPIC and APNS_KEY_P8. Untracked: this repo
+      # is public. Absent on checkouts that don't send push, and then the server
+      # logs one warning and runs without notifications.
+      - path: .env
+        required: false
+    volumes:
+      # Device tokens and queued reminders must survive a redeploy.
+      - laundry-data:/data
+
+volumes:
+  laundry-data:

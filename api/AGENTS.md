@@ -1,8 +1,8 @@
-# sssb-laundry-api
+# api
 
-Always use Bun.
+Always use Bun. Run every command from this directory (`cd api`).
 
-This is a minimal structued HTTP API for booking laundry sessions at SSSB that wraps their Aptus Portal laundry booking service.
+This is a minimal structured HTTP API for booking laundry sessions at SSSB that wraps their Aptus Portal laundry booking service. Its only client is the iOS app in [`../app`](../app); the wire format it must keep is [`../docs/api-spec.md`](../docs/api-spec.md), and [`../AGENTS.md`](../AGENTS.md) lists what the two halves duplicate. Change a route or a DTO and the spec and the app change in the same commit.
 
 Find example requests in the `./requests` directory. This directory is gitignored as it contains sensitive authentication details
 
@@ -102,14 +102,17 @@ same channel later).
 (default 10), `PUSH_POLL_WEEKS` (default 3). Polling is expensive — one
 `listTimeslots` is categories + groups + one BookingCalendar per group.
 
-On this deployment the four identifiers live in `compose.yaml` (the repo is private and
-none of them is a credential); `APNS_KEY_P8` alone lives in the gitignored `.env`, pulled
-in via `env_file`. Regenerate it from the `.p8` after a key rotation:
+This repo is public, so all four live in the gitignored `.env` on the deployment, pulled
+in via `env_file` from `../compose.yaml` — the compose file at the repo root, whose build
+context is this directory. Only `APNS_KEY_P8` is an actual credential; the other three are
+there so nothing deployment-specific is published. Regenerate the key after a rotation:
 
 ```sh
 bun -e 'const f=require("fs");const k=f.readFileSync("secrets/AuthKey_<KEYID>.p8","utf8").trim();
-f.writeFileSync(".env",`APNS_KEY_P8=${k.replace(/\r?\n/g,"\\n")}\n`)'
+f.writeFileSync("../.env",`APNS_KEY_P8=${k.replace(/\r?\n/g,"\\n")}\n`)'
 ```
+
+(appending, not overwriting, now that the identifiers share the file)
 
 A bind mount of `secrets/` is not an option here: the container runs as uid 1000 (`bun`)
 and the host key is 0640 owned by uid 1001.

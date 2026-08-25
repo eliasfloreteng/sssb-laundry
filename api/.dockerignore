@@ -3,7 +3,6 @@ dist
 .git
 .gitignore
 test
-docs
 requests
 *.md
 !README.md

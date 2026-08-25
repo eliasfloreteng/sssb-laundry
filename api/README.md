@@ -1,10 +1,13 @@
 # SSSB Laundry API (Aptus wrapper)
 
-Minimal structured JSON API that wraps SSSB Aptus laundry booking.
+Minimal structured JSON API that wraps SSSB Aptus laundry booking. Serves the iOS app in
+[`../app`](../app); the full contract, including the push-notification endpoints, is
+[`../docs/api-spec.md`](../docs/api-spec.md).
 
 ## Run
 
 ```bash
+cd api
 bun install
 bun run dev
 ```
@@ -68,3 +71,11 @@ Cancels the same timeslot for 1-2 groups and returns per-group results.
 ```
 
 Unknown failures return `code: "UNKNOWN_ERROR"`.
+
+## Deploy
+
+`compose.yaml` lives at the repo root and builds this directory as its context:
+
+```bash
+cd .. && docker compose up -d --build
+```

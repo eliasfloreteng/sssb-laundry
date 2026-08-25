@@ -1,16 +1,18 @@
 # Deploy entrypoint for the API half of the repo. It sits at the root because the
 # server checks this repo out as the stack directory, and both Dockge and a plain
 # `docker compose up` look for the compose file there. The build context is ./api,
-# so api/.dockerignore is what applies.
+# so api/.dockerignore is what applies. The project name comes from the directory.
 
 services:
-  sssb-laundry-api:
+  api:
     build:
       context: ./api
     restart: unless-stopped
+    # tini as PID 1 — bun doesn't reap the healthcheck processes the image spawns.
+    init: true
     ports:
-      # Plain local deploy; the deployment's compose.override.yaml replaces this
-      # with Traefik labels.
+      # A plain local deploy; the deployment's compose.override.yaml unpublishes
+      # this and routes through Traefik instead.
       - "3000:3000"
     environment:
       - "LOG_LEVEL=debug"

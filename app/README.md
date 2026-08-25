@@ -11,6 +11,7 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - Add bookings to the system calendar with a reminder at the timeslot start
 - A Live Activity in the hour before a booking, counting down to the start and then through the 15 minutes before it is released
 - Pull-to-refresh and infinite scroll into future weeks
+- Jump straight to a date with the calendar button, instead of paging a week at a time
 
 ## Requirements
 
@@ -160,6 +161,14 @@ the glyph.
   one refresh later, so the app derives that itself. `GroupRestriction` in
   `BookingRules.swift` is the whole rule; `status` alone is not enough, and the per-room
   session quota is deliberately on the other side of the line — it warns, it never blocks.
+- **The week list has an anchor, and it is not always today.** Jumping to a date
+  throws away the loaded weeks and starts again at that day
+  (`LaundryStore.anchorDate`), so held bookings live in `ownBookingsByWeek` rather than
+  being read back out of `weeks` — the session limit and the Live Activity have to keep
+  counting bookings the list no longer shows. A week response is the authority on its
+  own dates, so refetching one replaces its entry and a cancellation drops out. Aptus
+  opens a contiguous run of weeks from today, which is why an empty week at the anchor
+  is taken to mean the end of the window rather than a gap.
 - **A booking is never filtered out of the week list.** Active hours, the free-slots
   filter and the cut at today are all about what is worth browsing; a slot the user
   actually holds is shown whatever they are set to, stays on the list once it has

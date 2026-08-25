@@ -5,11 +5,10 @@ Aptus terminal in the basement.
 
 Two halves of one product, in one repo:
 
-| Path            | What it is                                                                       |
-| --------------- | -------------------------------------------------------------------------------- |
-| [`app/`](./app) | Native iOS app — SwiftUI, iOS 26+, with a Live Activity and push reminders        |
-| [`api/`](./api) | The backend it talks to — Bun + Fastify, wrapping SSSB's Aptus Portal in JSON     |
-| [`docs/`](./docs) | [`api-spec.md`](./docs/api-spec.md), the HTTP contract between the two           |
+| Path            | What it is                                                                   |
+| --------------- | ---------------------------------------------------------------------------- |
+| [`app/`](./app) | Native iOS app — SwiftUI, iOS 26+, with a Live Activity and push reminders    |
+| [`api/`](./api) | The backend it talks to — Bun + Fastify, wrapping SSSB's Aptus Portal in JSON |
 
 The app is distributed through TestFlight under `se.floreteng.SSSBLaundry`; the API runs
 at `https://sssb-laundry.eliasf.se`.
@@ -48,15 +47,47 @@ Then run the `SSSBLaundry` scheme on an iOS 26 simulator or device. Point
 
 Each half has its own README with the details — [`app/README.md`](./app/README.md) covers
 the Xcode project layout and TestFlight releases, [`api/README.md`](./api/README.md) the
-endpoints and environment.
+endpoints, upstream quirks and environment.
 
-## Deploying the API
+## What spans both halves
 
-`compose.yaml` at the root builds `./api`:
+There is no generated client and no schema file: the wire format lives in `api/src` and
+is hand-mirrored in `app/SSSBLaundry/APIClient.swift` and `Models.swift`. A change to a
+route, header, status code or DTO belongs in one commit across both. The rest of this
+list is duplicated in code by necessity — changing one side alone is a silent bug, not a
+compile error.
+
+- **Notification offsets.** `BookingAlert`'s raw values in
+  `app/SSSBLaundry/NotificationSettings.swift` *are* the minutes the server stores as
+  `alertMinutes` / `secondAlertMinutes` (`-1` = off, `0` = at start). The app is the
+  source of truth and overwrites the server on sync; the server just mirrors.
+- **The 15-minute activation grace.** A booking not activated on the machine within 15
+  minutes of the start is released upstream. `laundryGracePeriod` in
+  `app/Shared/LaundryActivityAttributes.swift` and `GRACE_SECONDS` in
+  `api/src/notifications.ts` are the same 15 minutes, spelled twice.
+- **`timeslotId` is opaque and content-derived** from `{startAt, endAt}` only. It carries
+  no user or group identity, so the server regenerates it at send time and the app must
+  never construct, parse or persist it — always use the id from the latest
+  `GET /timeslots`.
+- **Europe/Stockholm, always.** Portal dates arrive without a timezone, timeslots can
+  span midnight, and DST is real. Neither side may fall back to the device's timezone.
+- **Object ids are sensitive.** They are username *and* password upstream. Never commit
+  a real one (fixtures included), never log one. This repo is public.
+
+## Deploying
+
+The two halves ship on different tracks, and a push to `main` only moves one of them.
+
+**API** — `compose.yaml` at the root builds `./api`:
 
 ```sh
 docker compose up -d --build
 ```
 
-Production is a checkout of this repo on the VPS, with the Traefik labels and the APNs
-credentials kept beside it in untracked `compose.override.yaml` and `.env`.
+Production is a checkout of this repo on the VPS. The Traefik labels and the APNs
+credentials live beside it in untracked `compose.override.yaml` and `.env`; the override
+also replaces the published port. `./data` is a bind mount and must be writable by uid
+1000 — losing it drops every device token and queued reminder.
+
+**App** — TestFlight, uploaded from Xcode. Nothing about a push to `main` ships an app
+build; see [`app/README.md`](./app/README.md).

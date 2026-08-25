@@ -16,7 +16,7 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - Xcode 26+
 - iOS 26.0+
 - A valid SSSB object id (format: `1234-5678-901`)
-- The backend running at the URL set in `SSSBLaundry/Config.swift` (default: `https://sssb-laundry.eliasf.se`). Run it locally with `cd ../api && bun run dev`; the HTTP contract is documented in [`../docs/api-spec.md`](../docs/api-spec.md).
+- The backend running at the URL set in `SSSBLaundry/Config.swift` (default: `https://sssb-laundry.eliasf.se`). Run it locally with `cd ../api && bun run dev`; its routes are documented in [`../api/README.md`](../api/README.md).
 
 ## Getting started
 
@@ -42,6 +42,10 @@ SSSBLaundry/
   LaundryStore.swift       @Observable store (week loading, actions)
   CalendarService.swift    EventKit integration
   LiveActivityService.swift App side of the booking Live Activity
+  PushService.swift        APNs registration and preference sync
+  AppDelegate.swift        APNs token callback and foreground banners
+  NotificationSettings.swift  Reminder offsets and their @AppStorage keys
+  ErrorPresenter.swift     Shared error alert presentation
   ObjectIdStore.swift      UserDefaults wrapper for the object id
   Config.swift             Base URL
 Shared/
@@ -54,6 +58,45 @@ SSSBLaundryWidgets/
 ## Tests
 
 `SSSBLaundryTests` and `SSSBLaundryUITests` targets are scaffolded but currently empty.
+
+## Things that will bite you
+
+- **Times are pinned to Europe/Stockholm** (`LaundryStore.todayInStockholm()`,
+  `addDays`). Falling back to the device timezone skips or duplicates days. Slots can
+  span midnight, so any time-window filter has to wrap around — `ActiveHoursSetting`
+  treats `start > end` as wrap-around and `start == end` as "no filter", not an empty
+  range.
+- **`startAt`/`endAt` may or may not carry fractional seconds.**
+  `CalendarService.parseISO8601` retries without `.withFractionalSeconds`; keep that
+  fallback.
+- **Push preferences: `@AppStorage` is the source of truth, the server is a mirror**
+  that `PushService.syncToServer()` overwrites. Deregister on toggle-off, sign-out and
+  `authFailed` — otherwise the server keeps pushing a stranger's bookings to this phone.
+  Reminders are entirely server-driven; a local `UNTimeIntervalNotificationTrigger`
+  implementation was reverted on purpose (`1e5429a`), don't reintroduce it.
+- **The notification permission prompt sleeps 700 ms and hangs off the
+  `NavigationStack`**, not `content`. An alert raised while the booking sheet is
+  dismissing is dropped without a trace, and SwiftUI silently drops a second alert on a
+  view that already has one.
+- **The widget extension shares `Shared/` as a third source root.** All three roots are
+  file-system-synchronized groups; `Shared/` is a member of both targets, so anything the
+  app and the widget share goes there rather than being copied.
+  `SSSBLaundryWidgets/Info.plist` is excluded from the extension's Copy Bundle Resources
+  by a `PBXFileSystemSynchronizedBuildFileExceptionSet` — without it the build fails with
+  "Multiple commands produce .../Info.plist".
+- **The Live Activity's phase flip is driven by `staleDate`, not by an update.** The app
+  is normally suspended by the time the slot starts, so the widget resolves
+  `state.phase == .grace || context.isStale`; the in-app supervisor task is the fast
+  path, not the mechanism. `Activity.request` needs the foreground, which is why opening
+  the app inside the lead hour is what starts it. Known limitation: the reminder pushes
+  are visible alerts rather than silent ones, so if the app is never reopened the
+  activity shows a spent countdown until the next launch reconciles it.
+- **Calendar access is write-only** (`requestWriteOnlyAccessToEvents()`), so existing
+  events can't be read. The `EKEventStore` must outlive the `EKEvent` — `PreparedEvent`
+  carries both.
+- **Hidden groups are stored as a comma-separated string of ids**
+  (`activeGroups.hiddenIds`), because `@AppStorage` can't hold a `Set<Int>`. Go through
+  `ActiveGroupsSetting.parse`/`encode` rather than rolling your own.
 
 ## Publishing an update to TestFlight
 

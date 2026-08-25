@@ -2,13 +2,16 @@
 # server checks this repo out as the stack directory, and both Dockge and a plain
 # `docker compose up` look for the compose file there. The build context is ./api,
 # so api/.dockerignore is what applies.
-name: sssb-laundry-api
 
 services:
   sssb-laundry-api:
     build:
       context: ./api
     restart: unless-stopped
+    ports:
+      # Plain local deploy; the deployment's compose.override.yaml replaces this
+      # with Traefik labels.
+      - "3000:3000"
     environment:
       - "LOG_LEVEL=debug"
       - "DB_PATH=/data/laundry.db"
@@ -20,8 +23,7 @@ services:
       - path: .env
         required: false
     volumes:
-      # Device tokens and queued reminders must survive a redeploy.
-      - laundry-data:/data
-
-volumes:
-  laundry-data:
+      # Device tokens and queued reminders must survive a redeploy. The container
+      # runs as uid 1000 (`bun`), so the host directory has to be writable by it:
+      # `mkdir -p data && sudo chown 1000:1000 data` before the first up.
+      - ./data:/data

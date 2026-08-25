@@ -15,7 +15,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock* ./
 COPY src ./src
 
-# Owned before the volume is mounted so the named volume inherits the ownership.
+# Writable by the runtime user for runs without a mount; a bind mount at /data
+# must be chowned to uid 1000 on the host instead.
 RUN mkdir -p /data && chown bun:bun /data
 VOLUME ["/data"]
 ENV DB_PATH=/data/laundry.db

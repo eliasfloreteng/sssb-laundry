@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 import UserNotifications
 
 struct WeekView: View {
@@ -22,6 +23,12 @@ struct WeekView: View {
     @State private var showingNotificationPrompt = false
     @State private var showingDatePicker = false
     @State private var jumpDate = Date()
+    @State private var calendarFlow = CalendarEventFlow()
+    @State private var pendingCancel: PendingCancel?
+    /// Timeslots with a long-press action in flight. Local to the list: the
+    /// booking sheet reports its own progress, and this is only about the rows
+    /// that act without one.
+    @State private var busyTimeslots: Set<String> = []
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -84,6 +91,12 @@ struct WeekView: View {
                     if store.lastOutcome?.didBook == true {
                         offerNotificationsAfterBooking()
                     }
+                }
+                // On the list rather than in the booking sheet: the sheet is
+                // already dismissing when a success lands, and a long-press
+                // action never opens one at all.
+                .sensoryFeedback(trigger: store.lastOutcome?.id) { _, _ in
+                    store.lastOutcome?.haptic
                 }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
@@ -210,8 +223,7 @@ struct WeekView: View {
             case .error(let err):
                 errorState(err)
             default:
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                TimeslotListPlaceholder()
             }
         } else if filteredDays.isEmpty && store.reachedEnd {
             emptyState
@@ -261,28 +273,133 @@ struct WeekView: View {
                                 selectedTimeslot = ts
                             }
                         } label: {
-                            TimeslotRow(timeslot: ts, groupsById: store.groupsById, hiddenGroups: hiddenGroups)
+                            TimeslotRow(
+                                timeslot: ts,
+                                groupsById: store.groupsById,
+                                hiddenGroups: hiddenGroups,
+                                isBusy: busyTimeslots.contains(ts.id)
+                            )
                         }
                         .buttonStyle(.plain)
-                        .disabled(!canOpen(ts))
+                        .disabled(!canOpen(ts) || busyTimeslots.contains(ts.id))
+                        .contextMenu { rowActions(for: ts) }
                     }
                 } header: {
                     dayHeader(for: day.date)
                 }
             }
 
-            footerRow
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+            footerRows
         }
         .listStyle(.insetGrouped)
         // A jump is a different list, not a scroll: rebuilding it puts the day
         // the user picked at the top instead of keeping the old offset.
         .id(store.anchorDate)
+        .calendarEventFlow(calendarFlow)
+        // A released session goes straight back on the board for everyone, and
+        // there is no undo, so the one destructive action asks first. It sits on
+        // the list rather than on `content`, which already owns an alert.
+        .confirmationDialog(
+            "Cancel this booking?",
+            isPresented: cancelDialogBinding,
+            titleVisibility: .visible,
+            presenting: pendingCancel
+        ) { pending in
+            Button("Cancel booking", role: .destructive) {
+                act(on: pending.timeslot, book: [], cancel: [pending.groupId])
+            }
+            Button("Keep booking", role: .cancel) {}
+        } message: { pending in
+            Text("\(pending.label) is released the moment you cancel — anyone else can book it then.")
+        }
+    }
+
+    /// Long press: the two things the booking sheet exists for, without the
+    /// sheet, plus the time on the clipboard. Only what Aptus would accept is
+    /// offered — `actionableGroups` is the same rule the row and the sheet use —
+    /// and the group is named only where the row covers more than one.
+    @ViewBuilder
+    private func rowActions(for ts: Timeslot) -> some View {
+        let hidden = hiddenGroups
+        let actionable = ts.actionableGroups(hidden: hidden)
+        let named = ts.groups.filter { !hidden.contains($0.groupId) }.count > 1
+
+        ForEach(actionable.filter { $0.status == .bookable }, id: \.groupId) { group in
+            Button {
+                act(on: ts, book: [group.groupId], cancel: [])
+            } label: {
+                Label(named ? "Book \(groupName(group.groupId))" : "Book", systemImage: "plus.circle")
+            }
+        }
+
+        if ts.hasOwnGroup(hidden: hidden) {
+            Button {
+                Task {
+                    await calendarFlow.add(
+                        ts,
+                        groupIds: ownGroupIds(in: ts),
+                        groupsById: store.groupsById
+                    )
+                }
+            } label: {
+                Label("Add to Calendar", systemImage: "calendar.badge.plus")
+            }
+        }
+
+        Button {
+            UIPasteboard.general.string = ts.dayAndTime
+        } label: {
+            Label("Copy time", systemImage: "doc.on.doc")
+        }
+
+        ForEach(actionable.filter { $0.status == .own }, id: \.groupId) { group in
+            Button(role: .destructive) {
+                pendingCancel = PendingCancel(
+                    timeslot: ts,
+                    groupId: group.groupId,
+                    label: named ? "\(groupName(group.groupId)), \(ts.dayAndTime)" : ts.dayAndTime
+                )
+            } label: {
+                Label(named ? "Cancel \(groupName(group.groupId))" : "Cancel booking", systemImage: "xmark.circle")
+            }
+        }
+    }
+
+    /// A long-press action has nowhere of its own to report into: the row itself
+    /// is the progress, the haptic is the confirmation, and a failure goes to
+    /// the alert the list already owns.
+    private func act(on ts: Timeslot, book: [Int], cancel: [Int]) {
+        busyTimeslots.insert(ts.id)
+        Task {
+            let outcome = await store.bookAndCancel(timeslotId: ts.id, toBook: book, toCancel: cancel)
+            busyTimeslots.remove(ts.id)
+            if let failure = outcome?.failure(groupName: groupName) {
+                store.lastError = failure
+            }
+        }
+    }
+
+    private func groupName(_ id: Int) -> String {
+        store.groupsById[id]?.name ?? "Group \(id)"
+    }
+
+    private func ownGroupIds(in ts: Timeslot) -> [Int] {
+        ts.groups.filter { !hiddenGroups.contains($0.groupId) && $0.status == .own }.map(\.groupId)
+    }
+
+    /// The booking a long press asked to release, held until the confirmation
+    /// comes back.
+    private struct PendingCancel: Identifiable {
+        let id = UUID()
+        let timeslot: Timeslot
+        let groupId: Int
+        /// Named the way the menu named it, so the dialog is plainly about the
+        /// row that was long-pressed.
+        let label: String
     }
 
     @ViewBuilder
-    private var footerRow: some View {
+    private var footerRows: some View {
         if store.reachedEnd {
             HStack {
                 Spacer()
@@ -292,32 +409,27 @@ struct WeekView: View {
                 Spacer()
             }
             .padding(.vertical, 12)
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
         } else {
-            HStack {
-                Spacer()
-                ProgressView()
-                Spacer()
+            // Stand-in rows rather than a spinner: the next week arrives into
+            // the height its placeholder was already holding. The task runs once
+            // per row, and `loadMoreIfNeeded` collapses those into one fetch.
+            ForEach(TimeslotPlaceholder.slots(count: 3)) { slot in
+                TimeslotRow(timeslot: slot, groupsById: [:], hiddenGroups: [])
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Loading more timeslots")
             }
-            .padding(.vertical, 16)
+            .redacted(reason: .placeholder)
+            .allowsHitTesting(false)
             .task(id: store.weeks.count) {
                 await store.loadMoreIfNeeded()
             }
         }
     }
 
-    private static let dayLabelFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeZone = LaundryStore.stockholm
-        formatter.dateFormat = "EEEE d MMM"
-        return formatter
-    }()
-
-    private static func dayLabel(for dateString: String) -> String {
-        LaundryStore.date(from: dateString).map { dayLabelFormatter.string(from: $0) } ?? dateString
-    }
-
     private func dayHeader(for dateString: String) -> some View {
-        Text(Self.dayLabel(for: dateString))
+        Text(LaundryFormat.dayLabel(dateString))
             .textCase(nil)
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(.primary)
@@ -343,7 +455,7 @@ struct WeekView: View {
                 // Landing past the end of the window is the ordinary way a jump
                 // finds nothing, so say so and offer the way back rather than
                 // leaving the user on a list they cannot scroll out of.
-                Text("Nothing from \(Self.dayLabel(for: store.anchorDate))")
+                Text("Nothing from \(LaundryFormat.dayLabel(store.anchorDate))")
                     .font(.headline)
                 Text("SSSB only opens bookings a few weeks ahead.")
                     .font(.callout)
@@ -376,6 +488,13 @@ struct WeekView: View {
             .buttonStyle(.borderedProminent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var cancelDialogBinding: Binding<Bool> {
+        Binding(
+            get: { pendingCancel != nil },
+            set: { if !$0 { pendingCancel = nil } }
+        )
     }
 
     private var errorAlertBinding: Binding<Bool> {

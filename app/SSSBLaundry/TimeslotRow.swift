@@ -9,6 +9,9 @@ struct TimeslotRow: View {
     let timeslot: Timeslot
     let groupsById: [Int: LaundryGroup]
     let hiddenGroups: Set<Int>
+    /// An action from the long-press menu is in flight. The row is the only
+    /// thing on screen that can say so — nothing else opens.
+    var isBusy = false
 
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
@@ -27,7 +30,9 @@ struct TimeslotRow: View {
 
             Spacer(minLength: 0)
 
-            if hasOwn {
+            if isBusy {
+                ProgressView()
+            } else if hasOwn {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.tint)
                     .font(.title3)

@@ -3,8 +3,6 @@
 //  SSSBLaundry
 //
 
-import EventKit
-import EventKitUI
 import SwiftUI
 
 struct BookingSheet: View {
@@ -17,22 +15,8 @@ struct BookingSheet: View {
 
     @State private var selection: Set<Int> = []
     @State private var submitting = false
-    @State private var addingToCalendar = false
-    @State private var calendarAlert: CalendarAlert?
-    @State private var pendingEvent: PendingEvent?
+    @State private var calendarFlow = CalendarEventFlow()
     @State private var feedback: ActionFeedback?
-
-    private struct CalendarAlert: Identifiable {
-        let id = UUID()
-        let title: String
-        let message: String
-    }
-
-    private struct PendingEvent: Identifiable {
-        let id = UUID()
-        let store: EKEventStore
-        let event: EKEvent
-    }
 
     /// What went wrong, in the words the user needs: one headline, one reason,
     /// and a line per group when the groups disagreed with each other.
@@ -85,32 +69,18 @@ struct BookingSheet: View {
                         Button {
                             addOwnBookingToCalendar()
                         } label: {
-                            if addingToCalendar {
+                            if calendarFlow.isPreparing {
                                 ProgressView()
                             } else {
                                 Image(systemName: "calendar.badge.plus")
                             }
                         }
-                        .disabled(addingToCalendar || submitting)
+                        .disabled(calendarFlow.isPreparing || submitting)
                         .accessibilityLabel("Add to Calendar")
                     }
                 }
             }
-            .alert(item: $calendarAlert) { alert in
-                Alert(title: Text(alert.title), message: Text(alert.message), dismissButton: .default(Text("OK")))
-            }
-            .sheet(item: $pendingEvent) { pending in
-                EventEditView(store: pending.store, event: pending.event) { action in
-                    pendingEvent = nil
-                    if action == .saved {
-                        calendarAlert = CalendarAlert(
-                            title: "Added to Calendar",
-                            message: "\(current.localDate) \(current.startTime)–\(current.endTime)"
-                        )
-                    }
-                }
-                .ignoresSafeArea()
-            }
+            .calendarEventFlow(calendarFlow)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -128,7 +98,7 @@ struct BookingSheet: View {
                 Text(weekdayLabel)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Text("\(current.startTime) – \(current.endTime)")
+                Text(current.timeRange)
                     .font(.title2.bold())
                     .monospacedDigit()
             }
@@ -362,23 +332,8 @@ struct BookingSheet: View {
     }
 
     private func addOwnBookingToCalendar() {
-        let ids = ownGroupIds.sorted()
-        let names = ids.map { id in groupsById[id]?.name ?? "Group \(id)" }
-        let locations = Set(ids.compactMap { groupsById[$0]?.location }.filter { !$0.isEmpty })
-        let location = locations.count == 1 ? locations.first : nil
-        addingToCalendar = true
         Task {
-            do {
-                let prepared = try await CalendarService.prepareEvent(for: current, groupNames: names, location: location)
-                addingToCalendar = false
-                pendingEvent = PendingEvent(store: prepared.store, event: prepared.event)
-            } catch {
-                addingToCalendar = false
-                calendarAlert = CalendarAlert(
-                    title: "Couldn’t add to Calendar",
-                    message: error.localizedDescription
-                )
-            }
+            await calendarFlow.add(current, groupIds: Array(ownGroupIds), groupsById: groupsById)
         }
     }
 

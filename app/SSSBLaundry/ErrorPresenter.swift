@@ -29,6 +29,13 @@ enum ErrorPresenter {
             return "Too many groups"
         case "SERVICE_ERROR", "BAD_RESPONSE":
             return "Aptus problem"
+        // Minted by the app, not the API: a long-press action that failed has no
+        // sheet to explain itself in, so it borrows the alert instead. The
+        // message is already the one line that says what happened.
+        case "BOOKING_FAILED":
+            return "Booking didn’t go through"
+        case "CANCELLATION_FAILED":
+            return "Cancellation didn’t go through"
         default:
             return "Something went wrong"
         }

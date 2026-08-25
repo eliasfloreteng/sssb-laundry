@@ -12,6 +12,8 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - A Live Activity in the hour before a booking, counting down to the start and then through the 15 minutes before it is released
 - Pull-to-refresh and infinite scroll into future weeks
 - Jump straight to a date with the calendar button, instead of paging a week at a time
+- Long press a timeslot to book, cancel, add it to Calendar or copy the time without opening the sheet
+- Haptic feedback when a booking action lands, telling a clean result from a partial one
 
 ## Requirements
 
@@ -35,6 +37,10 @@ SSSBLaundry/
   WeekView.swift           Weekly timeslot list, pagination, filters
   TimeslotRow.swift        Single timeslot row
   BookingSheet.swift       Book/cancel sheet for one timeslot
+  TimeslotPlaceholder.swift  Redacted stand-in rows for a list that is still loading
+  CalendarEventFlow.swift  Add-to-Calendar, shared by the sheet and the week list
+  BookingFeedback.swift    Haptic and alert for a finished book/cancel
+  LaundryFormat.swift      Day and time strings, always Europe/Stockholm
   EventEditView.swift      Calendar event editor wrapper
   SettingsView.swift       Object number, laundry room, visible groups, active hours
   LaundryRoomPicker.swift  Street-address picker for the laundry room rules
@@ -183,6 +189,21 @@ the glyph.
   session that has already started stops counting — the machines may still be
   running, but the next slot can be booked. `LaundryStore.maxGroupsPerBooking` is a
   different limit: Aptus's own cap of two groups in one booking action.
+- **The week list's loading states are redacted rows, not spinners.**
+  `TimeslotPlaceholder` builds throwaway `Timeslot`s dated 2099 so `TimeslotRow` doesn't
+  dim them as already started, and the pagination `.task` hangs off each placeholder row
+  — `LaundryStore.loadMoreIfNeeded` is what collapses those into a single fetch. Drawing
+  the real row and redacting it is deliberate: a second set of shapes would drift, and
+  the placeholder has to be exactly as tall as what replaces it.
+- **A long-press action has no sheet to report into.** The row spins (`TimeslotRow`'s
+  `isBusy`), the haptic on `store.lastOutcome` is the confirmation, and a failure is
+  pushed into `store.lastError` so the list's one alert says it. The haptic sits on the
+  week list rather than in `BookingSheet` because the sheet is already dismissing by the
+  time a success lands — and a long press never opens one.
+- **Only one destructive action asks first.** Cancelling releases the session back to
+  everyone immediately and there is no undo, so the long-press cancel goes through a
+  confirmation. It is a `.confirmationDialog` on the `List`, not on `content`, which
+  already owns the error alert; likewise `CalendarEventFlow`'s alert.
 - **Hidden groups are stored as a comma-separated string of ids**
   (`activeGroups.hiddenIds`), because `@AppStorage` can't hold a `Set<Int>`. Go through
   `ActiveGroupsSetting.parse`/`encode` rather than rolling your own.

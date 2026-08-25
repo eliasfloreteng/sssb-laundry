@@ -306,11 +306,11 @@ struct WeekView: View {
             presenting: pendingCancel
         ) { pending in
             Button("Cancel booking", role: .destructive) {
-                act(on: pending.timeslot, book: [], cancel: [pending.groupId])
+                act(on: pending.timeslot, book: [], cancel: pending.groupIds)
             }
             Button("Keep booking", role: .cancel) {}
         } message: { pending in
-            Text("\(pending.label) is released the moment you cancel — anyone else can book it then.")
+            Text(pending.message)
         }
     }
 
@@ -324,6 +324,7 @@ struct WeekView: View {
         let actionable = ts.actionableGroups(hidden: hidden)
         let named = ts.groups.filter { !hidden.contains($0.groupId) }.count > 1
         let bookable = actionable.filter { $0.status == .bookable }
+        let cancellable = actionable.filter { $0.status == .own }
 
         // Aptus takes at most two groups in one action, so a pair is the whole
         // of what is on offer and there is never a third to leave out. Both
@@ -366,17 +367,41 @@ struct WeekView: View {
             Label("Copy time", systemImage: "doc.on.doc")
         }
 
-        ForEach(actionable.filter { $0.status == .own }, id: \.groupId) { group in
+        // The mirror of "Book both", and the same two reasons: Aptus releases
+        // at most two groups in one action, and a slot held on both groups is
+        // one session that the user almost always wants back whole.
+        if cancellable.count == LaundryStore.maxGroupsPerBooking {
             Button(role: .destructive) {
-                pendingCancel = PendingCancel(
-                    timeslot: ts,
-                    groupId: group.groupId,
-                    label: named ? "\(groupName(group.groupId)), \(ts.dayAndTime)" : ts.dayAndTime
-                )
+                askToCancel(cancellable.map(\.groupId), in: ts, named: named)
+            } label: {
+                Label("Cancel both", systemImage: "xmark.circle.fill")
+            }
+        }
+
+        ForEach(cancellable, id: \.groupId) { group in
+            Button(role: .destructive) {
+                askToCancel([group.groupId], in: ts, named: named)
             } label: {
                 Label(named ? "Cancel \(groupName(group.groupId))" : "Cancel booking", systemImage: "xmark.circle")
             }
         }
+    }
+
+    /// Names what is about to be released the way the menu named it, so the
+    /// confirmation is plainly about the row that was long-pressed — and in the
+    /// number the user chose, since releasing both groups is one of the two
+    /// things this menu offers.
+    private func askToCancel(_ groupIds: [Int], in ts: Timeslot, named: Bool) {
+        let ids = groupIds.sorted()
+        let names = ids.map(groupName).joined(separator: " and ")
+        let subject = named ? "\(names), \(ts.dayAndTime)" : ts.dayAndTime
+        let plural = ids.count > 1
+        pendingCancel = PendingCancel(
+            timeslot: ts,
+            groupIds: ids,
+            message: "\(subject) \(plural ? "are" : "is") released the moment you cancel"
+                + " — anyone else can book \(plural ? "them" : "it") then."
+        )
     }
 
     /// A long-press action has nowhere of its own to report into: the row itself
@@ -406,10 +431,10 @@ struct WeekView: View {
     private struct PendingCancel: Identifiable {
         let id = UUID()
         let timeslot: Timeslot
-        let groupId: Int
-        /// Named the way the menu named it, so the dialog is plainly about the
-        /// row that was long-pressed.
-        let label: String
+        let groupIds: [Int]
+        /// Written when the menu item was tapped, where what was asked for is
+        /// still known.
+        let message: String
     }
 
     @ViewBuilder

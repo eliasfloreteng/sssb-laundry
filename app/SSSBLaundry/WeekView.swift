@@ -31,17 +31,12 @@ struct WeekView: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
-                            // Inline picker so the two filters read as named
-                            // choices with a checkmark, rather than an eye
-                            // icon the reader has to decode.
-                            Picker("Show", selection: $showAllTimeslots) {
-                                Label("Only free times", systemImage: "checkmark.circle")
-                                    .tag(false)
-                                Label("Every time, also booked", systemImage: "clock")
-                                    .tag(true)
+                            // Named actions rather than a bare eye icon the
+                            // reader has to decode; off means free timeslots
+                            // within the active hours only.
+                            Toggle(isOn: $showAllTimeslots) {
+                                Label("Show all timeslots", systemImage: "eye")
                             }
-                            .pickerStyle(.inline)
-                            Divider()
                             Button { showingSettings = true } label: {
                                 Label("Settings", systemImage: "gearshape")
                             }

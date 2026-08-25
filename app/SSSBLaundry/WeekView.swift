@@ -323,8 +323,22 @@ struct WeekView: View {
         let hidden = hiddenGroups
         let actionable = ts.actionableGroups(hidden: hidden)
         let named = ts.groups.filter { !hidden.contains($0.groupId) }.count > 1
+        let bookable = actionable.filter { $0.status == .bookable }
 
-        ForEach(actionable.filter { $0.status == .bookable }, id: \.groupId) { group in
+        // Aptus takes at most two groups in one action, so a pair is the whole
+        // of what is on offer and there is never a third to leave out. Both
+        // groups of one timeslot still count as a single session against the
+        // room's quota, so this asks nothing more of the user's allowance than
+        // booking one of them would.
+        if bookable.count == LaundryStore.maxGroupsPerBooking {
+            Button {
+                act(on: ts, book: bookable.map(\.groupId).sorted(), cancel: [])
+            } label: {
+                Label("Book both", systemImage: "plus.circle.fill")
+            }
+        }
+
+        ForEach(bookable, id: \.groupId) { group in
             Button {
                 act(on: ts, book: [group.groupId], cancel: [])
             } label: {

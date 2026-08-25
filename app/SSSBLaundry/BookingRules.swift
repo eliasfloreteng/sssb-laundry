@@ -49,15 +49,16 @@ enum GroupRestriction: Equatable {
     /// Yours, but Aptus offers no way to release it.
     case notCancellable
 
-    /// The one line shown under the group's name in place of its status. Short
-    /// on purpose: it is the whole explanation the user gets, and the row it
-    /// sits under is already disabled.
+    /// The one word or two shown beside the group's name. Short on purpose: it
+    /// is the whole explanation the user gets, and the row it sits on is
+    /// already disabled and dimmed. A group with no restriction says nothing at
+    /// all, so there is no label for the ordinary case.
     func label(for status: GroupStatus) -> String {
         switch (status, self) {
-        case (.own, .started): return "Your booking · started"
-        case (.own, _): return "Your booking · can’t be cancelled"
-        case (_, .started): return "Too late to book"
-        case (_, .taken): return "Taken"
+        case (.own, .started): return "In progress"
+        case (.own, _): return "Can’t be cancelled"
+        case (_, .started): return "Too late"
+        case (_, .taken): return "Unavailable"
         case (_, _): return "Can’t be booked"
         }
     }

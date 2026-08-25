@@ -56,8 +56,7 @@ struct BookingSheet: View {
                     .padding(.bottom, 8)
 
                 List {
-                    let sections = locationSections
-                    ForEach(Array(sections.enumerated()), id: \.element.location) { index, section in
+                    ForEach(locationSections) { section in
                         Section {
                             ForEach(section.items, id: \.groupId) { item in
                                 row(for: item)
@@ -65,10 +64,6 @@ struct BookingSheet: View {
                         } header: {
                             if !section.location.isEmpty {
                                 Text(section.location)
-                            }
-                        } footer: {
-                            if index == sections.count - 1 {
-                                Text("Up to \(LaundryStore.maxGroupsPerBooking) groups per booking. Tag in within 15 minutes of the start or it is released.")
                             }
                         }
                     }
@@ -152,9 +147,9 @@ struct BookingSheet: View {
         let isSelected = selection.contains(item.groupId)
         // Everything upstream would refuse is already off the table here, so
         // the row explains itself rather than sending a request that can only
-        // come back as an error.
+        // come back as an error. A row with nothing in its way says nothing:
+        // the checkmark is the whole state.
         let restriction = item.restriction(in: current)
-        let disabled = restriction != nil
         return Button {
             toggle(item)
         } label: {
@@ -163,17 +158,16 @@ struct BookingSheet: View {
                     .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                     .font(.title3)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(name)
-                        .font(.body)
-                    Text(restriction?.label(for: item.status) ?? statusLabel(for: item.status))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(name)
+                    .font(.body)
 
                 Spacer()
 
-                if item.status == .own {
+                if let restriction {
+                    Text(restriction.label(for: item.status))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if item.status == .own {
                     Text("Booked")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.tint)
@@ -182,8 +176,8 @@ struct BookingSheet: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(disabled || submitting)
-        .opacity(disabled ? 0.5 : 1)
+        .disabled(restriction != nil || submitting)
+        .opacity(restriction != nil ? 0.5 : 1)
     }
 
     private var footer: some View {
@@ -244,7 +238,13 @@ struct BookingSheet: View {
         current.groups.filter { !hiddenGroups.contains($0.groupId) }
     }
 
-    private var locationSections: [(location: String, items: [TimeslotGroup])] {
+    private struct LocationSection: Identifiable {
+        let location: String
+        let items: [TimeslotGroup]
+        var id: String { location }
+    }
+
+    private var locationSections: [LocationSection] {
         var order: [String] = []
         var buckets: [String: [TimeslotGroup]] = [:]
         for item in visibleGroups {
@@ -255,7 +255,7 @@ struct BookingSheet: View {
             }
             buckets[location]?.append(item)
         }
-        return order.map { ($0, buckets[$0] ?? []) }
+        return order.map { LocationSection(location: $0, items: buckets[$0] ?? []) }
     }
 
     private var ownGroupIds: Set<Int> {
@@ -326,26 +326,20 @@ struct BookingSheet: View {
         return projectedTotal > max
     }
 
-    /// One quiet line under the button, or nothing at all when there is neither
-    /// a published limit nor a booking to report. The account limit only
-    /// informs — it does not disable the button, because it is a local count of
-    /// what the portal last reported: a booking that has already been
-    /// auto-cancelled upstream must never be what stops the user booking again.
+    /// One quiet line under the button, and only when something stands in the
+    /// way — a booking that is going to work says nothing at all. The account
+    /// limit only informs: it does not disable the button, because it is a
+    /// local count of what the portal last reported, and a booking that has
+    /// already been auto-cancelled upstream must never be what stops the user
+    /// booking again.
     private var limitHint: String? {
         if overSlotLimit {
             return "At most \(LaundryStore.maxGroupsPerBooking) groups per booking."
         }
-        let held = store.futureSessions.count
-        guard let max = maxFutureSessions else {
-            guard held > 0 else { return nil }
-            return held == 1
-                ? "1 session booked."
-                : "\(held) sessions booked."
-        }
-        if overAccountLimit {
+        if overAccountLimit, let max = maxFutureSessions {
             return "That would be \(projectedTotal) sessions of \(max) — SSSB may turn it down."
         }
-        return "\(held) of \(max) sessions booked."
+        return nil
     }
 
     private var actionTitle: String {
@@ -447,14 +441,6 @@ struct BookingSheet: View {
             message = "\(succeeded.count) of \(outcome.results.count) groups went through:"
         }
         return ActionFeedback(title: title, message: message, details: details)
-    }
-
-    private func statusLabel(for status: GroupStatus) -> String {
-        switch status {
-        case .bookable: return "Available"
-        case .own: return "Your booking"
-        case .unavailable: return "Unavailable"
-        }
     }
 
     private var weekdayLabel: String {

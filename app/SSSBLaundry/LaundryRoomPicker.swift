@@ -20,7 +20,7 @@ struct LaundryRoomPicker: View {
                     selectedId = ""
                     dismiss()
                 } label: {
-                    row(title: "Not set", subtitle: "No booking rules shown", isSelected: selectedId.isEmpty)
+                    row(title: "Not set", subtitle: "No rules shown", isSelected: selectedId.isEmpty)
                 }
                 .buttonStyle(.plain)
             }
@@ -42,7 +42,7 @@ struct LaundryRoomPicker: View {
                     .buttonStyle(.plain)
                 }
             } footer: {
-                Text("Addresses and rules as published by SSSB on sssb.se.")
+                Text("From sssb.se.")
             }
         }
         .searchable(text: $search, prompt: "Street address")

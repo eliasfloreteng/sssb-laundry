@@ -12,7 +12,7 @@ enum CalendarServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .accessDenied:
-            return "Calendar access was denied. Enable it for SSSB Laundry in Settings to add bookings."
+            return "Calendar access is off. Turn it on in iOS Settings."
         }
     }
 }

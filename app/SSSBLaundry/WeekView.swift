@@ -116,7 +116,7 @@ struct WeekView: View {
         case .off, .atStart: lead = "when your booking starts"
         default: lead = "\(notificationAlert.leadLabel) before your booking starts"
         }
-        return "SSSB Laundry can notify you \(lead). A session is released 15 minutes after its start time unless you activate it with your Aptus tag."
+        return "Get a reminder \(lead). Bookings are released 15 minutes after the start unless you tag in."
     }
 
     /// Asked once, right after the first booking — that is when the reminder is
@@ -223,7 +223,7 @@ struct WeekView: View {
         let held = store.futureSessions
         if let max = LaundryRooms.room(id: laundryRoomId)?.maxFutureBookings, held.count >= max {
             let list = held.map(\.whenLabel).formatted(.list(type: .and))
-            Text("\(held.count) of \(max) future sessions booked — \(list).")
+            Text("\(held.count) of \(max) sessions booked — \(list).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

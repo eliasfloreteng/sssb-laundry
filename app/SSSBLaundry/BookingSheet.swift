@@ -68,7 +68,7 @@ struct BookingSheet: View {
                             }
                         } footer: {
                             if index == sections.count - 1 {
-                                Text("Pick up to \(LaundryStore.maxGroupsPerBooking) groups — together they are one laundry session. Activate it with your Aptus tag within 15 minutes of the start, or it is released.")
+                                Text("Up to \(LaundryStore.maxGroupsPerBooking) groups per booking. Tag in within 15 minutes of the start or it is released.")
                             }
                         }
                     }
@@ -322,19 +322,19 @@ struct BookingSheet: View {
     /// auto-cancelled upstream must never be what stops the user booking again.
     private var limitHint: String? {
         if overSlotLimit {
-            return "Aptus takes at most \(LaundryStore.maxGroupsPerBooking) groups in one booking."
+            return "At most \(LaundryStore.maxGroupsPerBooking) groups per booking."
         }
         let held = store.futureSessions.count
         guard let max = maxFutureSessions else {
             guard held > 0 else { return nil }
             return held == 1
-                ? "1 future session booked."
-                : "\(held) future sessions booked."
+                ? "1 session booked."
+                : "\(held) sessions booked."
         }
         if overAccountLimit {
-            return "That would be \(projectedTotal) future sessions, and your laundry room allows \(max) — SSSB may turn it down."
+            return "That would be \(projectedTotal) sessions of \(max) — SSSB may turn it down."
         }
-        return "\(held) of \(max) future sessions booked."
+        return "\(held) of \(max) sessions booked."
     }
 
     private var actionTitle: String {

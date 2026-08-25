@@ -31,7 +31,7 @@ enum BookingAlert: Int, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .off: return "None"
-        case .atStart: return "At start of booking"
+        case .atStart: return "At start"
         case .fiveMinutes: return "5 minutes before"
         case .tenMinutes: return "10 minutes before"
         case .fifteenMinutes: return "15 minutes before"

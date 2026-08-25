@@ -68,7 +68,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Object number")
                 } footer: {
-                    Text("The object number from your rental agreement — Aptus uses it as both username and password. Tap the lock to change it, or clear the field to sign out.")
+                    Text("From your rental agreement. Tap the lock to change it, or clear it to sign out.")
                 }
 
                 if allGroups.isEmpty {
@@ -78,7 +78,7 @@ struct SettingsView: View {
                     } header: {
                         Text("Visible groups")
                     } footer: {
-                        Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object number covers several buildings.")
+                        Text("Hidden groups are left out of the week list.")
                     }
                 } else {
                     let sections = locationSections
@@ -96,7 +96,7 @@ struct SettingsView: View {
                             Text(section.location.isEmpty ? "Visible groups" : section.location)
                         } footer: {
                             if index == sections.count - 1 {
-                                Text("Only selected groups appear in the timeslot list and booking sheet. Useful when an object number covers several buildings. Names are Aptus's own.")
+                                Text("Hidden groups are left out of the week list. Useful when your address covers several buildings.")
                             }
                         }
                     }
@@ -119,7 +119,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Active hours")
                 } footer: {
-                    Text("Only timeslots starting within this range are shown. The range can span midnight.")
+                    Text("Only timeslots starting in this range are shown. It can span midnight.")
                 }
 
                 Section {
@@ -165,7 +165,7 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { draft = objectId }
                 Button("Sign out", role: .destructive) { signOut() }
             } message: {
-                Text("Clearing the object number signs you out. Bookings made on it stay, but this phone stops seeing them and reminders end.")
+                Text("Your bookings stay, but this phone stops seeing them and reminders end.")
             }
             .task {
                 draft = objectId
@@ -203,7 +203,7 @@ struct SettingsView: View {
                 LabeledContent("Laundry room", value: room.room)
                 LabeledContent("Max future bookings", value: room.maxFutureBookingsLabel)
                 LabeledContent("Access after a session", value: room.timeAfterBookingLabel)
-                LabeledContent("Max booking per week/month", value: room.quotaLabel)
+                LabeledContent(room.quotaTitle, value: room.quotaLabel)
             }
         } header: {
             Text("Your laundry room")
@@ -220,9 +220,9 @@ struct SettingsView: View {
 
     private var notificationsFooter: String {
         if authorizationStatus == .denied {
-            return "Notifications are turned off for SSSB Laundry in iOS Settings. Turn them back on there to get booking reminders."
+            return "Notifications are off in iOS Settings. Turn them back on there."
         }
-        return "Reminders are sent by the server, so they arrive even if someone else books on your object number and the app is closed. A session is released 15 minutes after it starts unless you activate it with your Aptus tag."
+        return "Reminders arrive with the app closed, and for bookings someone else in your apartment made."
     }
 
     /// Turning the toggle on is what triggers the system permission prompt.

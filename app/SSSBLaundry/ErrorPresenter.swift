@@ -39,21 +39,21 @@ enum ErrorPresenter {
         case "AUTH_FAILED":
             return "Aptus didn’t accept your object number. Check it and sign in again."
         case "MISSING_OBJECT_ID":
-            return "Your object number is missing, so the app can’t identify your apartment. Sign in again."
+            return "Your object number is missing. Sign in again."
         case "NO_INTERNET":
             return "You appear to be offline. Reconnect and try again."
         case "TIMEOUT":
-            return "Laundry booking took too long to answer. Try again in a moment."
+            return "Aptus took too long to answer. Try again in a moment."
         case "NETWORK_ERROR":
-            return "The app couldn’t reach laundry booking. Try again in a moment."
+            return "Couldn’t connect. Try again in a moment."
         case "INVALID_TIMESLOT_ID", "INVALID_DATE", "MISSING_DATE":
-            return "This timeslot changed since the app loaded it. Pull down to refresh, then try again."
+            return "This timeslot has changed. Pull down to refresh, then try again."
         case "INVALID_GROUP_IDS":
             return "One booking can cover at most \(LaundryStore.maxGroupsPerBooking) groups."
         case "SERVICE_ERROR":
             return "Aptus is having trouble right now. Try again in a few minutes."
         case "BAD_RESPONSE":
-            return "Aptus replied with something the app didn’t understand. Try again in a moment."
+            return "Aptus replied with something unexpected. Try again in a moment."
         default:
             return error.message.isEmpty
                 ? "Aptus couldn’t complete the request."
@@ -104,8 +104,8 @@ enum ErrorPresenter {
     /// With no room set the app has no business claiming what the limit is.
     private static var sessionLimitReason: String {
         guard let max = LaundryRooms.maxFutureBookings else {
-            return "you already hold as many future sessions as your laundry room allows"
+            return "you already hold as many sessions as your laundry room allows"
         }
-        return "you already hold the maximum of \(max) future sessions"
+        return "you already hold the maximum of \(max) sessions"
     }
 }

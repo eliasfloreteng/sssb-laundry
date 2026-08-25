@@ -21,7 +21,7 @@ struct ObjectIdSetupView: View {
                 VStack(spacing: 8) {
                     Text("Sign in")
                         .font(.largeTitle).bold()
-                    Text("Enter your object number to book laundry sessions. It is on your rental agreement, and it is what Aptus asks for.")
+                    Text("Enter the object number from your rental agreement.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

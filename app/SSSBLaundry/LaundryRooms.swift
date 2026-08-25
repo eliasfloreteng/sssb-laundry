@@ -49,9 +49,16 @@ struct LaundryRoom: Identifiable, Hashable {
         maxFutureBookings.map(String.init) ?? "No maximum"
     }
 
+    /// Title and value split so the row reads "Max per month — 4" rather than
+    /// repeating the period on both sides.
+    var quotaTitle: String {
+        guard let quota else { return "Max per week/month" }
+        return "Max per \(quota.period.rawValue)"
+    }
+
     var quotaLabel: String {
         guard let quota else { return "No maximum" }
-        return "\(quota.count) per \(quota.period.rawValue)"
+        return String(quota.count)
     }
 
     /// Reads as the answer to "how long can I stay after?", which is why zero

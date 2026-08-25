@@ -54,7 +54,7 @@ SSSBLaundry/
   CalendarService.swift    EventKit integration
   LiveActivityService.swift App side of the booking Live Activity
   PushService.swift        APNs registration and preference sync
-  AppDelegate.swift        APNs token callback and foreground banners
+  AppDelegate.swift        APNs token callback, foreground banners, silent pushes
   NotificationSettings.swift  Reminder offsets and their @AppStorage keys
   ErrorPresenter.swift     Shared error alert presentation
   ObjectIdStore.swift      UserDefaults wrapper for the object id
@@ -127,6 +127,19 @@ the glyph.
   `authFailed` — otherwise the server keeps pushing a stranger's bookings to this phone.
   Reminders are entirely server-driven; a local `UNTimeIntervalNotificationTrigger`
   implementation was reverted on purpose (`1e5429a`), don't reintroduce it.
+- **A silent push needs `UIBackgroundModes`, and there is no build setting for it.**
+  `SSSBLaundry/Info.plist` exists only to carry `remote-notification`; every other key is
+  still generated from `INFOPLIST_KEY_*` and merged on top of it. Being inside a
+  file-system-synchronized group, it needs the same
+  `PBXFileSystemSynchronizedBuildFileExceptionSet` the widget's does, or the build fails
+  with "Multiple commands produce .../Info.plist". Without the background mode the
+  cancellation push is simply dropped whenever the app is not in the foreground, and a
+  reminder for a booking that no longer exists stays on the Lock Screen.
+- **Notifications are removed by matching `startAt`, not the thread id.** The thread id
+  carries the group ids and moves when the slot's groups change;
+  `PushService.removeDelivered(forBookingStartingAt:)` compares the parsed `startAt` from
+  each delivered notification's `userInfo`. The cancelling phone calls it directly rather
+  than waiting for its own copy of the server's push.
 - **The notification permission prompt sleeps 700 ms and hangs off the
   `NavigationStack`**, not `content`. An alert raised while the booking sheet is
   dismissing is dropped without a trace, and SwiftUI silently drops a second alert on a

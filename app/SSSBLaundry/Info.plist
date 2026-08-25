@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Everything else is generated from INFOPLIST_KEY_* build settings; this
+	     file exists because there is no build setting for UIBackgroundModes.
+	     Without it the silent push that retracts a cancelled booking's
+	     notifications is dropped whenever the app is not in the foreground. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+</dict>
+</plist>

@@ -19,7 +19,8 @@ at `https://sssb-laundry.eliasf.se`.
 - Book or cancel 1–2 laundry groups in a single action, with per-group results
 - The booking rules SSSB publishes for your laundry room, picked by street address
 - Push reminders before a booking — sent by the server, so a booking someone else in the
-  apartment made still reaches your phone with the app closed
+  apartment made still reaches your phone with the app closed, and taken back down again
+  if the booking is cancelled
 - A Live Activity in the hour before the slot, counting down to the start and then
   through the 15 minutes before the session is released again
 - Optional calendar event with a reminder at the timeslot start
@@ -73,6 +74,13 @@ compile error.
   back as an error. `app/SSSBLaundry/BookingRules.swift` holds that line on the client
   side; the per-room session quota sits deliberately on the other side of it, as a
   warning only.
+- **A cancelled booking retracts its notifications.** Nothing on the server can reach
+  into Notification Center, so a slot that stops existing is pushed as a silent
+  `kind: "cancelled"` payload and the app clears every notification it has already been
+  given whose `startAt` matches. That match is the contract: `startAt` stays in every
+  payload, the app carries `UIBackgroundModes = remote-notification` for the silent push
+  to arrive at all, and both sides count only a slot with no groups left as cancelled —
+  dropping one group of two leaves a booking the notification still describes.
 - **`timeslotId` is opaque and content-derived** from `{startAt, endAt}` only. It carries
   no user or group identity, so the server regenerates it at send time and the app must
   never construct, parse or persist it — always use the id from the latest

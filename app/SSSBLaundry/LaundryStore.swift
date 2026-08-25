@@ -375,6 +375,14 @@ final class LaundryStore {
         var overall: OverallStatus?
         var requestError: APIError?
 
+        // Read before the action, because a cancelled slot is gone from the week
+        // that comes back after it. The server retracts its own notifications on
+        // every device, but the phone doing the cancelling should not have to
+        // wait for that round trip to see its reminder go.
+        let cancelledStart = toCancel.isEmpty
+            ? nil
+            : timeslot(id: timeslotId).flatMap { Self.parseISO8601($0.startAt) }
+
         // Cancels run first: with only two bookings allowed at a time, swapping
         // machines in one submit can only succeed if the old one is released
         // before the new one is asked for.
@@ -415,6 +423,11 @@ final class LaundryStore {
             }
         } else {
             await refreshWeekContaining(timeslotId: timeslotId)
+            // Only once nothing is held there any more: cancelling one group of
+            // a two-group slot leaves a booking the reminder still describes.
+            if let cancelledStart, !heldBookings.contains(where: { $0.timeslotId == timeslotId }) {
+                await PushService.removeDelivered(forBookingStartingAt: cancelledStart)
+            }
         }
         return outcome
     }

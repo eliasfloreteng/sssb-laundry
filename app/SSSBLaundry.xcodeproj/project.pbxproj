@@ -56,6 +56,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		64AA00102FA2000000D7078A /* Exceptions for "SSSBLaundry" folder in "SSSBLaundry" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 64F3FB7C2FA1143800D7078A /* SSSBLaundry */;
+		};
 		64AA000F2FA2000000D7078A /* Exceptions for "SSSBLaundryWidgets" folder in "SSSBLaundryWidgets" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -68,6 +75,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		64F3FB7F2FA1143800D7078A /* SSSBLaundry */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				64AA00102FA2000000D7078A /* Exceptions for "SSSBLaundry" folder in "SSSBLaundry" target */,
+			);
 			path = SSSBLaundry;
 			sourceTree = "<group>";
 		};
@@ -509,6 +519,7 @@
 				DEVELOPMENT_TEAM = XQ9HKBVB36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SSSBLaundry/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Add your laundry bookings to your calendar so you don't forget.";
@@ -547,6 +558,7 @@
 				DEVELOPMENT_TEAM = XQ9HKBVB36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SSSBLaundry/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Add your laundry bookings to your calendar so you don't forget.";

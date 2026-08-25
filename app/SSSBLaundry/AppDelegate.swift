@@ -30,6 +30,21 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         PushService.syncToServer()
     }
 
+    /// Silent pushes only: the server sends one when a booking is cancelled, so
+    /// the reminders it already delivered for that slot can be taken down.
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any]
+    ) async -> UIBackgroundFetchResult {
+        guard userInfo["kind"] as? String == "cancelled",
+              let startAt = userInfo["startAt"] as? String,
+              let start = LaundryStore.parseISO8601(startAt)
+        else { return .noData }
+
+        await PushService.removeDelivered(forBookingStartingAt: start)
+        return .newData
+    }
+
     func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error

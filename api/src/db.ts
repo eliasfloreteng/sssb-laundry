@@ -3,7 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 export type PushEnvironment = "sandbox" | "production";
-export type NotificationKind = "reminder" | "new_booking";
+export type NotificationKind = "reminder" | "new_booking" | "cancelled";
 
 export interface DeviceRow {
   token: string;
@@ -242,10 +242,12 @@ export class Store {
       .run(objectId, startAt, groupId);
   }
 
-  /** Drops bookings whose timeslot has already ended, with their unsent pushes. */
+  /** Drops bookings whose timeslot has already ended, with their pushes. */
   pruneExpiredBookings(beforeIso: string): void {
     this.db.query("DELETE FROM bookings WHERE end_at < ?").run(beforeIso);
-    this.db.query("DELETE FROM outbox WHERE sent_at IS NULL AND end_at < ?").run(beforeIso);
+    // Sent rows go with them: past the end of the slot there is no delivered
+    // notification left worth retracting, and nothing else reads them.
+    this.db.query("DELETE FROM outbox WHERE end_at < ?").run(beforeIso);
   }
 
   // --- outbox ----------------------------------------------------------
@@ -316,6 +318,33 @@ export class Store {
   deletePendingForBooking(objectId: string, startAt: string): void {
     this.db
       .query("DELETE FROM outbox WHERE sent_at IS NULL AND object_id = ? AND start_at = ?")
+      .run(objectId, startAt);
+  }
+
+  /**
+   * Pushes for one booking that already reached APNs, one row per device with
+   * an enabled device still attached — the notifications a cancellation has to
+   * take back. Retractions themselves are excluded, so retracting twice is a
+   * no-op rather than a chain.
+   */
+  sentForBooking(objectId: string, startAt: string): OutboxRow[] {
+    const rows = this.db
+      .query(
+        `SELECT o.*, d.environment AS environment
+           FROM outbox o
+           JOIN devices d ON d.token = o.token
+          WHERE o.sent_at IS NOT NULL AND o.kind <> 'cancelled'
+            AND o.object_id = ? AND o.start_at = ? AND d.enabled = 1
+          ORDER BY o.fire_at`
+      )
+      .all(objectId, startAt) as Record<string, unknown>[];
+    return rows.map(toOutbox);
+  }
+
+  /** Forgets what was delivered for a booking, once its retraction is queued. */
+  deleteSentForBooking(objectId: string, startAt: string): void {
+    this.db
+      .query("DELETE FROM outbox WHERE sent_at IS NOT NULL AND object_id = ? AND start_at = ?")
       .run(objectId, startAt);
   }
 

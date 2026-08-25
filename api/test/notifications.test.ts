@@ -135,6 +135,19 @@ describe("payloads", () => {
     expect(payload.aps.alert.body).not.toContain("15 minutes");
   });
 
+  it("makes a retraction silent, so it only takes a notification away", () => {
+    const payload = buildPayload(
+      { kind: "cancelled", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: null },
+      labels,
+      [162]
+    ) as { aps: Record<string, unknown>; kind: string; startAt: string };
+
+    expect(payload.aps).toEqual({ "content-available": 1 });
+    expect(payload.kind).toBe("cancelled");
+    // The app matches its delivered notifications on this.
+    expect(payload.startAt).toBe("2026-05-04T07:00:00.000+02:00");
+  });
+
   it("regenerates the timeslot id rather than persisting one", () => {
     const payload = buildPayload(
       { kind: "new_booking", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: null },
@@ -326,5 +339,107 @@ describe("sending", () => {
 
     expect(sent).toHaveLength(1);
     expect(store.dueNotifications()).toHaveLength(0);
+  });
+});
+
+describe("retractions", () => {
+  /** Puts a booking in the store with one reminder already delivered for it. */
+  async function delivered(store: Store, slot: { startAt: string; endAt: string }, sent: unknown[]) {
+    store.upsertDevice({
+      token: TOKEN_A, objectId: "obj", environment: "sandbox", enabled: true,
+      alertMinutes: 10, secondAlertMinutes: null
+    });
+    const push = service({
+      store,
+      responses: [
+        week({ fromDate: "2026-05-04", toDate: "2026-05-10", ...slot, ownGroups: [162] }),
+        week({ fromDate: "2026-05-04", toDate: "2026-05-10" })
+      ],
+      sent
+    });
+    await push.pollObject("obj");
+    store.enqueue({
+      token: TOKEN_A, kind: "reminder", objectId: "obj",
+      startAt: slot.startAt, endAt: slot.endAt, groupIds: [162],
+      labels: { machines: ["Grupp 1"], location: "Domus", dayLabel: "Mon 4 May", startTime: "07:00", endTime: "10:00" },
+      offsetMinutes: 5, fireAt: 1
+    });
+    await push.sendDue();
+    sent.length = 0;
+    return push;
+  }
+
+  /** A retraction sends itself off without being waited for; let it land. */
+  const settle = () => Bun.sleep(1);
+
+  it("asks the phone to take down a reminder it already received", async () => {
+    const store = memoryStore();
+    const slot = futureSlot();
+    const sent: unknown[] = [];
+    const push = await delivered(store, slot, sent);
+
+    push.onCancelled("obj", slot.startAt, [162]);
+    await settle();
+
+    expect(sent).toHaveLength(1);
+    const request = sent[0] as { token: string; pushType: string; priority: number; payload: { kind: string; startAt: string } };
+    expect(request.token).toBe(TOKEN_A);
+    expect(request.pushType).toBe("background");
+    expect(request.priority).toBe(5);
+    expect(request.payload.kind).toBe("cancelled");
+    expect(request.payload.startAt).toBe(slot.startAt);
+  });
+
+  it("retracts a booking that disappeared upstream", async () => {
+    const store = memoryStore();
+    const slot = futureSlot();
+    const sent: unknown[] = [];
+    await delivered(store, slot, sent);
+
+    const gone = service({
+      store,
+      responses: [week({ fromDate: "2026-05-04", toDate: "2026-05-10" })],
+      sent
+    });
+    await gone.pollObject("obj");
+    await settle();
+
+    expect(sent).toHaveLength(1);
+    expect((sent[0] as { payload: { kind: string } }).payload.kind).toBe("cancelled");
+  });
+
+  it("retracts once, however often the cancellation is seen", async () => {
+    const store = memoryStore();
+    const slot = futureSlot();
+    const sent: unknown[] = [];
+    const push = await delivered(store, slot, sent);
+
+    push.onCancelled("obj", slot.startAt, [162]);
+    await settle();
+    push.onCancelled("obj", slot.startAt, [162]);
+    await settle();
+
+    expect(sent).toHaveLength(1);
+    expect(store.dueNotifications(2 ** 31)).toHaveLength(0);
+  });
+
+  it("leaves a slot alone when only one of its groups is cancelled", async () => {
+    const store = memoryStore();
+    const slot = futureSlot();
+    const sent: unknown[] = [];
+    store.upsertDevice({
+      token: TOKEN_A, objectId: "obj", environment: "sandbox", enabled: true,
+      alertMinutes: 10, secondAlertMinutes: null
+    });
+    const push = service({
+      store,
+      responses: [week({ fromDate: "2026-05-04", toDate: "2026-05-10", ...slot, ownGroups: [162, 163] })],
+      sent
+    });
+    await push.pollObject("obj");
+
+    push.onCancelled("obj", slot.startAt, [163]);
+
+    expect(store.dueNotifications(2 ** 31).some((d) => d.kind === "cancelled")).toBe(false);
   });
 });

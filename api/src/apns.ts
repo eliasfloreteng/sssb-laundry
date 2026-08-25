@@ -39,6 +39,8 @@ export interface ApnsRequest {
   token: string;
   environment: PushEnvironment;
   payload: unknown;
+  /** "background" for a silent wake-up, which APNs only accepts at priority 5. */
+  pushType?: "alert" | "background";
   collapseId?: string;
   /** Epoch seconds after which APNs should stop trying. */
   expiration?: number;
@@ -101,7 +103,7 @@ export class ApnsClient {
       [constants.HTTP2_HEADER_SCHEME]: "https",
       authorization: `bearer ${this.providerToken()}`,
       "apns-topic": this.config.topic,
-      "apns-push-type": "alert",
+      "apns-push-type": request.pushType ?? "alert",
       "apns-priority": request.priority ?? 10,
       "content-length": Buffer.byteLength(body)
     };

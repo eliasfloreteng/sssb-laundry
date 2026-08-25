@@ -96,6 +96,13 @@ timer-free so tests can call it directly.
   id carries no user or group identity and is regenerated at send time.
 - The booking device is skipped when announcing: `POST /book` stores the optional
   `X-Device-Token` header as `bookings.origin_token`.
+- **A cancellation takes back what was already delivered.** `retract()` queues a silent
+  `cancelled` push for each device the booking's notifications actually reached, then
+  forgets they were sent — which is what makes retracting the same slot twice a no-op.
+  APNs carries it as push type `background` at priority 5; an alert push can add a
+  notification but never remove one.
+- Sent outbox rows are kept until the timeslot ends, because they are the record of what
+  there is to retract. `pruneExpiredBookings` drops them with the booking.
 - Object ids and device tokens are never logged — hash with `hashObjectId()`.
 - `410` / `BadDeviceToken` / `Unregistered` deletes the device row. Never retry those.
 

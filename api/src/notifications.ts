@@ -1,6 +1,6 @@
 import { DateTime } from "luxon";
 import { AptusClient, hashObjectId, type LoggerLike } from "./aptus-client.js";
-import { ApnsClient, loadApnsConfig } from "./apns.js";
+import { ApnsClient, loadApnsConfig, type ApnsRequest } from "./apns.js";
 import {
   Store,
   decodeGroupIds,
@@ -45,6 +45,7 @@ export class PushService {
   private readonly pollWeeks: number;
   private timers: ReturnType<typeof setInterval>[] = [];
   private polling = false;
+  private sending = false;
 
   constructor(options: PushServiceOptions) {
     this.store = options.store;
@@ -153,7 +154,7 @@ export class PushService {
       this.store.deleteBooking(objectId, startAt, groupId);
     }
     if (this.store.knownBookings(objectId).every((b) => b.startAt !== startAt)) {
-      this.store.deletePendingForBooking(objectId, startAt);
+      this.retract(objectId, startAt);
     }
     void this.pollObject(objectId);
   }
@@ -245,11 +246,19 @@ export class PushService {
       this.announce(objectId, slot, groupIds, labels, devices, isFirstPoll);
     }
 
+    const dropped = new Set<string>();
     for (const booking of known) {
       const key = `${booking.startAt}#${booking.groupId}`;
       if (seen.has(key)) continue;
       this.store.deleteBooking(objectId, booking.startAt, booking.groupId);
-      this.store.deletePendingForBooking(objectId, booking.startAt);
+      dropped.add(booking.startAt);
+    }
+    for (const startAt of dropped) {
+      // One group of a two-group slot going away leaves the booking standing,
+      // so only a slot with nothing left behind is a cancellation.
+      const gone = this.store.knownBookings(objectId).every((b) => b.startAt !== startAt);
+      if (gone) this.retract(objectId, startAt);
+      else this.store.deletePendingForBooking(objectId, startAt);
     }
   }
 
@@ -286,6 +295,37 @@ export class PushService {
     for (const row of rows) {
       this.store.markAnnounced(objectId, row.startAt, row.groupId);
     }
+  }
+
+  /**
+   * A booking is gone: drop its queued pushes, and ask every device that already
+   * got one to take the delivered notification back down. Forgetting what was
+   * sent is what makes retracting twice a no-op instead of a second push.
+   */
+  private retract(objectId: string, startAt: string): void {
+    const delivered = this.store.sentForBooking(objectId, startAt);
+    this.store.deletePendingForBooking(objectId, startAt);
+    this.store.deleteSentForBooking(objectId, startAt);
+
+    // One retraction per device, however many notifications it received: the
+    // app clears every notification it holds for the booking.
+    const perDevice = new Map(delivered.map((row) => [row.token, row]));
+    for (const row of perDevice.values()) {
+      this.store.enqueue({
+        token: row.token,
+        kind: "cancelled",
+        objectId,
+        startAt,
+        endAt: row.endAt,
+        groupIds: decodeGroupIds(row.groupIds),
+        labels: JSON.parse(row.labels) as NotificationLabels,
+        offsetMinutes: null,
+        fireAt: nowSeconds()
+      });
+    }
+    // A stale reminder on the lock screen is worth more than a poll interval of
+    // patience, so don't wait for the sender's next tick.
+    if (perDevice.size > 0) void this.sendDue();
   }
 
   private scheduleReminders(
@@ -349,24 +389,28 @@ export class PushService {
   // --- sending ---------------------------------------------------------
 
   async sendDue(): Promise<void> {
-    const due = this.store.dueNotifications();
-    for (const row of due) {
-      await this.deliver(row);
+    // Retractions and the test endpoint both kick this off between ticks, and
+    // two runs over the same due rows would deliver each of them twice.
+    if (this.sending) return;
+    this.sending = true;
+    try {
+      for (const row of this.store.dueNotifications()) {
+        await this.deliver(row);
+      }
+    } finally {
+      this.sending = false;
     }
   }
 
   private async deliver(row: OutboxRow): Promise<void> {
     const labels = JSON.parse(row.labels) as NotificationLabels;
     const groupIds = decodeGroupIds(row.groupIds);
-    const startEpoch = toEpoch(row.startAt) ?? nowSeconds();
 
     const outcome = await this.apns.send({
       token: row.token,
       environment: row.environment,
       payload: buildPayload(row, labels, groupIds),
-      collapseId: threadId(row.startAt, row.groupIds),
-      // Never let a reminder land after the booking has already been released.
-      expiration: startEpoch + GRACE_SECONDS
+      ...deliveryOptions(row)
     });
 
     if (outcome.kind === "sent") {
@@ -397,6 +441,17 @@ export function buildPayload(
   labels: NotificationLabels,
   groupIds: number[]
 ): unknown {
+  if (row.kind === "cancelled") {
+    return {
+      // Silent: this push exists to take a notification down, not to add one.
+      aps: { "content-available": 1 },
+      kind: row.kind,
+      timeslotId: encodeTimeslotId(row.startAt, row.endAt),
+      groupIds,
+      startAt: row.startAt
+    };
+  }
+
   const machines = labels.machines.length > 0 ? labels.machines.join(", ") : "";
   const when = `${labels.dayLabel} ${labels.startTime}–${labels.endTime}`;
   const body = machines ? `${when} · ${machines}` : when;
@@ -421,6 +476,25 @@ export function buildPayload(
     timeslotId: encodeTimeslotId(row.startAt, row.endAt),
     groupIds,
     startAt: row.startAt
+  };
+}
+
+/** How APNs should carry each kind: a collapsing alert, or a silent wake-up. */
+function deliveryOptions(
+  row: Pick<OutboxRow, "kind" | "startAt" | "endAt" | "groupIds">
+): Pick<ApnsRequest, "pushType" | "priority" | "collapseId" | "expiration"> {
+  const startEpoch = toEpoch(row.startAt) ?? nowSeconds();
+  if (row.kind === "cancelled") {
+    // A background push is the only way to reach into an already delivered
+    // notification, and APNs rejects one sent at priority 10. Worth attempting
+    // until the slot is over — that is how long the stale reminder would sit
+    // on the lock screen.
+    return { pushType: "background", priority: 5, expiration: toEpoch(row.endAt) ?? startEpoch };
+  }
+  return {
+    collapseId: threadId(row.startAt, row.groupIds),
+    // Never let a reminder land after the booking has already been released.
+    expiration: startEpoch + GRACE_SECONDS
   };
 }
 

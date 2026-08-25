@@ -68,6 +68,25 @@ enum PushService {
         }
     }
 
+    /// Clears everything already delivered for a booking that no longer exists.
+    ///
+    /// A notification outlives the booking it is about: nothing on the server can
+    /// reach into Notification Center, so a cancelled slot arrives here as a
+    /// silent push and this is what takes the reminder down. Matched on the
+    /// booking's start, which every payload carries, rather than on the thread id
+    /// — that one moves when the groups in the slot change.
+    static func removeDelivered(forBookingStartingAt start: Date) async {
+        let center = UNUserNotificationCenter.current()
+        let stale = await center.deliveredNotifications().filter { notification in
+            guard let raw = notification.request.content.userInfo["startAt"] as? String,
+                  let delivered = LaundryStore.parseISO8601(raw)
+            else { return false }
+            return abs(delivered.timeIntervalSince(start)) < 1
+        }
+        guard !stale.isEmpty else { return }
+        center.removeDeliveredNotifications(withIdentifiers: stale.map(\.request.identifier))
+    }
+
     /// Stops the server pushing this object id's bookings to this phone. Used on
     /// sign-out and when reminders are turned off.
     static func deregister(objectId: String? = nil) {

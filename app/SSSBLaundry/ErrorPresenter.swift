@@ -80,12 +80,22 @@ enum ErrorPresenter {
 
     /// Why one group didn't end up the way the user asked.
     static func explanation(for result: ActionResult, action: BookingAction) -> String {
+        // Aptus offered no button for it, so the request never left the server.
+        // The app blocks these itself; reaching here means the week list was
+        // already stale when the user tapped.
+        if result.status == "not_bookable" {
+            return "Aptus no longer offers this time — refresh and try again"
+        }
         if let code = result.error?.code {
             switch code {
             case "SLOT_TAKEN", "ALREADY_BOOKED_BY_OTHER":
                 return "someone else took it first"
             case "BOOKING_LIMIT", "TOO_MANY_BOOKINGS":
                 return sessionLimitReason
+            case "NOT_CANCELLABLE":
+                return "Aptus won’t release a session that has already started"
+            case "BOOK_SLOT_NOT_FOUND", "CANCEL_SLOT_NOT_FOUND":
+                return "Aptus no longer lists this timeslot — refresh and try again"
             case "AUTH_FAILED":
                 return "Aptus didn’t accept your object number"
             default:

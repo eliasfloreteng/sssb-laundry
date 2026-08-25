@@ -19,8 +19,23 @@ struct Week: Decodable {
 
 struct LaundryGroup: Decodable, Identifiable, Hashable {
     let id: Int
+    /// The server sends `null` for a group whose Aptus label is a single line,
+    /// which is every group in a laundry room that has only one. Empty is what
+    /// the rest of the app already reads as "no location to show", so an absent
+    /// one lands there rather than failing the whole week's decode.
     let location: String
     let name: String
+
+    private enum CodingKeys: String, CodingKey {
+        case id, location, name
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        location = try container.decodeIfPresent(String.self, forKey: .location) ?? ""
+        name = try container.decode(String.self, forKey: .name)
+    }
 }
 
 struct Timeslot: Decodable, Identifiable, Hashable {

@@ -23,7 +23,7 @@ struct TimeslotRow: View {
             }
             .frame(width: 56, alignment: .leading)
 
-            FlowChips(items: activeGroups, groupsById: groupsById, includeLocationInLabel: !sharesSingleLocation)
+            FlowChips(items: chipGroups, groupsById: groupsById, includeLocationInLabel: !sharesSingleLocation)
 
             Spacer(minLength: 0)
 
@@ -39,11 +39,18 @@ struct TimeslotRow: View {
         }
         .padding(.vertical, 6)
         .contentShape(Rectangle())
-        .opacity(allUnavailable ? 0.55 : 1)
+        .opacity(isSpent ? 0.55 : 1)
     }
 
     private var activeGroups: [TimeslotGroup] {
         timeslot.groups.filter { !hiddenGroups.contains($0.groupId) }
+    }
+
+    /// Your own groups plus whatever can still be booked. A group that is free
+    /// but no longer bookable — the slot has started, or Aptus offers no button
+    /// for it — is left off rather than shown as an invitation.
+    private var chipGroups: [TimeslotGroup] {
+        activeGroups.filter { $0.status == .own || $0.restriction(in: timeslot) == nil }
     }
 
     private var hasOwn: Bool {
@@ -51,11 +58,13 @@ struct TimeslotRow: View {
     }
 
     private var hasBookable: Bool {
-        activeGroups.contains { $0.status == .bookable }
+        !timeslot.actionableGroups(hidden: hiddenGroups).isEmpty
     }
 
-    private var allUnavailable: Bool {
-        activeGroups.allSatisfy { $0.status == .unavailable }
+    /// Nothing to book and nothing of yours: a row that is only there for
+    /// context.
+    private var isSpent: Bool {
+        !hasOwn && !hasBookable
     }
 
     private var sharesSingleLocation: Bool {
@@ -72,7 +81,7 @@ private struct FlowChips: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                ForEach(items.filter { $0.status != .unavailable }, id: \.groupId) { item in
+                ForEach(items, id: \.groupId) { item in
                     GroupChip(name: label(for: item), status: item.status)
                 }
             }

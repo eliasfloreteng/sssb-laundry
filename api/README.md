@@ -67,8 +67,15 @@ its behaviors, not ours, and they are the reason the client looks the way it doe
 - `passDate` on `BookingCalendar` picks the week — any date within it works.
 - Responses are HTML, and one client request usually costs several upstream ones
   (categories + groups + one calendar per group).
-- Only one timeslot can be held at a time, for up to two groups. A slot not activated at
-  the machine within 15 minutes of the start is released to everyone again.
+- **`canBook` / `canCancel` are Aptus's own answer**, not ours: they are the presence of
+  a book button and of an unbook link in the calendar HTML. Without one, the action is
+  refused here (`not_bookable`, `NOT_CANCELLABLE`) without the portal ever being asked —
+  a passed timeslot and a session already running are the everyday cases, and the app
+  offers neither.
+- One booking covers up to two groups, and one or two sessions may be held at a time
+  depending on the laundry room. A slot not activated at the machine within 15 minutes of
+  the start is released to everyone again — which frees the quota, as does the booked
+  slot simply starting.
 - The number of groups, and the shape of the timeslots themselves, varies by object id —
   some cover nine buildings. Don't hard-code either.
 

@@ -128,6 +128,7 @@ enum LaundryRooms {
         .init(address: "Kammakargatan 36 B", room: "Kammarmakargatan 36 B", maxFutureBookings: nil, minutesAfterBooking: 60, quota: nil),
         .init(address: "Kungshamra 11-46 och 51-76", room: "Kungshamra 1", maxFutureBookings: 1, minutesAfterBooking: 60, quota: .init(count: 2, period: .week)),
         .init(address: "Kungshamra 11-46 och 51-76", room: "Kungshamra 12 C", maxFutureBookings: 2, minutesAfterBooking: 60, quota: .init(count: 3, period: .week)),
+        .init(address: "Kungshamra 11-46 och 51-76", room: "Kungshamra 43 C", maxFutureBookings: 1, minutesAfterBooking: 60, quota: nil),
         .init(address: "Kungshamra 2", room: "Kungshamra 2", maxFutureBookings: 1, minutesAfterBooking: 60, quota: nil),
         .init(address: "Kungshamra 3", room: "Kungshamra 3", maxFutureBookings: 1, minutesAfterBooking: 60, quota: nil),
         .init(address: "Kungshamra 47", room: "Kungshamra 47", maxFutureBookings: 1, minutesAfterBooking: 60, quota: nil),

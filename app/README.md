@@ -38,6 +38,7 @@ SSSBLaundry/
   SettingsView.swift       Object number, laundry room, visible groups, active hours
   LaundryRoomPicker.swift  Street-address picker for the laundry room rules
   LaundryRooms.swift       SSSB's per-room rules, transcribed from sssb.se
+  BookingRules.swift       What Aptus refuses, and what SSSB only publishes
   ObjectIdSetupView.swift  First-run sign-in
   GroupChip.swift          Group status chip
   APIClient.swift          HTTP client (URLSession)
@@ -152,6 +153,22 @@ the glyph.
   app is enforced from it — Aptus decides — and an unset room means the app shows no
   limits rather than asserting one, because "max future bookings" is 1 for 53 of the
   74 addresses and 2 for only 19.
+- **`canBook`/`canCancel`, not `status`, decide what the app offers.** They are the
+  presence of Aptus's own book button and unbook link, and the server refuses the action
+  without them — so a group the portal gives no button for is disabled with a short
+  reason rather than sent and bounced. A slot whose start has passed is the same answer
+  one refresh later, so the app derives that itself. `GroupRestriction` in
+  `BookingRules.swift` is the whole rule; `status` alone is not enough, and the per-room
+  session quota is deliberately on the other side of the line — it warns, it never blocks.
+- **A booking is never filtered out of the week list.** Active hours, the free-slots
+  filter and the cut at today are all about what is worth browsing; a slot the user
+  actually holds is shown whatever they are set to, stays on the list once it has
+  started, and survives midnight when it began yesterday
+  (`LaundryStore.belongsInList`, `Timeslot.hasOwnGroup`).
+- **A group's `location` can be `null` upstream** — Aptus labels a single-room group on
+  one line — and `LaundryGroup` decodes that as empty, which the rest of the app already
+  reads as "no location to show". Making it non-optional again fails the whole week's
+  decode with `BAD_RESPONSE`.
 - **"Max future bookings" counts sessions, not groups, and only future ones.** One
   booked time is one session however many groups it covers (`BookedSlot`), and a
   session that has already started stops counting — the machines may still be

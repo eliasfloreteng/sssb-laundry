@@ -67,6 +67,12 @@ compile error.
   minutes of the start is released upstream. `laundryGracePeriod` in
   `app/Shared/LaundryActivityAttributes.swift` and `GRACE_SECONDS` in
   `api/src/notifications.ts` are the same 15 minutes, spelled twice.
+- **`canBook` / `canCancel` are what the app is allowed to offer.** They mirror the book
+  button and unbook link Aptus renders, and the API refuses the action without them, so
+  the app blocks whatever they rule out instead of sending a request that can only come
+  back as an error. `app/SSSBLaundry/BookingRules.swift` holds that line on the client
+  side; the per-room session quota sits deliberately on the other side of it, as a
+  warning only.
 - **`timeslotId` is opaque and content-derived** from `{startAt, endAt}` only. It carries
   no user or group identity, so the server regenerates it at send time and the app must
   never construct, parse or persist it — always use the id from the latest

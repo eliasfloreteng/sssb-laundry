@@ -170,9 +170,15 @@ struct WeekView: View {
             let slots = day.slots.filter { ts in
                 let activeGroups = ts.groups.filter { !hidden.contains($0.groupId) }
                 guard !activeGroups.isEmpty else { return false }
+                // A booking is never filtered away. Active hours and the
+                // free-slots filter are about what is worth browsing; a time
+                // the user actually holds has to be findable whatever they are
+                // set to, and it stays on the list once it has started.
+                if ts.hasOwnGroup(hidden: hidden) { return true }
                 if !showAllTimeslots {
-                    let hasAvailable = activeGroups.contains { $0.status != .unavailable }
-                    guard hasAvailable else { return false }
+                    // Free but unbookable — passed, or a slot Aptus offers no
+                    // button for — is noise in the browsing list.
+                    guard !ts.actionableGroups(hidden: hidden).isEmpty else { return false }
                 }
                 if applyActiveHours {
                     return ActiveHoursSetting.includes(timeslot: ts, startMinutes: activeHoursStart, endMinutes: activeHoursEnd)
@@ -189,14 +195,14 @@ struct WeekView: View {
                 Section {
                     ForEach(day.slots) { ts in
                         Button {
-                            if hasAnyInteractive(ts) {
+                            if canOpen(ts) {
                                 selectedTimeslot = ts
                             }
                         } label: {
                             TimeslotRow(timeslot: ts, groupsById: store.groupsById, hiddenGroups: hiddenGroups)
                         }
                         .buttonStyle(.plain)
-                        .disabled(!hasAnyInteractive(ts))
+                        .disabled(!canOpen(ts))
                     }
                 } header: {
                     dayHeader(for: day.date)
@@ -250,9 +256,12 @@ struct WeekView: View {
             .foregroundStyle(.primary)
     }
 
-    private func hasAnyInteractive(_ ts: Timeslot) -> Bool {
+    /// A booking stays openable after it has started: nothing in the sheet can
+    /// be changed any more, but it is still where the slot is added to the
+    /// calendar and where the groups it covers are listed.
+    private func canOpen(_ ts: Timeslot) -> Bool {
         let hidden = hiddenGroups
-        return ts.groups.contains { !hidden.contains($0.groupId) && ($0.status == .bookable || $0.status == .own) }
+        return ts.hasOwnGroup(hidden: hidden) || !ts.actionableGroups(hidden: hidden).isEmpty
     }
 
     private var emptyState: some View {

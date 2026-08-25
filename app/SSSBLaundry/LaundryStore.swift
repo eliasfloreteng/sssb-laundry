@@ -216,15 +216,27 @@ final class LaundryStore {
     }
 
     var timeslotsByDay: [(date: String, slots: [Timeslot])] {
+        let now = Date()
         var grouped: [String: [Timeslot]] = [:]
         for week in weeks {
-            for timeslot in week.timeslots where timeslot.localDate >= today {
+            for timeslot in week.timeslots where Self.belongsInList(timeslot, today: today, now: now) {
                 grouped[timeslot.localDate, default: []].append(timeslot)
             }
         }
         return grouped.keys.sorted().map { date in
             (date, grouped[date]!.sorted { $0.startAt < $1.startAt })
         }
+    }
+
+    /// Today onwards — plus a booking from yesterday that is still running. A
+    /// slot that crosses midnight belongs to the day it started on, so cutting
+    /// the list at today would take a session off the screen at midnight with
+    /// the machines still going.
+    private static func belongsInList(_ timeslot: Timeslot, today: String, now: Date) -> Bool {
+        if timeslot.localDate >= today { return true }
+        guard timeslot.groups.contains(where: { $0.status == .own }),
+              let end = parseISO8601(timeslot.endAt) else { return false }
+        return end > now
     }
 
     func loadInitial() async {

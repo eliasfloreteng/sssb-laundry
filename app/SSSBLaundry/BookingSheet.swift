@@ -150,7 +150,11 @@ struct BookingSheet: View {
     private func row(for item: TimeslotGroup) -> some View {
         let name = groupsById[item.groupId]?.name ?? "Group \(item.groupId)"
         let isSelected = selection.contains(item.groupId)
-        let disabled = item.status == .unavailable
+        // Everything upstream would refuse is already off the table here, so
+        // the row explains itself rather than sending a request that can only
+        // come back as an error.
+        let restriction = item.restriction(in: current)
+        let disabled = restriction != nil
         return Button {
             toggle(item)
         } label: {
@@ -162,7 +166,7 @@ struct BookingSheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(name)
                         .font(.body)
-                    Text(statusLabel(for: item.status))
+                    Text(restriction?.label(for: item.status) ?? statusLabel(for: item.status))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -266,12 +270,20 @@ struct BookingSheet: View {
 
     private var toBook: [Int] {
         selection.subtracting(ownGroupIds)
-            .filter { id in visibleGroups.first { $0.groupId == id }?.status == .bookable }
+            .filter { id in
+                guard let group = visibleGroups.first(where: { $0.groupId == id }) else { return false }
+                return group.status == .bookable && group.restriction(in: current) == nil
+            }
             .sorted()
     }
 
+    /// A booking whose slot started while the sheet sat open drops out here, so
+    /// the button goes back to "No changes" instead of sending a cancellation
+    /// Aptus has already stopped accepting.
     private var toCancel: [Int] {
-        ownGroupIds.subtracting(selection).sorted()
+        ownGroupIds.subtracting(selection)
+            .filter { id in visibleGroups.first(where: { $0.groupId == id })?.restriction(in: current) == nil }
+            .sorted()
     }
 
     private var hasChanges: Bool {
@@ -297,8 +309,7 @@ struct BookingSheet: View {
     /// A session that has already started no longer counts against the quota —
     /// the machines may still be running, but SSSB counts bookings ahead of you.
     private var slotCountsAsFuture: Bool {
-        guard let start = LaundryStore.parseISO8601(current.startAt) else { return true }
-        return start > Date()
+        !current.hasStarted()
     }
 
     /// Future sessions the user would hold once this sheet's changes went
@@ -347,7 +358,7 @@ struct BookingSheet: View {
     }
 
     private func toggle(_ item: TimeslotGroup) {
-        guard item.status != .unavailable else { return }
+        guard item.restriction(in: current) == nil else { return }
         feedback = nil
         if selection.contains(item.groupId) {
             selection.remove(item.groupId)

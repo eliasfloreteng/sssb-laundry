@@ -12,7 +12,10 @@ enum CalendarServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .accessDenied:
-            return "Calendar access is off. Turn it on in iOS Settings."
+            return String(
+                localized: "Calendar access is off. Turn it on in iOS Settings.",
+                comment: "Why a booking couldn't be written to the calendar"
+            )
         }
     }
 }

@@ -38,7 +38,7 @@ final class CalendarEventFlow {
     /// room only when they all share one.
     func add(_ timeslot: Timeslot, groupIds: [Int], groupsById: [Int: LaundryGroup]) async {
         let ids = groupIds.sorted()
-        let names = ids.map { groupsById[$0]?.name ?? "Group \($0)" }
+        let names = ids.map { LaundryFormat.groupName($0, in: groupsById) }
         let locations = Set(ids.compactMap { groupsById[$0]?.location }.filter { !$0.isEmpty })
         isPreparing = true
         defer { isPreparing = false }
@@ -51,7 +51,10 @@ final class CalendarEventFlow {
             pending = PendingEvent(store: prepared.store, event: prepared.event, timeslot: timeslot)
         } catch {
             alert = CalendarAlert(
-                title: "Couldn’t add to Calendar",
+                title: String(
+                    localized: "Couldn’t add to Calendar",
+                    comment: "Alert title when the calendar event couldn't be prepared"
+                ),
                 message: error.localizedDescription
             )
         }
@@ -77,7 +80,10 @@ private struct CalendarEventFlowModifier: ViewModifier {
                     flow.pending = nil
                     if action == .saved {
                         flow.alert = CalendarEventFlow.CalendarAlert(
-                            title: "Added to Calendar",
+                            title: String(
+                                localized: "Added to Calendar",
+                                comment: "Alert title confirming the booking was saved to the calendar"
+                            ),
                             message: pending.timeslot.dayAndTime
                         )
                     }

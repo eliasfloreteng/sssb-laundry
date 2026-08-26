@@ -105,7 +105,9 @@ private struct FlowChips: View {
     }
 
     private func label(for item: TimeslotGroup) -> String {
-        guard let group = groupsById[item.groupId] else { return "Group \(item.groupId)" }
+        guard let group = groupsById[item.groupId] else {
+            return LaundryFormat.groupName(item.groupId, in: groupsById)
+        }
         if includeLocationInLabel, !group.location.isEmpty {
             return "\(group.location) · \(group.name)"
         }

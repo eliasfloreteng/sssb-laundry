@@ -13,7 +13,10 @@ enum LaundryFormat {
     private static let dayLabelFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeZone = LaundryStore.stockholm
-        formatter.dateFormat = "EEEE d MMM"
+        // The fields are fixed — weekday, day, abbreviated month — but their
+        // order and punctuation are the display language's business: English
+        // wants "Monday 1 Sep", Swedish "måndag 1 sep.".
+        formatter.setLocalizedDateFormatFromTemplate("EEEEdMMM")
         return formatter
     }()
 
@@ -26,6 +29,21 @@ enum LaundryFormat {
 
     static func dayLabel(_ date: Date) -> String {
         dayLabelFormatter.string(from: date)
+    }
+
+    /// Aptus's own label for a group, kept verbatim, or a stand-in for a group
+    /// whose week is no longer loaded.
+    static func groupName(_ id: Int, in groups: [Int: LaundryGroup]) -> String {
+        groups[id]?.name ?? String(
+            localized: "Group \(id)",
+            comment: "Stand-in name for a laundry group whose Aptus label the app doesn't have"
+        )
+    }
+
+    /// Names of the groups an action covers, joined the way the display
+    /// language joins a list: \"Grupp 1 and Grupp 2\", \"Grupp 1 och Grupp 2\".
+    static func groupNames(_ ids: [Int], in groups: [Int: LaundryGroup]) -> String {
+        ids.map { groupName($0, in: groups) }.formatted(.list(type: .and))
     }
 }
 

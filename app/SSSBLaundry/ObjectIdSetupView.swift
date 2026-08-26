@@ -59,7 +59,7 @@ struct ObjectIdSetupView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(BookingRules.residentRules, id: \.self) { rule in
                             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                Text("•")
+                                Text(verbatim: "•")
                                 Text(rule)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }

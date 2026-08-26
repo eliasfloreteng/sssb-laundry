@@ -82,7 +82,10 @@ struct APIClient {
 
     private func makeRequest(url: URL, method: String) throws -> URLRequest {
         guard let id = objectIdProvider(), !id.isEmpty else {
-            throw APIError.local(code: "MISSING_OBJECT_ID", message: "Object id is required.")
+            throw APIError.local(
+                code: "MISSING_OBJECT_ID",
+                message: String(localized: "Object id is required.", comment: "Request refused before it was sent: no object number stored")
+            )
         }
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -103,7 +106,10 @@ struct APIClient {
             throw Self.networkError(urlError)
         }
         guard let http = response as? HTTPURLResponse else {
-            throw APIError.local(code: "BAD_RESPONSE", message: "Invalid response.")
+            throw APIError.local(
+                code: "BAD_RESPONSE",
+                message: String(localized: "Invalid response.", comment: "The service answered with something that wasn't HTTP")
+            )
         }
         let decoder = JSONDecoder()
         if !(200..<300).contains(http.statusCode) {
@@ -111,23 +117,38 @@ struct APIClient {
                 throw envelope.error
             }
             let code = http.statusCode >= 500 ? "SERVICE_ERROR" : "UNKNOWN_ERROR"
-            throw APIError.local(code: code, message: "The laundry service returned an error.")
+            throw APIError.local(
+                code: code,
+                message: String(localized: "The laundry service returned an error.", comment: "Fallback for an HTTP error with no readable body")
+            )
         }
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
-            throw APIError.local(code: "BAD_RESPONSE", message: "Could not read the response.")
+            throw APIError.local(
+                code: "BAD_RESPONSE",
+                message: String(localized: "Could not read the response.", comment: "The service's answer didn't decode")
+            )
         }
     }
 
     private static func networkError(_ error: URLError) -> APIError {
         switch error.code {
         case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff:
-            return APIError.local(code: "NO_INTERNET", message: "No internet connection.")
+            return APIError.local(
+                code: "NO_INTERNET",
+                message: String(localized: "No internet connection.", comment: "The phone is offline")
+            )
         case .timedOut:
-            return APIError.local(code: "TIMEOUT", message: "The request timed out.")
+            return APIError.local(
+                code: "TIMEOUT",
+                message: String(localized: "The request timed out.", comment: "The service took too long to answer")
+            )
         default:
-            return APIError.local(code: "NETWORK_ERROR", message: "Could not reach the laundry service.")
+            return APIError.local(
+                code: "NETWORK_ERROR",
+                message: String(localized: "Could not reach the laundry service.", comment: "The service couldn't be reached")
+            )
         }
     }
 }

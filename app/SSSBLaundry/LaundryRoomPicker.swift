@@ -20,7 +20,11 @@ struct LaundryRoomPicker: View {
                     selectedId = ""
                     dismiss()
                 } label: {
-                    row(title: "Not set", subtitle: "No rules shown", isSelected: selectedId.isEmpty)
+                    row(
+                        title: String(localized: "Not set", comment: "Picker row for choosing no laundry-room address"),
+                        subtitle: String(localized: "No rules shown", comment: "What choosing no address means"),
+                        isSelected: selectedId.isEmpty
+                    )
                 }
                 .buttonStyle(.plain)
             }
@@ -35,7 +39,10 @@ struct LaundryRoomPicker: View {
                             title: room.address,
                             // Two rooms serve the same Kungshamra address under
                             // different rules, so the room is what tells them apart.
-                            subtitle: "Laundry room: \(room.room)",
+                            subtitle: String(
+                                localized: "Laundry room: \(room.room)",
+                                comment: "Where the laundry room serving an address actually is"
+                            ),
                             isSelected: room.id == selectedId
                         )
                     }

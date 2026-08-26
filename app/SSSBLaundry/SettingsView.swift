@@ -57,7 +57,11 @@ struct SettingsView: View {
                                 .foregroundStyle(unlocked ? Color.accentColor : .secondary)
                         }
                         .buttonStyle(.borderless)
-                        .accessibilityLabel(unlocked ? "Lock object number" : "Unlock object number to change it")
+                        .accessibilityLabel(
+                            unlocked
+                                ? Text("Lock object number")
+                                : Text("Unlock object number to change it")
+                        )
                     }
                     .contextMenu {
                         Button("Copy", systemImage: "doc.on.doc") {
@@ -93,7 +97,14 @@ struct SettingsView: View {
                                 }
                             }
                         } header: {
-                            Text(section.location.isEmpty ? "Visible groups" : section.location)
+                            // Not a ternary: mixing a literal with a `String`
+                            // would infer `String` and take the verbatim
+                            // overload, leaving the heading untranslated.
+                            if section.location.isEmpty {
+                                Text("Visible groups")
+                            } else {
+                                Text(section.location)
+                            }
                         } footer: {
                             if index == sections.count - 1 {
                                 Text("Hidden groups are left out of the week list. Useful when your address covers several buildings.")
@@ -197,7 +208,13 @@ struct SettingsView: View {
             NavigationLink {
                 LaundryRoomPicker(selectedId: $laundryRoomId)
             } label: {
-                LabeledContent("Your address", value: selectedRoom?.address ?? "Not set")
+                LabeledContent(
+                    "Your address",
+                    value: selectedRoom?.address ?? String(
+                        localized: "Not set",
+                        comment: "Settings value when no laundry-room address has been chosen"
+                    )
+                )
             }
             if let room = selectedRoom {
                 LabeledContent("Laundry room", value: room.room)
@@ -220,9 +237,15 @@ struct SettingsView: View {
 
     private var notificationsFooter: String {
         if authorizationStatus == .denied {
-            return "Notifications are off in iOS Settings. Turn them back on there."
+            return String(
+                localized: "Notifications are off in iOS Settings. Turn them back on there.",
+                comment: "Settings footer when the system permission has been revoked"
+            )
         }
-        return "Reminders arrive with the app closed, and for bookings someone else in your apartment made."
+        return String(
+            localized: "Reminders arrive with the app closed, and for bookings someone else in your apartment made.",
+            comment: "Settings footer explaining what booking reminders cover"
+        )
     }
 
     /// Turning the toggle on is what triggers the system permission prompt.

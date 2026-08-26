@@ -147,10 +147,19 @@ extension ActivityViewContext where Attributes == LaundryActivityAttributes {
         }
     }
 
+    /// The caption under the countdown, read as the tail of "12:34 …".
     var headline: String {
         switch resolvedPhase {
-        case .upcoming: return "until your session starts"
-        case .grace: return "to tag in"
+        case .upcoming:
+            return String(
+                localized: "until your session starts",
+                comment: "Caption under a Live Activity countdown to the booking's start"
+            )
+        case .grace:
+            return String(
+                localized: "to tag in",
+                comment: "Caption under a Live Activity countdown to the booking being released"
+            )
         }
     }
 

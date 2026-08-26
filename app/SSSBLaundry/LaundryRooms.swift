@@ -46,25 +46,48 @@ struct LaundryRoom: Identifiable, Hashable {
     var id: String { "\(address)|\(room)" }
 
     var maxFutureBookingsLabel: String {
-        maxFutureBookings.map(String.init) ?? "No maximum"
+        maxFutureBookings.map(String.init) ?? Self.noMaximum
     }
 
     /// Title and value split so the row reads "Max per month — 4" rather than
     /// repeating the period on both sides.
     var quotaTitle: String {
-        guard let quota else { return "Max per week/month" }
-        return "Max per \(quota.period.rawValue)"
+        guard let quota else {
+            return String(
+                localized: "Max per week/month",
+                comment: "Settings row title for a laundry room that publishes no weekly or monthly quota"
+            )
+        }
+        switch quota.period {
+        case .week:
+            return String(localized: "Max per week", comment: "Settings row title for a weekly booking quota")
+        case .month:
+            return String(localized: "Max per month", comment: "Settings row title for a monthly booking quota")
+        }
     }
 
     var quotaLabel: String {
-        guard let quota else { return "No maximum" }
+        guard let quota else { return Self.noMaximum }
         return String(quota.count)
     }
 
     /// Reads as the answer to "how long can I stay after?", which is why zero
     /// is spelled out rather than shown as "0 min".
     var timeAfterBookingLabel: String {
-        minutesAfterBooking == 0 ? "None" : "\(minutesAfterBooking) min"
+        guard minutesAfterBooking > 0 else {
+            return String(
+                localized: "None",
+                comment: "A laundry room that gives no extra access time once the session has ended"
+            )
+        }
+        return String(
+            localized: "\(minutesAfterBooking) min",
+            comment: "How long the tag still opens the laundry room after a session"
+        )
+    }
+
+    private static var noMaximum: String {
+        String(localized: "No maximum", comment: "A laundry room rule SSSB publishes no number for")
     }
 }
 

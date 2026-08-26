@@ -28,33 +28,54 @@ enum BookingAlert: Int, CaseIterable, Identifiable {
     /// Minutes before the timeslot start, or `nil` when nothing should fire.
     var minutesBefore: Int? { self == .off ? nil : rawValue }
 
+    /// The picker row. "Before" is spelled into each case rather than composed
+    /// from `leadLabel`, because the two halves do not join the same way in
+    /// every language.
     var label: String {
         switch self {
-        case .off: return "None"
-        case .atStart: return "At start"
-        case .fiveMinutes: return "5 minutes before"
-        case .tenMinutes: return "10 minutes before"
-        case .fifteenMinutes: return "15 minutes before"
-        case .thirtyMinutes: return "30 minutes before"
-        case .oneHour: return "1 hour before"
-        case .twoHours: return "2 hours before"
-        case .oneDay: return "1 day before"
-        case .oneWeek: return "1 week before"
+        case .off:
+            return String(localized: "None", comment: "Reminder offset: no reminder at all")
+        case .atStart:
+            return String(localized: "At start", comment: "Reminder offset: when the booking starts")
+        case .fiveMinutes:
+            return String(localized: "5 minutes before", comment: "Reminder offset")
+        case .tenMinutes:
+            return String(localized: "10 minutes before", comment: "Reminder offset")
+        case .fifteenMinutes:
+            return String(localized: "15 minutes before", comment: "Reminder offset")
+        case .thirtyMinutes:
+            return String(localized: "30 minutes before", comment: "Reminder offset")
+        case .oneHour:
+            return String(localized: "1 hour before", comment: "Reminder offset")
+        case .twoHours:
+            return String(localized: "2 hours before", comment: "Reminder offset")
+        case .oneDay:
+            return String(localized: "1 day before", comment: "Reminder offset")
+        case .oneWeek:
+            return String(localized: "1 week before", comment: "Reminder offset")
         }
     }
 
-    /// Tail of the prompt copy, e.g. "10 minutes before your booking starts".
+    /// Just the span, for the prompt copy that puts it in a sentence of its own.
     var leadLabel: String {
         switch self {
         case .off, .atStart: return ""
-        case .fiveMinutes: return "5 minutes"
-        case .tenMinutes: return "10 minutes"
-        case .fifteenMinutes: return "15 minutes"
-        case .thirtyMinutes: return "30 minutes"
-        case .oneHour: return "1 hour"
-        case .twoHours: return "2 hours"
-        case .oneDay: return "1 day"
-        case .oneWeek: return "1 week"
+        case .fiveMinutes:
+            return String(localized: "5 minutes", comment: "How long before a booking a reminder arrives")
+        case .tenMinutes:
+            return String(localized: "10 minutes", comment: "How long before a booking a reminder arrives")
+        case .fifteenMinutes:
+            return String(localized: "15 minutes", comment: "How long before a booking a reminder arrives")
+        case .thirtyMinutes:
+            return String(localized: "30 minutes", comment: "How long before a booking a reminder arrives")
+        case .oneHour:
+            return String(localized: "1 hour", comment: "How long before a booking a reminder arrives")
+        case .twoHours:
+            return String(localized: "2 hours", comment: "How long before a booking a reminder arrives")
+        case .oneDay:
+            return String(localized: "1 day", comment: "How long before a booking a reminder arrives")
+        case .oneWeek:
+            return String(localized: "1 week", comment: "How long before a booking a reminder arrives")
         }
     }
 }

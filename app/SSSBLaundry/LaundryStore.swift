@@ -273,7 +273,7 @@ final class LaundryStore {
                 start: first.start,
                 startTime: first.startTime,
                 endTime: first.endTime,
-                machines: ids.map { groups[$0]?.name ?? "Group \($0)" }.joined(separator: ", "),
+                machines: ids.map { LaundryFormat.groupName($0, in: groups) }.joined(separator: ", "),
                 location: locations.count == 1 ? locations.first! : ""
             )
         }

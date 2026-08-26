@@ -32,13 +32,30 @@ enum BookingRules {
     /// "max future bookings" counts booked times, not machine groups, so taking
     /// several groups of one time uses one of the one or two a resident is
     /// allowed, not one each.
-    static let residentRules = [
-        "Tag in with your Aptus tag when you start. You can’t tag in before the booked time.",
-        "A session you haven’t tagged into within 15 minutes is released to everyone again.",
-        "You can hold one or two sessions ahead at a time, depending on your laundry room.",
-        "Multiple groups of one time still count as a single session.",
-        "Cancel a session you won’t use, so someone else can take it."
-    ]
+    static var residentRules: [String] {
+        [
+            String(
+                localized: "Tag in with your Aptus tag when you start. You can’t tag in before the booked time.",
+                comment: "Booking rule shown on the sign-in screen"
+            ),
+            String(
+                localized: "A session you haven’t tagged into within 15 minutes is released to everyone again.",
+                comment: "Booking rule shown on the sign-in screen"
+            ),
+            String(
+                localized: "You can hold one or two sessions ahead at a time, depending on your laundry room.",
+                comment: "Booking rule shown on the sign-in screen"
+            ),
+            String(
+                localized: "Multiple groups of one time still count as a single session.",
+                comment: "Booking rule shown on the sign-in screen"
+            ),
+            String(
+                localized: "Cancel a session you won’t use, so someone else can take it.",
+                comment: "Booking rule shown on the sign-in screen"
+            )
+        ]
+    }
 }
 
 /// Why one group of one timeslot can’t be booked or released right now. `nil`
@@ -61,11 +78,16 @@ enum GroupRestriction: Equatable {
     /// all, so there is no label for the ordinary case.
     func label(for status: GroupStatus) -> String {
         switch (status, self) {
-        case (.own, .started): return "In progress"
-        case (.own, _): return "Can’t be cancelled"
-        case (_, .started): return "Too late"
-        case (_, .taken): return "Unavailable"
-        case (_, _): return "Can’t be booked"
+        case (.own, .started):
+            return String(localized: "In progress", comment: "Status beside a group whose booked session has started")
+        case (.own, _):
+            return String(localized: "Can’t be cancelled", comment: "Status beside a booking Aptus won’t release")
+        case (_, .started):
+            return String(localized: "Too late", comment: "Status beside a free group whose timeslot has already started")
+        case (_, .taken):
+            return String(localized: "Unavailable", comment: "Status beside a group somebody else holds")
+        case (_, _):
+            return String(localized: "Can’t be booked", comment: "Status beside a free group Aptus offers no book button for")
         }
     }
 }

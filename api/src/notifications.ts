@@ -454,12 +454,20 @@ export function buildPayload(
 
   const machines = labels.machines.length > 0 ? labels.machines.join(", ") : "";
   const when = `${labels.dayLabel} ${labels.startTime}–${labels.endTime}`;
-  const body = machines ? `${when} · ${machines}` : when;
+
+  // Titles and bodies travel as APNs localization keys rather than as finished
+  // sentences: the app bundle holds both languages, so the notification comes
+  // out in whatever language iOS is showing the app in — including a language
+  // picked per-app in Settings, which the server has no way of knowing.
+  const title = row.kind === "reminder" ? reminderTitle(row.offsetMinutes) : { key: TITLE_NEW_BOOKING };
+  const body = bodyAlert(when, machines, row.kind === "reminder" ? row.offsetMinutes : undefined);
 
   const aps: Record<string, unknown> = {
     alert: {
-      title: row.kind === "reminder" ? reminderTitle(row.offsetMinutes) : "New laundry booking",
-      body: row.kind === "reminder" ? reminderBody(body, row.offsetMinutes) : body
+      "title-loc-key": title.key,
+      ...(title.args ? { "title-loc-args": title.args } : {}),
+      "loc-key": body.key,
+      "loc-args": body.args
     },
     sound: "default",
     "thread-id": threadId(row.startAt, row.groupIds)
@@ -498,27 +506,55 @@ function deliveryOptions(
   };
 }
 
-function reminderTitle(offsetMinutes: number | null): string {
-  if (offsetMinutes === null || offsetMinutes === 0) return "Laundry starts now";
-  return `Laundry in ${leadLabel(offsetMinutes)}`;
+/**
+ * The keys the app's string catalog answers to. They are spelled out here so a
+ * grep for the key finds both ends of the contract; the app has a matching
+ * entry, marked manual so string extraction does not sweep it away for being
+ * absent from the Swift source.
+ *
+ * Singular and plural are separate keys rather than one with a count, because
+ * `loc-args` are plain strings and never satisfy a plural rule.
+ */
+export const TITLE_NEW_BOOKING = "notification.title.newBooking";
+export const TITLE_STARTS_NOW = "notification.title.startsNow";
+
+/** A localization key and the strings substituted into it, if any. */
+export interface LocAlert {
+  key: string;
+  args?: string[];
 }
 
-function reminderBody(body: string, offsetMinutes: number | null): string {
+function reminderTitle(offsetMinutes: number | null): LocAlert {
+  if (offsetMinutes === null || offsetMinutes === 0) return { key: TITLE_STARTS_NOW };
+  const lead = leadUnit(offsetMinutes);
+  return {
+    key: `notification.title.in.${lead.unit}${lead.count === 1 ? "" : "s"}`,
+    args: [String(lead.count)]
+  };
+}
+
+/**
+ * The body is one line of data — day, time, machines — optionally followed by
+ * the grace-period warning. Which of the four templates applies is decided
+ * here; the wording of each lives in the app.
+ */
+function bodyAlert(when: string, machines: string, offsetMinutes?: number | null): LocAlert {
   // Close to the start the grace period is the actionable part of the message.
-  if (offsetMinutes !== null && offsetMinutes > 15) return body;
-  return `${body}\nActivate with your Aptus tag within 15 minutes or the session is released.`;
+  const activate = offsetMinutes !== undefined && (offsetMinutes === null || offsetMinutes <= 15);
+  const suffix = activate ? ".activate" : "";
+  return machines
+    ? { key: `notification.body.machines${suffix}`, args: [when, machines] }
+    : { key: `notification.body${suffix}`, args: [when] };
 }
 
-export function leadLabel(minutes: number): string {
-  if (minutes % 10080 === 0) return plural(minutes / 10080, "week");
-  if (minutes % 1440 === 0) return plural(minutes / 1440, "day");
-  if (minutes % 60 === 0) return plural(minutes / 60, "hour");
-  return plural(minutes, "minute");
+/** The offset as a whole number of the largest unit that divides it. */
+export function leadUnit(minutes: number): { count: number; unit: string } {
+  if (minutes % 10080 === 0) return { count: minutes / 10080, unit: "week" };
+  if (minutes % 1440 === 0) return { count: minutes / 1440, unit: "day" };
+  if (minutes % 60 === 0) return { count: minutes / 60, unit: "hour" };
+  return { count: minutes, unit: "minute" };
 }
 
-function plural(count: number, unit: string): string {
-  return `${count} ${unit}${count === 1 ? "" : "s"}`;
-}
 
 function threadId(startAt: string, groupIds: string): string {
   return `booking.${toEpoch(startAt) ?? startAt}-${groupIds.replace(/,/g, "_")}`;

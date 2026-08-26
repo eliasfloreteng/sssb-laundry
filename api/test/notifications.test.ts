@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Store } from "../src/db.js";
-import { PushService, activeOffsets, buildLabels, buildPayload, leadLabel } from "../src/notifications.js";
+import { PushService, activeOffsets, buildLabels, buildPayload, leadUnit } from "../src/notifications.js";
 import type { AptusClient } from "../src/aptus-client.js";
 import type { ApnsClient } from "../src/apns.js";
 import type { TimeslotsResponse } from "../src/types.js";
@@ -93,13 +93,13 @@ describe("alert offsets", () => {
   });
 });
 
-describe("lead labels", () => {
+describe("lead units", () => {
   it("picks the coarsest whole unit", () => {
-    expect(leadLabel(5)).toBe("5 minutes");
-    expect(leadLabel(60)).toBe("1 hour");
-    expect(leadLabel(120)).toBe("2 hours");
-    expect(leadLabel(1440)).toBe("1 day");
-    expect(leadLabel(10080)).toBe("1 week");
+    expect(leadUnit(5)).toEqual({ count: 5, unit: "minute" });
+    expect(leadUnit(60)).toEqual({ count: 1, unit: "hour" });
+    expect(leadUnit(120)).toEqual({ count: 2, unit: "hour" });
+    expect(leadUnit(1440)).toEqual({ count: 1, unit: "day" });
+    expect(leadUnit(10080)).toEqual({ count: 1, unit: "week" });
   });
 });
 
@@ -110,18 +110,53 @@ describe("payloads", () => {
     groups: [{ groupId: 162, groupName: "Grupp 1", location: "Domus" }]
   });
 
-  it("renders a reminder with the lead time and the grace warning", () => {
+  type LocAps = {
+    aps: {
+      alert: {
+        "title-loc-key": string;
+        "title-loc-args"?: string[];
+        "loc-key": string;
+        "loc-args": string[];
+      };
+      "interruption-level"?: string;
+    };
+  };
+
+  it("names the lead time and the grace warning as keys the app translates", () => {
     const payload = buildPayload(
       { kind: "reminder", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: 10 },
       labels,
       [162]
-    ) as { aps: { alert: { title: string; body: string }; "interruption-level": string } };
+    ) as LocAps;
 
-    expect(payload.aps.alert.title).toBe("Laundry in 10 minutes");
-    expect(payload.aps.alert.body).toContain("Mon 4 May 07:00–10:00");
-    expect(payload.aps.alert.body).toContain("Grupp 1");
-    expect(payload.aps.alert.body).toContain("15 minutes");
+    expect(payload.aps.alert["title-loc-key"]).toBe("notification.title.in.minutes");
+    expect(payload.aps.alert["title-loc-args"]).toEqual(["10"]);
+    // The day and time are data, so they still travel as a finished string.
+    expect(payload.aps.alert["loc-key"]).toBe("notification.body.machines.activate");
+    expect(payload.aps.alert["loc-args"]).toEqual(["Mon 4 May 07:00–10:00", "Grupp 1"]);
     expect(payload.aps["interruption-level"]).toBe("time-sensitive");
+  });
+
+  it("uses the singular key when the lead time is one whole unit", () => {
+    const payload = buildPayload(
+      { kind: "reminder", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: 60 },
+      labels,
+      [162]
+    ) as LocAps;
+
+    expect(payload.aps.alert["title-loc-key"]).toBe("notification.title.in.hour");
+    expect(payload.aps.alert["title-loc-args"]).toEqual(["1"]);
+  });
+
+  it("fires with no lead time at all when the alert is set to the start", () => {
+    const payload = buildPayload(
+      { kind: "reminder", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: 0 },
+      labels,
+      [162]
+    ) as LocAps;
+
+    expect(payload.aps.alert["title-loc-key"]).toBe("notification.title.startsNow");
+    expect(payload.aps.alert["title-loc-args"]).toBeUndefined();
   });
 
   it("omits the grace warning on far-out alerts", () => {
@@ -129,10 +164,22 @@ describe("payloads", () => {
       { kind: "reminder", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: 1440 },
       labels,
       [162]
-    ) as { aps: { alert: { title: string; body: string } } };
+    ) as LocAps;
 
-    expect(payload.aps.alert.title).toBe("Laundry in 1 day");
-    expect(payload.aps.alert.body).not.toContain("15 minutes");
+    expect(payload.aps.alert["title-loc-key"]).toBe("notification.title.in.day");
+    expect(payload.aps.alert["loc-key"]).toBe("notification.body.machines");
+  });
+
+  it("leaves the machines out of the body when the slot has none", () => {
+    const payload = buildPayload(
+      { kind: "new_booking", startAt: "2026-05-04T07:00:00.000+02:00", endAt: "2026-05-04T10:00:00.000+02:00", groupIds: "162", offsetMinutes: null },
+      { ...labels, machines: [] },
+      [162]
+    ) as LocAps;
+
+    expect(payload.aps.alert["title-loc-key"]).toBe("notification.title.newBooking");
+    expect(payload.aps.alert["loc-key"]).toBe("notification.body");
+    expect(payload.aps.alert["loc-args"]).toEqual(["Mon 4 May 07:00–10:00"]);
   });
 
   it("makes a retraction silent, so it only takes a notification away", () => {

@@ -2787,6 +2787,258 @@
         }
       }
     },
+    "notification.body": {
+      "comment": "Push notification sent by the server as an APNs localization key body: day and time only",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
+    "notification.body.activate": {
+      "comment": "Push notification sent by the server as an APNs localization key body: day and time, then the grace-period warning",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@\nActivate with your Aptus tag within 15 minutes or the session is released."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
+          }
+        }
+      }
+    },
+    "notification.body.machines": {
+      "comment": "Push notification sent by the server as an APNs localization key body: day and time, then the booked groups",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "notification.body.machines.activate": {
+      "comment": "Push notification sent by the server as an APNs localization key body: day and time, the booked groups, then the grace-period warning",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@\nActivate with your Aptus tag within 15 minutes or the session is released."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
+          }
+        }
+      }
+    },
+    "notification.title.in.day": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder one day ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ day"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ dag"
+          }
+        }
+      }
+    },
+    "notification.title.in.days": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder several days ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ days"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ dagar"
+          }
+        }
+      }
+    },
+    "notification.title.in.hour": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder one hour ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ hour"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ timme"
+          }
+        }
+      }
+    },
+    "notification.title.in.hours": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder several hours ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ hours"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ timmar"
+          }
+        }
+      }
+    },
+    "notification.title.in.minute": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder one minute ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ minute"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ minut"
+          }
+        }
+      }
+    },
+    "notification.title.in.minutes": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder several minutes ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ minutes"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ minuter"
+          }
+        }
+      }
+    },
+    "notification.title.in.week": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder one week ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ week"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ vecka"
+          }
+        }
+      }
+    },
+    "notification.title.in.weeks": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder several weeks ahead",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry in %@ weeks"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätt om %@ veckor"
+          }
+        }
+      }
+    },
+    "notification.title.newBooking": {
+      "comment": "Push notification sent by the server as an APNs localization key: someone in the apartment booked a time",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New laundry booking"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ny tvättbokning"
+          }
+        }
+      }
+    },
+    "notification.title.startsNow": {
+      "comment": "Push notification sent by the server as an APNs localization key: reminder with no lead time",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry starts now"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvättpasset börjar nu"
+          }
+        }
+      }
+    },
     "someone else took it first": {
       "localizations": {
         "en": {

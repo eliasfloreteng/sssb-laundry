@@ -18,15 +18,29 @@ struct BookingSheet: View {
     @State private var calendarFlow = CalendarEventFlow()
     @State private var feedback: ActionFeedback?
 
-    /// What went wrong, in the words the user needs: one headline, one reason,
-    /// and a line per group when the groups disagreed with each other.
+    /// How an action landed, in the words the user needs: one headline, one
+    /// reason, and a line per group when the groups disagreed with each other.
     private struct ActionFeedback: Equatable {
+        let kind: Kind
         let title: String
         let message: String
-        let details: [String]
+        var details: [String] = []
+
+        enum Kind {
+            case success
+            case failure
+
+            var icon: String {
+                self == .success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+            }
+
+            var tint: Color {
+                self == .success ? .green : .red
+            }
+        }
     }
 
-    /// The sheet stays open when something fails, so it reads the timeslot back
+    /// The sheet stays open after every action, so it reads the timeslot back
     /// out of the store to reflect the refresh rather than the copy it opened with.
     private var current: Timeslot {
         store.timeslot(id: timeslot.id) ?? timeslot
@@ -86,8 +100,9 @@ struct BookingSheet: View {
         .presentationDragIndicator(.visible)
         .onAppear { selection = ownGroupIds }
         .onChange(of: ownGroupIds) { _, newValue in
-            // A refresh landed (usually after a partial failure) — show what the
-            // server actually holds rather than the selection that was attempted.
+            // A refresh landed — show what the server actually holds rather than
+            // the selection that was attempted. This is what turns the sheet
+            // into the confirmation once an action goes through.
             selection = newValue
         }
     }
@@ -113,7 +128,6 @@ struct BookingSheet: View {
     }
 
     private func row(for item: TimeslotGroup) -> some View {
-        let name = groupsById[item.groupId]?.name ?? "Group \(item.groupId)"
         let isSelected = selection.contains(item.groupId)
         // Everything upstream would refuse is already off the table here, so
         // the row explains itself rather than sending a request that can only
@@ -128,7 +142,7 @@ struct BookingSheet: View {
                     .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                     .font(.title3)
 
-                Text(name)
+                Text(name(of: item.groupId))
                     .font(.body)
 
                 Spacer()
@@ -153,13 +167,7 @@ struct BookingSheet: View {
     private var footer: some View {
         VStack(spacing: 10) {
             if let feedback {
-                notice(
-                    title: feedback.title,
-                    message: feedback.message,
-                    details: feedback.details,
-                    icon: "exclamationmark.triangle.fill",
-                    tint: .red
-                )
+                notice(feedback)
             }
 
             Button(action: submit) {
@@ -185,23 +193,23 @@ struct BookingSheet: View {
         }
     }
 
-    private func notice(title: String, message: String, details: [String], icon: String, tint: Color) -> some View {
+    private func notice(_ feedback: ActionFeedback) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label(title, systemImage: icon)
+            Label(feedback.title, systemImage: feedback.kind.icon)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(tint)
-            Text(message)
+                .foregroundStyle(feedback.kind.tint)
+            Text(feedback.message)
                 .font(.caption)
                 .foregroundStyle(.primary)
-            ForEach(details, id: \.self) { detail in
-                Text("• \(detail)")
+            ForEach(feedback.details, id: \.self) { detail in
+                Text(verbatim: "• \(detail)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .background(feedback.kind.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var visibleGroups: [TimeslotGroup] {
@@ -304,20 +312,41 @@ struct BookingSheet: View {
     /// booking again.
     private var limitHint: String? {
         if overSlotLimit {
-            return "At most \(LaundryStore.maxGroupsPerBooking) groups per booking."
+            return String(
+                localized: "At most \(LaundryStore.maxGroupsPerBooking) groups per booking.",
+                comment: "Hint under the submit button: Aptus's hard limit per action"
+            )
         }
         if overAccountLimit, let max = maxFutureSessions {
-            return "That would be \(projectedTotal) sessions of \(max) — SSSB may turn it down."
+            return String(
+                localized: "That would be \(projectedTotal) sessions of \(max) — SSSB may turn it down.",
+                comment: "Hint under the submit button: over the laundry room's published session limit"
+            )
         }
         return nil
     }
 
     private var actionTitle: String {
         switch (toBook.isEmpty, toCancel.isEmpty) {
-        case (false, true): return toBook.count > 1 ? "Book \(toBook.count)" : "Book"
-        case (true, false): return toCancel.count > 1 ? "Cancel \(toCancel.count)" : "Cancel"
-        case (false, false): return "Apply changes"
-        default: return "No changes"
+        case (false, true):
+            return toBook.count > 1
+                ? String(localized: "Book \(toBook.count)", comment: "Submit button when several groups will be booked")
+                : String(localized: "Book", comment: "Submit button when one group will be booked")
+        case (true, false):
+            return toCancel.count > 1
+                ? String(localized: "Cancel \(toCancel.count)", comment: "Submit button when several groups will be released")
+                // Explicit key: this "Cancel" releases a booking, where the one
+                // in Settings' sign-out alert dismisses a dialog. English spells
+                // both the same way; most languages do not.
+                : String(
+                    localized: "booking.action.cancel",
+                    defaultValue: "Cancel",
+                    comment: "Submit button when one group will be released"
+                )
+        case (false, false):
+            return String(localized: "Apply changes", comment: "Submit button when the sheet both books and cancels")
+        default:
+            return String(localized: "No changes", comment: "Disabled submit button when nothing is selected")
         }
     }
 
@@ -353,14 +382,68 @@ struct BookingSheet: View {
                 dismiss()
                 return
             }
-            if outcome.isFullSuccess {
-                dismiss()
-            } else {
-                // Stay open with the reason visible — dismissing here is what made
-                // failures look like nothing had happened at all.
-                feedback = makeFeedback(from: outcome, attempted: attempted)
-            }
+            // The sheet stays open either way: it has already refreshed itself
+            // from the store, so it is the receipt for what just happened —
+            // whether that is a booking, a cancellation, or a reason it failed.
+            feedback = outcome.isFullSuccess
+                ? successFeedback(for: attempted)
+                : makeFeedback(from: outcome, attempted: attempted)
         }
+    }
+
+    /// The confirmation the sheet shows in place of dismissing itself. Written
+    /// from what was asked for rather than what came back, because a full
+    /// success is exactly the two lists going through.
+    private func successFeedback(for attempted: (book: [Int], cancel: [Int])) -> ActionFeedback {
+        let booked = names(of: attempted.book)
+        let cancelled = names(of: attempted.cancel)
+        switch (attempted.book.isEmpty, attempted.cancel.isEmpty) {
+        case (false, true):
+            return ActionFeedback(
+                kind: .success,
+                title: String(localized: "Booked", comment: "Receipt heading after a successful booking"),
+                message: attempted.book.count > 1
+                    ? String(
+                        localized: "\(booked) are yours. Tag in within 15 minutes of the start or the booking is released.",
+                        comment: "Receipt after booking several groups"
+                    )
+                    : String(
+                        localized: "\(booked) is yours. Tag in within 15 minutes of the start or the booking is released.",
+                        comment: "Receipt after booking one group"
+                    )
+            )
+        case (true, false):
+            return ActionFeedback(
+                kind: .success,
+                title: String(localized: "Cancelled", comment: "Receipt heading after a successful cancellation"),
+                message: attempted.cancel.count > 1
+                    ? String(
+                        localized: "\(cancelled) are free for anyone to book now.",
+                        comment: "Receipt after releasing several groups"
+                    )
+                    : String(
+                        localized: "\(cancelled) is free for anyone to book now.",
+                        comment: "Receipt after releasing one group"
+                    )
+            )
+        default:
+            return ActionFeedback(
+                kind: .success,
+                title: String(localized: "Changes applied", comment: "Receipt heading after booking and cancelling at once"),
+                message: String(
+                    localized: "Booked \(booked), cancelled \(cancelled).",
+                    comment: "Receipt after booking and cancelling at once; both placeholders are group names"
+                )
+            )
+        }
+    }
+
+    private func names(of groupIds: [Int]) -> String {
+        groupIds.map(name(of:)).formatted(.list(type: .and))
+    }
+
+    private func name(of groupId: Int) -> String {
+        LaundryFormat.groupName(groupId, in: groupsById)
     }
 
     private func makeFeedback(
@@ -369,9 +452,9 @@ struct BookingSheet: View {
     ) -> ActionFeedback {
         if let error = outcome.requestError {
             return ActionFeedback(
+                kind: .failure,
                 title: ErrorPresenter.headline(for: error),
-                message: ErrorPresenter.explanation(for: error),
-                details: []
+                message: ErrorPresenter.explanation(for: error)
             )
         }
 
@@ -379,34 +462,38 @@ struct BookingSheet: View {
         // Every group gets a line, successes included — after a partial failure
         // the only thing that helps is knowing exactly where things landed.
         let details = outcome.results.map { item in
-            let name = groupsById[item.groupId]?.name ?? "Group \(item.groupId)"
-            return ErrorPresenter.summary(for: item.result, action: item.action, group: name)
+            ErrorPresenter.summary(for: item.result, action: item.action, group: name(of: item.groupId))
         }
 
         let title: String
         let message: String
         if succeeded.isEmpty {
             let onlyCancelling = attempted.book.isEmpty
-            title = onlyCancelling ? "Cancellation didn’t go through" : "Booking didn’t go through"
+            title = onlyCancelling
+                ? ErrorPresenter.cancellationFailedHeadline
+                : ErrorPresenter.bookingFailedHeadline
             message = onlyCancelling
-                ? "Nothing was cancelled — your booking is unchanged."
-                : "Nothing was booked — the timeslot is unchanged."
+                ? String(
+                    localized: "Nothing was cancelled — your booking is unchanged.",
+                    comment: "Body when a cancellation failed outright"
+                )
+                : String(
+                    localized: "Nothing was booked — the timeslot is unchanged.",
+                    comment: "Body when a booking failed outright"
+                )
         } else {
-            title = "Only part of it worked"
-            message = "\(succeeded.count) of \(outcome.results.count) groups went through:"
+            title = String(localized: "Only part of it worked", comment: "Heading when some groups succeeded and others didn't")
+            message = String(
+                localized: "\(succeeded.count) of \(outcome.results.count) groups went through:",
+                comment: "Body introducing the per-group breakdown after a partial failure"
+            )
         }
-        return ActionFeedback(title: title, message: message, details: details)
+        return ActionFeedback(kind: .failure, title: title, message: message, details: details)
     }
 
+    /// The same phrase the week list puts in its section headers, from the one
+    /// formatter that knows how the display language orders it.
     private var weekdayLabel: String {
-        let parser = DateFormatter()
-        parser.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        parser.dateFormat = "yyyy-MM-dd"
-        parser.locale = Locale(identifier: "en_US_POSIX")
-        guard let date = parser.date(from: current.localDate) else { return current.localDate }
-        let printer = DateFormatter()
-        printer.timeZone = TimeZone(identifier: "Europe/Stockholm")
-        printer.dateFormat = "EEEE, d MMM"
-        return printer.string(from: date)
+        LaundryFormat.dayLabel(current.localDate)
     }
 }

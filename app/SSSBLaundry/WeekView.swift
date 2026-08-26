@@ -18,7 +18,6 @@ struct WeekView: View {
     @AppStorage(ActiveGroupsSetting.hiddenIdsKey) private var hiddenGroupsRaw: String = ""
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
     @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
-    @AppStorage(NotificationSetting.alertKey) private var notificationAlert: BookingAlert = NotificationSetting.defaultAlert
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
     @State private var showingNotificationPrompt = false
     @State private var showingDatePicker = false
@@ -64,6 +63,11 @@ struct WeekView: View {
                         hiddenGroups: hiddenGroups,
                         store: store
                     )
+                    // The sheet stays open once a booking goes through, so it is
+                    // the view that has to raise the reminder ask while it is up.
+                    .notificationOffer(isPresented: $showingNotificationPrompt) {
+                        enableNotifications()
+                    }
                 }
                 .sheet(isPresented: $showingSettings) {
                     SettingsView(allGroups: store.allGroups)
@@ -72,7 +76,7 @@ struct WeekView: View {
                 // several are stacked on the same view, which is how load and
                 // booking failures ended up showing nothing at all.
                 .alert(
-                    store.lastError.map(ErrorPresenter.headline) ?? "Something went wrong",
+                    store.lastError.map(ErrorPresenter.headline) ?? ErrorPresenter.genericHeadline,
                     isPresented: errorAlertBinding,
                     presenting: store.lastError
                 ) { _ in
@@ -92,9 +96,9 @@ struct WeekView: View {
                         offerNotificationsAfterBooking()
                     }
                 }
-                // On the list rather than in the booking sheet: the sheet is
-                // already dismissing when a success lands, and a long-press
-                // action never opens one at all.
+                // On the list rather than in the booking sheet: the list is up
+                // for every action, whether it came from the sheet or from a
+                // long press, and one place to fire means one haptic.
                 .sensoryFeedback(trigger: store.lastOutcome?.id) { _, _ in
                     store.lastOutcome?.haptic
                 }
@@ -118,12 +122,14 @@ struct WeekView: View {
                 }
         }
         // Sits on the NavigationStack, not on `content`: the error alert already
-        // owns that view and SwiftUI silently drops a second one.
-        .alert("Remind you before laundry?", isPresented: $showingNotificationPrompt) {
-            Button("Turn on reminders") { enableNotifications() }
-            Button("Not now", role: .cancel) {}
-        } message: {
-            Text(notificationPromptMessage)
+        // owns that view and SwiftUI silently drops a second one. Stands down
+        // while the booking sheet is up, because the sheet raises the same ask
+        // from on top.
+        .notificationOffer(
+            isPresented: $showingNotificationPrompt,
+            active: selectedTimeslot == nil
+        ) {
+            enableNotifications()
         }
     }
 
@@ -184,23 +190,14 @@ struct WeekView: View {
         Task { await store.jump(to: date) }
     }
 
-    private var notificationPromptMessage: String {
-        let lead: String
-        switch notificationAlert {
-        case .off, .atStart: lead = "when your booking starts"
-        default: lead = "\(notificationAlert.leadLabel) before your booking starts"
-        }
-        return "Get a reminder \(lead). Bookings are released 15 minutes after the start unless you tag in."
-    }
-
     /// Asked once, right after the first booking — that is when the reminder is
     /// worth something, so that is when we ask for permission.
     private func offerNotificationsAfterBooking() {
         guard !notificationsEnabled, !notificationsPrompted else { return }
         Task {
             guard await PushService.authorizationStatus() == .notDetermined else { return }
-            // Wait out the booking sheet's dismissal — an alert raised mid-dismiss
-            // is dropped without a trace.
+            // A beat first, so the ask follows the confirmation rather than
+            // landing on top of it.
             try? await Task.sleep(for: .milliseconds(700))
             showingNotificationPrompt = true
         }
@@ -343,7 +340,11 @@ struct WeekView: View {
             Button {
                 act(on: ts, book: [group.groupId], cancel: [])
             } label: {
-                Label(named ? "Book \(groupName(group.groupId))" : "Book", systemImage: "plus.circle")
+                if named {
+                    Label("Book \(groupName(group.groupId))", systemImage: "plus.circle")
+                } else {
+                    Label("Book", systemImage: "plus.circle")
+                }
             }
         }
 
@@ -382,7 +383,11 @@ struct WeekView: View {
             Button(role: .destructive) {
                 askToCancel([group.groupId], in: ts, named: named)
             } label: {
-                Label(named ? "Cancel \(groupName(group.groupId))" : "Cancel booking", systemImage: "xmark.circle")
+                if named {
+                    Label("Cancel \(groupName(group.groupId))", systemImage: "xmark.circle")
+                } else {
+                    Label("Cancel booking", systemImage: "xmark.circle")
+                }
             }
         }
     }
@@ -393,14 +398,23 @@ struct WeekView: View {
     /// things this menu offers.
     private func askToCancel(_ groupIds: [Int], in ts: Timeslot, named: Bool) {
         let ids = groupIds.sorted()
-        let names = ids.map(groupName).joined(separator: " and ")
-        let subject = named ? "\(names), \(ts.dayAndTime)" : ts.dayAndTime
-        let plural = ids.count > 1
+        // Punctuation, not copy: the names and the time are both already in the
+        // display language by the time they get here.
+        let subject = named
+            ? "\(LaundryFormat.groupNames(ids, in: store.groupsById)), \(ts.dayAndTime)"
+            : ts.dayAndTime
         pendingCancel = PendingCancel(
             timeslot: ts,
             groupIds: ids,
-            message: "\(subject) \(plural ? "are" : "is") released the moment you cancel"
-                + " — anyone else can book \(plural ? "them" : "it") then."
+            message: ids.count > 1
+                ? String(
+                    localized: "\(subject) are released the moment you cancel — anyone else can book them then.",
+                    comment: "Warning before releasing several booked groups"
+                )
+                : String(
+                    localized: "\(subject) is released the moment you cancel — anyone else can book it then.",
+                    comment: "Warning before releasing one booked group"
+                )
         )
     }
 
@@ -419,7 +433,7 @@ struct WeekView: View {
     }
 
     private func groupName(_ id: Int) -> String {
-        store.groupsById[id]?.name ?? "Group \(id)"
+        LaundryFormat.groupName(id, in: store.groupsById)
     }
 
     private func ownGroupIds(in ts: Timeslot) -> [Int] {
@@ -504,9 +518,12 @@ struct WeekView: View {
 
     private var emptyTitle: String {
         switch store.emptyReason {
-        case .beyondBookingWindow: "Not open for booking yet"
-        case .nothingFree: "No free timeslots"
-        case .noTimeslots: "No upcoming timeslots"
+        case .beyondBookingWindow:
+            String(localized: "Not open for booking yet", comment: "Empty state: the day is past SSSB's booking horizon")
+        case .nothingFree:
+            String(localized: "No free timeslots", comment: "Empty state: every timeslot is taken or has started")
+        case .noTimeslots:
+            String(localized: "No upcoming timeslots", comment: "Empty state: no schedule at all for this object number")
         }
     }
 
@@ -520,11 +537,20 @@ struct WeekView: View {
     private var emptyMessage: String {
         switch store.emptyReason {
         case .beyondBookingWindow:
-            "SSSB opens the laundry schedule a few weeks ahead. Nothing from \(LaundryFormat.dayLabel(store.anchorDate)) can be booked yet."
+            String(
+                localized: "SSSB opens the laundry schedule a few weeks ahead. Nothing from \(LaundryFormat.dayLabel(store.anchorDate)) can be booked yet.",
+                comment: "Empty state body; the placeholder is a day like \"Monday 1 Sep\""
+            )
         case .nothingFree:
-            "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back."
+            String(
+                localized: "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back.",
+                comment: "Empty state body when the week is full"
+            )
         case .noTimeslots:
-            "Nothing is scheduled for this laundry room right now."
+            String(
+                localized: "Nothing is scheduled for this laundry room right now.",
+                comment: "Empty state body when the portal lists no timeslots at all"
+            )
         }
     }
 

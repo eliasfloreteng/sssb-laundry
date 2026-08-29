@@ -239,6 +239,13 @@ The app ships via TestFlight under bundle id `se.floreteng.SSSBLaundry`. Each up
 
 `CURRENT_PROJECT_VERSION` in the pbxproj is the *next* build number to use only if every past upload was committed. If an upload fails with `ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE` ("The bundle version must be higher than the previously uploaded version"), check the actual latest build in App Store Connect and bump past it.
 
+Steps 1 and 2 also have a workflow: `.github/workflows/bump-build.yml` bumps
+`CURRENT_PROJECT_VERSION`, commits it and cuts a GitHub release tagged
+`v<MARKETING_VERSION>-<CURRENT_PROJECT_VERSION>`. Run it from the Actions tab when an
+update is ready; it also runs itself once the latest release is 80 days old, so an
+expiring TestFlight build has a fresh build number waiting before the 90 days are up.
+The archive and the upload are still steps 3–4 here, on a Mac.
+
 1. **Bump the version** in the `SSSBLaundry` target → General, or directly in `SSSBLaundry.xcodeproj/project.pbxproj`:
    - `CURRENT_PROJECT_VERSION` — increment for every upload (e.g. `1` → `2`).
    - `MARKETING_VERSION` — bump for user-visible releases (e.g. `1.0` → `1.1`).

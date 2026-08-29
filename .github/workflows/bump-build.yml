@@ -1,0 +1,93 @@
+name: Bump the build number
+
+# TestFlight builds expire 90 days after upload, so a fresh build number is due
+# well before that. Run it by hand for a real release, or let the daily schedule
+# notice that the last one has gone stale.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-build
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide whether a bump is due
+        id: due
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "Asked for by hand." >> "$GITHUB_STEP_SUMMARY"
+            echo "due=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          published=$(gh release view --json publishedAt --jq .publishedAt 2>/dev/null || true)
+          if [ -z "$published" ]; then
+            echo "No release yet." >> "$GITHUB_STEP_SUMMARY"
+            echo "due=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          age=$(( ( $(date -u +%s) - $(date -u -d "$published" +%s) ) / 86400 ))
+          echo "The latest release is $age days old." >> "$GITHUB_STEP_SUMMARY"
+          if [ "$age" -ge 80 ]; then
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "due=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The app and the widget extension share one build number; the test targets
+      # sit at 1 and are left alone, so the highest value in the file is the app's.
+      - name: Bump CURRENT_PROJECT_VERSION
+        id: version
+        if: steps.due.outputs.due == 'true'
+        run: |
+          set -euo pipefail
+          pbxproj=app/SSSBLaundry.xcodeproj/project.pbxproj
+          current=$(grep -oE 'CURRENT_PROJECT_VERSION = [0-9]+;' "$pbxproj" \
+            | grep -oE '[0-9]+' | sort -n | tail -1)
+          next=$(( current + 1 ))
+          sed -i "s/CURRENT_PROJECT_VERSION = $current;/CURRENT_PROJECT_VERSION = $next;/g" "$pbxproj"
+          marketing=$(grep -oE 'MARKETING_VERSION = [^;]+;' "$pbxproj" | head -1 \
+            | sed -E 's/MARKETING_VERSION = (.*);/\1/')
+          echo "build=$next" >> "$GITHUB_OUTPUT"
+          echo "marketing=$marketing" >> "$GITHUB_OUTPUT"
+          echo "tag=v$marketing-$next" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.due.outputs.due == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Bump the build number to ${{ steps.version.outputs.build }}" \
+            -- app/SSSBLaundry.xcodeproj/project.pbxproj
+          git push
+
+      - name: Create the release
+        if: steps.due.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BUILD: ${{ steps.version.outputs.build }}
+          MARKETING: ${{ steps.version.outputs.marketing }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          Build $BUILD of $MARKETING, ready to archive.
+
+          Nothing here uploads to TestFlight — archive and upload from Xcode, as
+          described in [app/README.md](https://github.com/$REPO/blob/main/app/README.md#publishing-an-update-to-testflight).
+          EOF
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "$MARKETING ($BUILD)" --notes-file "$RUNNER_TEMP/notes.md"

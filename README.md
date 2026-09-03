@@ -13,6 +13,9 @@ Two halves of one product, in one repo:
 The app is distributed through TestFlight under `se.floreteng.SSSBLaundry`; the API runs
 at `https://sssb-laundry.eliasf.se`.
 
+That same host serves the app's landing page at its root, out of
+[`api/site`](./api/site) — one static page, no build step.
+
 ## What it does
 
 - The whole week of timeslots for your apartment, with infinite scroll into future weeks

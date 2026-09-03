@@ -37,6 +37,12 @@ otherwise stateless; only push state is persisted.
 | `PUT`/`DELETE /notifications/device` | Register or drop a device and its reminder preferences     |
 | `POST /notifications/test`         | Fires a reminder at this object id's devices (non-prod only) |
 | `GET /health`                      | Liveness, used by the container healthcheck                  |
+| `GET /`                            | The app's landing page, static from `site/`                  |
+
+`site/` is served by `@fastify/static` at the root: one hand-written `index.html` and
+the app icon, copied from `app/SSSBLaundry/Assets.xcassets`. Every route above is
+registered explicitly and so wins over the wildcard the plugin installs. Nothing about
+it is generated, and it loads no fonts or scripts from anywhere else.
 
 There is no pagination cursor: the next page is `week.toDate + 1 day`, and an empty
 `timeslots` is the end of what this object id may book.

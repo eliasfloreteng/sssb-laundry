@@ -14,6 +14,7 @@ ENV HOST=0.0.0.0
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock* ./
 COPY src ./src
+COPY site ./site
 
 # Writable by the runtime user for runs without a mount; a bind mount at /data
 # must be chowned to uid 1000 on the host instead.

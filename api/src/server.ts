@@ -1,4 +1,6 @@
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
+import fastifyStatic from "@fastify/static";
+import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment } from "./db.js";
@@ -45,6 +47,13 @@ export function buildServer(args?: {
   // Built here so it shares the Aptus session cache and the request logger, but
   // its timers are only started by startServer() — tests must stay timer-free.
   const push = args?.pushService !== undefined ? args.pushService : createPushService(aptus, app.log);
+
+  // The app's landing page, on the same host the app already talks to. `site/`
+  // is a flat folder of static files; every route below is registered
+  // explicitly and so wins over the wildcard @fastify/static installs.
+  app.register(fastifyStatic, {
+    root: fileURLToPath(new URL("../site", import.meta.url))
+  });
 
   app.get("/health", async () => ({ ok: true }));
 

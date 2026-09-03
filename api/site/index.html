@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSSB Laundry · Book laundry timeslots from your phone</title>
+<meta name="description" content="Book SSSB laundry timeslots from your phone instead of the Aptus terminal in the basement. The whole week for your address, reminders before your slot, and a countdown in the Dynamic Island.">
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="theme-color" content="#064a88">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSSB Laundry">
+<meta property="og:description" content="Book the laundry room from bed. The whole week of SSSB timeslots for your address, on your phone.">
+<meta property="og:image" content="/icon.png">
+<meta name="twitter:card" content="summary">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #eceff3;
+    --surface: #ffffff;
+    --line: #dde2e9;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --brand: #064a88;
+    --brand-hover: #05386a;
+    --on-brand: #ffffff;
+    --band: #064a88;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --rounded: ui-rounded, "SF Pro Rounded", var(--sans);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1626;
+      --surface: #182231;
+      --line: #2c3849;
+      --ink: #e6ebf2;
+      --muted: #93a1b5;
+      --brand: #3e8bc8;
+      --brand-hover: #58a0d9;
+      --on-brand: #0a1320;
+      --band: #10395f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.022em; }
+  p { margin: 0; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 62px 0; }
+
+  /* Header */
+  header .wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding-top: 22px; padding-bottom: 22px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; font-weight: 650; letter-spacing: -0.01em; text-decoration: none; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; display: block; }
+  .ghost {
+    text-decoration: none; font-size: 15px; font-weight: 600; color: var(--brand);
+    border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent);
+    padding: 7px 15px; border-radius: 999px; white-space: nowrap;
+  }
+  .ghost:hover { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+
+  /* Hero */
+  .hero { padding-top: 28px; padding-bottom: 58px; }
+  .hero .wrap { display: grid; gap: 56px; align-items: center; }
+  @media (min-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1.03fr) minmax(0, 0.97fr); } }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); line-height: 1.03; letter-spacing: -0.032em; }
+  .lede { margin-top: 20px; font-size: clamp(1.05rem, 2vw, 1.19rem); color: var(--muted); max-width: 30em; }
+  .cta-row { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+  .btn {
+    display: inline-block; text-decoration: none; font-weight: 650; font-size: 17px;
+    background: var(--brand); color: var(--on-brand);
+    padding: 14px 24px; border-radius: 13px;
+    box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--brand) 80%, transparent);
+  }
+  .btn:hover { background: var(--brand-hover); }
+  .fine { font-size: 14.5px; color: var(--muted); }
+  .hero .fine { margin-top: 18px; }
+
+  /* Phone */
+  .phone {
+    width: 300px; max-width: 100%; margin: 0 auto;
+    background: #10161f; padding: 9px; border-radius: 46px;
+    box-shadow: 0 34px 60px -28px rgba(6, 74, 136, 0.55), 0 10px 26px -14px rgba(15, 23, 42, 0.3);
+  }
+  .screen {
+    background: #fff; color: #10161f; border-radius: 38px; overflow: hidden;
+    padding: 10px 0 0; position: relative; height: 556px;
+    font-size: 15px;
+  }
+  .island {
+    width: 152px; height: 34px; margin: 0 auto; background: #000; border-radius: 20px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 11px;
+    color: #6fb0e0;
+  }
+  .island svg { width: 15px; height: 15px; }
+  .island .timer { font-family: var(--rounded); font-weight: 650; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .nav {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 18px 18px 6px;
+  }
+  .nav h3 { font-size: 25px; letter-spacing: -0.03em; }
+  .nav svg { width: 19px; height: 19px; color: #064a88; }
+  .day { padding: 16px 18px 5px; font-size: 12.5px; font-weight: 650; color: #7c8798; letter-spacing: 0.01em; }
+  .slot { display: flex; align-items: center; gap: 12px; padding: 9px 18px; }
+  .slot + .slot { border-top: 1px solid #eef1f4; }
+  .t { width: 46px; flex: none; font-family: var(--rounded); font-variant-numeric: tabular-nums; }
+  .t b { display: block; font-size: 15px; font-weight: 640; }
+  .t span { display: block; font-size: 11.5px; color: #8b95a4; }
+  .chips { display: flex; gap: 6px; flex: 1; min-width: 0; }
+  .chip {
+    font-size: 11.5px; font-weight: 550; padding: 4px 9px; border-radius: 999px;
+    border: 1px solid #dde2e9; background: #fff; white-space: nowrap;
+  }
+  .chip.own { background: #064a88; border-color: #064a88; color: #fff; }
+  .slot .mark { flex: none; color: #064a88; display: flex; }
+  .slot .mark svg { width: 17px; height: 17px; }
+  .slot .mark.thin { color: #b6bfcb; }
+  .slot .mark.thin svg { width: 11px; height: 11px; }
+  /* The screenshot stays light whatever the page is set to, so the bezel has
+     to lift off a dark background rather than blend into it. */
+  @media (prefers-color-scheme: dark) {
+    .phone { background: #273244; }
+  }
+  .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 78%); }
+
+  /* Comparison */
+  h2 { font-size: clamp(1.6rem, 3.4vw, 2.05rem); letter-spacing: -0.028em; }
+  .sub { margin-top: 12px; color: var(--muted); max-width: 34em; }
+  .table { margin-top: 34px; border-top: 1px solid var(--line); }
+  .row { display: grid; gap: 6px 40px; padding: 18px 2px; border-bottom: 1px solid var(--line); align-items: baseline; }
+  @media (min-width: 760px) { .row { grid-template-columns: 1fr 1fr; gap: 40px; } }
+  .row .then { color: var(--muted); }
+  .row .now { font-weight: 550; }
+  .head { padding: 0 2px 12px; font-size: 13px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border-bottom: 0; display: none; }
+  @media (min-width: 760px) { .head { display: grid; } .head .now { color: var(--brand); font-weight: 650; } }
+  .lbl { display: inline; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-right: 7px; }
+  @media (min-width: 760px) { .lbl { display: none; } }
+
+  /* Features */
+  .grid { margin-top: 34px; display: grid; gap: 14px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 22px 24px; }
+  .card h3 { font-size: 17px; letter-spacing: -0.015em; }
+  .card p { margin-top: 7px; color: var(--muted); font-size: 15.5px; }
+
+  /* Closing band */
+  .band {
+    background: var(--band); color: #fff; border-radius: 24px;
+    padding: 52px 32px; text-align: center;
+  }
+  .band h2 { color: #fff; }
+  .band p { margin: 12px auto 0; color: #c7dcf0; max-width: 30em; }
+  .band .btn { margin-top: 26px; background: #fff; color: #064a88; box-shadow: none; }
+  .band .btn:hover { background: #eaf1f8; }
+
+  footer { padding: 44px 0 64px; border-top: 1px solid var(--line); }
+  footer p { color: var(--muted); font-size: 14.5px; max-width: 44em; }
+  footer p + p { margin-top: 10px; }
+  footer a { color: var(--brand); text-decoration-color: color-mix(in srgb, var(--brand) 40%, transparent); text-underline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/icon.png" alt=""> SSSB Laundry</a>
+    <a class="ghost" href="https://testflight.apple.com/join/gn5fHjdC">TestFlight</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1>Book the laundry room from bed.</h1>
+      <p class="lede">The whole week of timeslots for your address, on your phone. Book in one tap, get a reminder before your slot starts, and never type your object number twice.</p>
+      <div class="cta-row">
+        <a class="btn" href="https://testflight.apple.com/join/gn5fHjdC">Get it on TestFlight</a>
+      </div>
+      <p class="fine">Free. iPhone on iOS 26 or later. Sign in with the object number from your rental agreement.</p>
+    </div>
+
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <div class="island">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4.2" y="2.6" width="15.6" height="18.8" rx="3.6"/><circle cx="12" cy="14" r="4.9"/><path d="M7 6.6h2.2"/><circle cx="16.6" cy="6.6" r="1" fill="currentColor" stroke="none"/></svg>
+          <span class="timer">42:07</span>
+        </div>
+
+        <div class="nav">
+          <h3>Laundry</h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.2" y="4.6" width="17.6" height="16.2" rx="3"/><path d="M8 2.8v3.4M16 2.8v3.4M3.4 10h17.2"/></svg>
+        </div>
+
+        <div class="day">Monday 7 September</div>
+        <div class="slot">
+          <div class="t"><b>08:00</b><span>10:00</span></div>
+          <div class="chips"><span class="chip">Grupp 1</span><span class="chip">Grupp 2</span></div>
+          <span class="mark thin"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l8 8-8 8"/></svg></span>
+        </div>
+        <div class="slot">
+          <div class="t"><b>10:00</b><span>12:00</span></div>
+          <div class="chips"><span class="chip own">Grupp 1</span></div>
+          <span class="mark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.9 7.4l-5.8 6.5a1 1 0 01-1.5 0L6.9 13a1 1 0 111.5-1.3l2 2.2 5-5.7a1 1 0 111.5 1.3z"/></svg></span>
+        </div>
+        <div class="slot">
+          <div class="t"><b>12:00</b><span>14:00</span></div>
+          <div class="chips"><span class="chip">Grupp 2</span></div>
+          <span class="mark thin"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l8 8-8 8"/></svg></span>
+        </div>
+        <div class="slot">
+          <div class="t"><b>14:00</b><span>16:00</span></div>
+          <div class="chips"><span class="chip">Grupp 1</span><span class="chip">Grupp 2</span></div>
+          <span class="mark thin"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l8 8-8 8"/></svg></span>
+        </div>
+
+        <div class="day">Tuesday 8 September</div>
+        <div class="slot">
+          <div class="t"><b>08:00</b><span>10:00</span></div>
+          <div class="chips"><span class="chip">Grupp 1</span></div>
+          <span class="mark thin"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l8 8-8 8"/></svg></span>
+        </div>
+        <div class="slot">
+          <div class="t"><b>10:00</b><span>12:00</span></div>
+          <div class="chips"><span class="chip">Grupp 1</span><span class="chip">Grupp 2</span></div>
+          <span class="mark thin"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l8 8-8 8"/></svg></span>
+        </div>
+        <div class="fade"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What changes</h2>
+    <p class="sub">Same bookings, same laundry room. The app talks to the portal SSSB already runs, so a booking made here is the booking on the terminal downstairs.</p>
+
+    <div class="table">
+      <div class="row head"><div class="then">Aptus portal</div><div class="now">SSSB Laundry</div></div>
+      <div class="row">
+        <div class="then"><span class="lbl">Aptus</span>Your object number, typed in again every time.</div>
+        <div class="now"><span class="lbl">App</span>Signed in once, and it stays signed in.</div>
+      </div>
+      <div class="row">
+        <div class="then"><span class="lbl">Aptus</span>A booking grid built for a desktop browser.</div>
+        <div class="now"><span class="lbl">App</span>The week as a list, scrolling on into the weeks ahead.</div>
+      </div>
+      <div class="row">
+        <div class="then"><span class="lbl">Aptus</span>Every slot around the clock, every group in the area.</div>
+        <div class="now"><span class="lbl">App</span>Filtered to the hours you would wash and the groups you can walk to.</div>
+      </div>
+      <div class="row">
+        <div class="then"><span class="lbl">Aptus</span>Nothing tells you the slot is coming.</div>
+        <div class="now"><span class="lbl">App</span>A reminder before it starts, and a countdown in the Dynamic Island.</div>
+      </div>
+      <div class="row">
+        <div class="then"><span class="lbl">Aptus</span>Booking a second group means going round again.</div>
+        <div class="now"><span class="lbl">App</span>Both groups booked, or released, in one action.</div>
+      </div>
+      <div class="row">
+        <div class="then"><span class="lbl">Aptus</span>The rules for your laundry room live on sssb.se.</div>
+        <div class="now"><span class="lbl">App</span>They sit next to the booking, picked by your address.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Everything else</h2>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Reminders that arrive</h3>
+        <p>A week, a day, an hour or ten minutes before, whichever you pick. They are sent from the server, so they reach you with the app closed, and for a booking someone else in your apartment made.</p>
+      </div>
+      <div class="card">
+        <h3>A countdown on the Lock Screen</h3>
+        <p>In the hour before your slot a Live Activity ticks down in the Dynamic Island, then keeps going through the fifteen minutes you have to tag in before the booking is released.</p>
+      </div>
+      <div class="card">
+        <h3>A list worth scrolling</h3>
+        <p>Hide the hours you would never book and the groups in the other building. Jump to a date instead of paging a week at a time, or long press a time to book it without opening anything.</p>
+      </div>
+      <div class="card">
+        <h3>The rules for your room</h3>
+        <p>Max future bookings, max per week and month, and how long your tag still opens the door after a session. Transcribed from sssb.se and shown for your street address.</p>
+      </div>
+      <div class="card">
+        <h3>Straight into your calendar</h3>
+        <p>Add a booking as a calendar event with an alert at the start, if a reminder on the Lock Screen is not enough.</p>
+      </div>
+      <div class="card">
+        <h3>Swedish when your phone is</h3>
+        <p>The whole app follows the language your phone is set to, with SSSB's own words for the object number, the groups and the laundry room.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="beta">
+  <div class="wrap">
+    <div class="band">
+      <h2>Try it this week</h2>
+      <p>The beta is open. Open this on your iPhone and TestFlight takes it from there.</p>
+      <a class="btn" href="https://testflight.apple.com/join/gn5fHjdC">Join the TestFlight beta</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Made by Elias Floreteng. Not affiliated with SSSB or Aptus.</p>
+    <p>Your object number is stored on your phone. It reaches the server on every request, which uses it to sign in to SSSB's own booking portal, and is kept there only while you have reminders switched on, so a new booking can be spotted and a reminder queued for it.</p>
+    <p><a href="https://github.com/eliasfloreteng/sssb-laundry">Source on GitHub</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import fastifyStatic from "@fastify/static";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
@@ -56,6 +57,22 @@ export function buildServer(args?: {
   });
 
   app.get("/health", async () => ({ ok: true }));
+
+  // Universal links. iOS fetches this from `/.well-known/` and nowhere else, and
+  // insists on `application/json` — which the static plugin cannot give an
+  // extensionless file, so the route is explicit and sets the type itself.
+  app.get("/.well-known/apple-app-site-association", async (_request, reply) => {
+    reply.type("application/json");
+    return APP_SITE_ASSOCIATION;
+  });
+
+  // An invite. Reached only when the app is *not* installed — with it, iOS opens
+  // the app on this URL instead of loading anything. The object number is in the
+  // fragment, so it never arrives here and never reaches the log; the page reads
+  // it in the browser.
+  app.get("/invite", (_request, reply) => {
+    reply.sendFile("invite.html");
+  });
 
   app.get<{ Querystring: TimeslotsQuery }>("/timeslots", async (request) => {
     const objectId = requireObjectId(request);
@@ -180,6 +197,12 @@ export function buildServer(args?: {
   const server = Object.assign(app, { push }) as unknown as LaundryServer;
   return server;
 }
+
+/** Served verbatim under `/.well-known/`; the app's half is the `applinks:` entitlement. */
+const APP_SITE_ASSOCIATION = readFileSync(
+  fileURLToPath(new URL("../site/apple-app-site-association", import.meta.url)),
+  "utf8"
+);
 
 /** Per-group statuses that count as a real state change worth notifying about. */
 const BOOK_SUCCESS = new Set(["booked"]);

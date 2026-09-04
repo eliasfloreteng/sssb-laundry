@@ -14,6 +14,8 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - Jump straight to a date with the calendar button, instead of paging a week at a time
 - Long press a timeslot to book, cancel, add it to Calendar or copy the time without opening the sheet
 - Haptic feedback when a booking action lands, telling a clean result from a partial one
+- Invite the rest of the apartment with one link, which signs them in on the spot if they
+  have the app and survives a TestFlight install on the clipboard if they don't
 
 ## Requirements
 
@@ -46,7 +48,8 @@ SSSBLaundry/
   LaundryRoomPicker.swift  Street-address picker for the laundry room rules
   LaundryRooms.swift       SSSB's per-room rules, transcribed from sssb.se
   BookingRules.swift       What Aptus refuses, and what SSSB only publishes
-  ObjectIdSetupView.swift  First-run sign-in
+  ObjectIdSetupView.swift  First-run sign-in, and the paste that accepts an invite
+  InviteLink.swift         Building and reading the one link the app shares
   GroupChip.swift          Group status chip
   APIClient.swift          HTTP client (URLSession)
   Models.swift             Decodable DTOs and settings helpers
@@ -229,6 +232,27 @@ the glyph.
   everyone immediately and there is no undo, so the long-press cancel goes through a
   confirmation. It is a `.confirmationDialog` on the `List`, not on `content`, which
   already owns the error alert; likewise `CalendarEventFlow`'s alert.
+- **An invite is a universal link, and the object number is in the fragment.**
+  `https://sssb-laundry.eliasf.se/invite#1234-5678-901` — the fragment because no browser
+  sends one to a server, and the number is username *and* password upstream. The three
+  places that have to agree are `InviteLink.path`, the `applinks:` entry in
+  `SSSBLaundry.entitlements`, and `api/site/apple-app-site-association`; the App ID in
+  that last one is `$(DEVELOPMENT_TEAM).$(PRODUCT_BUNDLE_IDENTIFIER)`. Universal links
+  reach SwiftUI two ways depending on whether the app was already running, so `RootView`
+  handles `onOpenURL` *and* `onContinueUserActivity(NSUserActivityTypeBrowsingWeb)` —
+  wiring only one of them works right up until the other case.
+- **The deferred half of the invite is the clipboard, and iOS will not let us read it.**
+  Someone without the app lands on `api/site/invite.html`, which copies the link before
+  sending them to TestFlight. Reading `UIPasteboard.general.string` on the far side would
+  raise the system's "Allow Paste?" alert, so `ObjectIdSetupView` instead asks
+  `detectedPatterns(for:)` — which reports *shapes* without a prompt or the contents —
+  and offers a `PasteButton`, where the tap is the permission. Don't swap that for a
+  plain read.
+- **Signing out and switching go through `ObjectIdStore.replace(with:)`.** The server
+  pushes per object id, so the old registration has to be dropped and any Live Activity
+  ended before the new number is stored, or the phone keeps getting reminders for an
+  apartment it has left. The object number is deliberately not editable in Settings —
+  copy it or sign out, and an invite link is the only other way in.
 - **Hidden groups are stored as a comma-separated string of ids**
   (`activeGroups.hiddenIds`), because `@AppStorage` can't hold a `Set<Int>`. Go through
   `ActiveGroupsSetting.parse`/`encode` rather than rolling your own.
@@ -281,6 +305,11 @@ The stripped `PATH` matters: Xcode's IPA packaging step runs `/usr/bin/rsync` (o
 
 ### Things to keep working
 
+- The Associated Domains capability must stay on the App ID, or the entitlement fails to
+  sign. Xcode's automatic signing adds it with `-allowProvisioningUpdates`; a universal
+  link that suddenly opens Safari instead of the app is the symptom of it having been
+  dropped. iOS caches `apple-app-site-association` at install time, so a change to it
+  only reaches an existing install on the next update.
 - `NSCalendarsWriteOnlyAccessUsageDescription` must stay set (via `INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription` in the pbxproj) — App Review rejects builds that prompt for calendar access without it.
 - The backend at the URL in `Config.swift` must be reachable during Beta App Review.
 - App Store Connect → App Review Information should list a working demo object number so reviewers can get past the sign-in screen.

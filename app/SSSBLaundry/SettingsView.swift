@@ -20,11 +20,10 @@ struct SettingsView: View {
     @AppStorage(NotificationSetting.alertKey) private var alert: BookingAlert = NotificationSetting.defaultAlert
     @AppStorage(NotificationSetting.secondAlertKey) private var secondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
+    @AppStorage(InviteSetting.includeObjectIdKey) private var inviteIncludesObjectId: Bool = InviteSetting.defaultIncludeObjectId
     @Environment(\.dismiss) private var dismiss
-    @State private var unlocked = false
-    @State private var draft: String = ""
     @State private var confirmingSignOut = false
-    @FocusState private var objectIdFocused: Bool
+    @State private var copiedObjectId = false
     @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @State private var requestingAuthorization = false
 
@@ -33,47 +32,30 @@ struct SettingsView: View {
             List {
                 Section {
                     HStack {
-                        TextField("1234-5678-901", text: $draft)
+                        Text(objectId)
                             .font(.system(.body, design: .monospaced))
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .keyboardType(.asciiCapable)
-                            .focused($objectIdFocused)
-                            .submitLabel(.done)
-                            .onSubmit { commit() }
-                            // Locked, the field is a plain read-only value: it can
-                            // be long-pressed to copy but not tapped into.
-                            .allowsHitTesting(unlocked)
-
+                        Spacer(minLength: 12)
                         Button {
-                            if unlocked {
-                                commit()
-                            } else {
-                                unlocked = true
-                                objectIdFocused = true
-                            }
+                            copy()
                         } label: {
-                            Image(systemName: unlocked ? "lock.open" : "lock")
-                                .foregroundStyle(unlocked ? Color.accentColor : .secondary)
+                            Image(systemName: copiedObjectId ? "checkmark" : "doc.on.doc")
+                                .contentTransition(.symbolEffect(.replace))
                         }
                         .buttonStyle(.borderless)
-                        .accessibilityLabel(
-                            unlocked
-                                ? Text("Lock object number")
-                                : Text("Unlock object number to change it")
-                        )
+                        .accessibilityLabel(Text("Copy object number"))
                     }
                     .contextMenu {
-                        Button("Copy", systemImage: "doc.on.doc") {
-                            UIPasteboard.general.string = objectId
-                        }
-                        .disabled(objectId.isEmpty)
+                        Button("Copy", systemImage: "doc.on.doc") { copy() }
                     }
+
+                    Button("Sign out", role: .destructive) { confirmingSignOut = true }
                 } header: {
                     Text("Object number")
                 } footer: {
-                    Text("From your rental agreement. Tap the lock to change it, or clear it to sign out.")
+                    Text("From your rental agreement, and the same for everyone in your apartment. Sign out to use a different one.")
                 }
+
+                inviteSection
 
                 if allGroups.isEmpty {
                     Section {
@@ -165,21 +147,16 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        commit()
-                        // Leave the sheet up if commit raised the sign-out alert.
-                        if !confirmingSignOut { dismiss() }
-                    }
+                    Button("Done") { dismiss() }
                 }
             }
             .alert("Sign out?", isPresented: $confirmingSignOut) {
-                Button("Cancel", role: .cancel) { draft = objectId }
+                Button("Cancel", role: .cancel) {}
                 Button("Sign out", role: .destructive) { signOut() }
             } message: {
                 Text("Your bookings stay, but this phone stops seeing them and reminders end.")
             }
             .task {
-                draft = objectId
                 authorizationStatus = await PushService.authorizationStatus()
                 // The user may have flipped permission in iOS Settings behind our back.
                 if notificationsEnabled, authorizationStatus == .denied {
@@ -191,9 +168,27 @@ struct SettingsView: View {
             // before it means anything.
             .onChange(of: alert) { _, _ in PushService.syncToServer() }
             .onChange(of: secondAlert) { _, _ in PushService.syncToServer() }
-            // Tapping away from the field is as much a commit as hitting Done.
-            .onChange(of: objectIdFocused) { _, isFocused in
-                if !isFocused, unlocked { commit() }
+        }
+    }
+
+    /// One link, shared however the user likes. With the object number in it the
+    /// recipient lands in this same apartment; without, it is a pointer to the
+    /// app and nothing more. The number is a credential — it is username *and*
+    /// password upstream — so the footer says plainly what handing it over does.
+    @ViewBuilder
+    private var inviteSection: some View {
+        Section {
+            Toggle("Include object number", isOn: $inviteIncludesObjectId)
+            ShareLink(item: InviteLink.url(objectId: inviteIncludesObjectId ? objectId : nil)) {
+                Label("Share invite", systemImage: "square.and.arrow.up")
+            }
+        } header: {
+            Text("Invite others")
+        } footer: {
+            if inviteIncludesObjectId {
+                Text("Whoever opens the link is signed in to your object number and can book and cancel for your apartment. With the app installed it signs them in on the spot; without it, the number is copied for them and TestFlight takes over.")
+            } else {
+                Text("The link only points at the app. They sign in with an object number of their own.")
             }
         }
     }
@@ -281,38 +276,17 @@ struct SettingsView: View {
         UIApplication.shared.open(url)
     }
 
-    /// Locks the field again and applies whatever is in it. An empty field means
-    /// sign out, which is confirmed first so it can't happen by fumbling.
-    private func commit() {
-        objectIdFocused = false
-        unlocked = false
-        let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed != objectId else {
-            draft = objectId
-            return
+    private func copy() {
+        UIPasteboard.general.string = objectId
+        copiedObjectId = true
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            copiedObjectId = false
         }
-        guard !trimmed.isEmpty else {
-            confirmingSignOut = true
-            return
-        }
-        // The server pushes per object id, so the old registration has to go or
-        // this phone keeps getting reminders for an apartment it left.
-        if !objectId.isEmpty {
-            PushService.deregister(objectId: objectId)
-            Task { await LiveActivityService.endAll() }
-        }
-        objectId = trimmed
-        draft = trimmed
-        PushService.syncToServer()
     }
 
     private func signOut() {
-        // Deregister first: once the object id is gone the request can no longer
-        // be authenticated, and the server would keep pushing to this phone.
-        PushService.deregister(objectId: objectId)
-        Task { await LiveActivityService.endAll() }
-        objectId = ""
-        draft = ""
+        ObjectIdStore.replace(with: nil)
         dismiss()
     }
 

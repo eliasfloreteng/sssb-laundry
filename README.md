@@ -13,8 +13,8 @@ Two halves of one product, in one repo:
 The app is distributed through TestFlight under `se.floreteng.SSSBLaundry`; the API runs
 at `https://sssb-laundry.eliasf.se`.
 
-That same host serves the app's landing page at its root, out of
-[`api/site`](./api/site) — one static page, no build step.
+That same host serves the app's landing page at its root and its invite page at
+`/invite`, out of [`api/site`](./api/site) — static pages, no build step.
 
 ## What it does
 
@@ -27,6 +27,9 @@ That same host serves the app's landing page at its root, out of
 - A Live Activity in the hour before the slot, counting down to the start and then
   through the 15 minutes before the session is released again
 - Optional calendar event with a reminder at the timeslot start
+- An invite link that hands the rest of the apartment the same object number — opened on
+  a phone that has the app it signs them straight in, and on one that does not it copies
+  itself to the clipboard on the way to TestFlight
 
 Sign-in is the SSSB **object number** (`1234-5678-901`) — SSSB's own word for it, and
 what Aptus uses as both username and password. It is stored on the device and sent as
@@ -88,6 +91,14 @@ compile error.
   no user or group identity, so the server regenerates it at send time and the app must
   never construct, parse or persist it — always use the id from the latest
   `GET /timeslots`.
+- **An invite is a universal link, and it is spelled in three places.**
+  `InviteLink.path` in the app, the `applinks:` entry in
+  `app/SSSBLaundry/SSSBLaundry.entitlements`, and
+  `api/site/apple-app-site-association`, which the API serves from `/.well-known/` as
+  `application/json` and nowhere else. Change the path in one and the link quietly stops
+  opening the app and starts opening Safari. The object number travels in the URL
+  *fragment* precisely because the sensitivity note below applies to logs too: a fragment
+  is never sent to any server, while iOS still hands the whole URL to the app.
 - **Europe/Stockholm, always.** Portal dates arrive without a timezone, timeslots can
   span midnight, and DST is real. Neither side may fall back to the device's timezone.
 - **Object ids are sensitive.** They are username *and* password upstream. Never commit

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You've been invited · SSSB Laundry</title>
+<meta name="description" content="Someone shared their SSSB laundry room with you. Install the app from TestFlight and the object number comes with you.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="theme-color" content="#064a88">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #eceff3;
+    --surface: #ffffff;
+    --line: #dde2e9;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --brand: #064a88;
+    --brand-hover: #05386a;
+    --on-brand: #ffffff;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1626;
+      --surface: #182231;
+      --line: #2c3849;
+      --ink: #e6ebf2;
+      --muted: #93a1b5;
+      --brand: #3e8bc8;
+      --brand-hover: #58a0d9;
+      --on-brand: #0a1320;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px;
+    background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 17px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-align: center;
+  }
+  h1 { margin: 0; font-size: clamp(1.85rem, 6vw, 2.4rem); line-height: 1.1; letter-spacing: -0.03em; }
+  p { margin: 0; }
+
+  .card {
+    width: 100%; max-width: 430px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 24px; padding: 38px 28px 32px;
+    box-shadow: 0 30px 60px -34px rgba(6, 74, 136, 0.5);
+  }
+  .icon { width: 76px; height: 76px; border-radius: 18px; display: block; margin: 0 auto 22px; }
+  .lede { margin-top: 14px; color: var(--muted); }
+
+  .number {
+    margin-top: 26px; border: 1px solid var(--line); border-radius: 14px;
+    padding: 15px 16px 13px;
+  }
+  .number .lbl {
+    font-size: 12px; font-weight: 650; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .number b {
+    display: block; margin-top: 3px;
+    font-family: var(--mono); font-size: 21px; font-weight: 600; letter-spacing: 0.01em;
+  }
+
+  .btn {
+    display: block; width: 100%; margin-top: 22px;
+    font: inherit; font-weight: 650; text-decoration: none; text-align: center;
+    background: var(--brand); color: var(--on-brand);
+    border: 0; border-radius: 14px; padding: 15px 22px; cursor: pointer;
+    box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--brand) 80%, transparent);
+  }
+  .btn:hover { background: var(--brand-hover); }
+  .btn.secondary {
+    margin-top: 10px; background: transparent; color: var(--brand);
+    border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent); box-shadow: none;
+  }
+  .btn.secondary:hover { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+
+  .steps { margin: 26px 0 0; padding: 0; list-style: none; text-align: left; }
+  .steps li {
+    display: flex; gap: 11px; align-items: flex-start;
+    font-size: 14.5px; color: var(--muted);
+  }
+  .steps li + li { margin-top: 9px; }
+  .steps .n {
+    flex: none; width: 21px; height: 21px; border-radius: 50%;
+    background: color-mix(in srgb, var(--brand) 12%, transparent); color: var(--brand);
+    font-size: 12px; font-weight: 700; line-height: 21px; text-align: center;
+  }
+
+  .fine { margin-top: 22px; font-size: 13.5px; color: var(--muted); max-width: 430px; }
+  .fine a { color: var(--brand); text-underline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <img class="icon" src="/icon.png" alt="">
+
+  <h1 id="title">You've been invited</h1>
+  <p class="lede" id="lede">Someone wants you on SSSB Laundry — the whole week of laundry timeslots for your address, bookable from your phone.</p>
+
+  <div class="number" id="number" hidden>
+    <span class="lbl">Object number</span>
+    <b id="objectNumber"></b>
+  </div>
+
+  <a class="btn" id="install" href="https://testflight.apple.com/join/gn5fHjdC">Install from TestFlight</a>
+  <button class="btn secondary" id="copyNumber" type="button" hidden>Copy the number</button>
+
+  <ol class="steps" id="steps" hidden>
+    <li><span class="n">1</span><span>Install the app from TestFlight — the invite is copied to your clipboard on the way.</span></li>
+    <li><span class="n">2</span><span>Open it and tap <b>Paste</b> on the sign-in screen. That is the whole sign-in.</span></li>
+  </ol>
+
+  <noscript>
+    <p class="lede" style="margin-top:22px">Turn on JavaScript to see the object number in this invite, or ask whoever sent it for the number itself.</p>
+  </noscript>
+</div>
+
+<p class="fine">Already have the app? Open this link again from wherever it was sent and it will sign you in. <a href="/">What SSSB Laundry does</a></p>
+
+<script>
+  // The object number is in the fragment and only ever in the fragment: it is
+  // the password to the apartment's booking portal, and a fragment is the one
+  // part of a URL no server — this one included — is ever sent.
+  const objectNumber = (location.hash.slice(1).match(/\b\d{4}-\d{4}-\d{3}\b/) || [])[0];
+
+  const install = document.getElementById("install");
+  const copyNumber = document.getElementById("copyNumber");
+
+  if (objectNumber) {
+    document.getElementById("objectNumber").textContent = objectNumber;
+    document.getElementById("title").textContent = "You've been given a laundry room";
+    document.getElementById("lede").textContent =
+      "This invite carries the object number it was shared from, so you book the same laundry room, see the same bookings and get the same reminders.";
+    for (const id of ["number", "copyNumber", "steps"]) {
+      document.getElementById(id).hidden = false;
+    }
+
+    // The deferred half of the deep link: TestFlight, the App Store and a fresh
+    // install all sit between here and the app, and the clipboard is the only
+    // thing that survives the trip. Copying happens inside the tap, because
+    // Safari only grants clipboard access on a user gesture.
+    install.addEventListener("click", (event) => {
+      event.preventDefault();
+      copy(location.href).finally(() => {
+        window.location.href = install.href;
+      });
+    });
+
+    copyNumber.addEventListener("click", () => {
+      copy(objectNumber).then((ok) => {
+        copyNumber.textContent = ok ? "Copied" : "Copy failed — select it above";
+        setTimeout(() => { copyNumber.textContent = "Copy the number"; }, 2500);
+      });
+    });
+  }
+
+  function copy(text) {
+    if (navigator.clipboard) return navigator.clipboard.writeText(text).then(() => true, () => legacyCopy(text));
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  // Safari refuses the async clipboard API over plain HTTP and in a few older
+  // builds; the invite is worth nothing if the copy silently does not happen.
+  function legacyCopy(text) {
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.setAttribute("readonly", "");
+    field.style.cssText = "position:fixed;top:-1000px;opacity:0";
+    document.body.appendChild(field);
+    field.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
+    field.remove();
+    return ok;
+  }
+</script>
+
+</body>
+</html>

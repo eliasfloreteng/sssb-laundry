@@ -1267,6 +1267,22 @@
         }
       }
     },
+    "Copy object number": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy object number"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiera objektsnummer"
+          }
+        }
+      }
+    },
     "Copy time": {
       "localizations": {
         "en": {
@@ -1443,18 +1459,18 @@
         }
       }
     },
-    "From your rental agreement. Tap the lock to change it, or clear it to sign out.": {
+    "From your rental agreement, and the same for everyone in your apartment. Sign out to use a different one.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From your rental agreement. Tap the lock to change it, or clear it to sign out."
+            "value": "From your rental agreement, and the same for everyone in your apartment. Sign out to use a different one."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Från ditt hyresavtal. Tryck på låset för att ändra det, eller töm fältet för att logga ut."
+            "value": "Från ditt hyresavtal, och detsamma för alla i din lägenhet. Logga ut för att använda ett annat."
           }
         }
       }
@@ -1555,6 +1571,22 @@
         }
       }
     },
+    "Include object number": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include object number"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inkludera objektsnummer"
+          }
+        }
+      }
+    },
     "Invalid response.": {
       "localizations": {
         "en": {
@@ -1567,6 +1599,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ogiltigt svar."
+          }
+        }
+      }
+    },
+    "Invite others": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite others"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bjud in andra"
+          }
+        }
+      }
+    },
+    "Invited to an apartment?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invited to an apartment?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbjuden till en lägenhet?"
           }
         }
       }
@@ -1679,22 +1743,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Läser in tvättpass"
-          }
-        }
-      }
-    },
-    "Lock object number": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lock object number"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lås objektsnumret"
           }
         }
       }
@@ -2211,6 +2259,22 @@
         }
       }
     },
+    "Paste the invite you were sent and the object number fills itself in.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the invite you were sent and the object number fills itself in."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klistra in inbjudan du fick, så fylls objektsnumret i åt dig."
+          }
+        }
+      }
+    },
     "Remind you before laundry?": {
       "localizations": {
         "en": {
@@ -2303,6 +2367,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inställningar"
+          }
+        }
+      }
+    },
+    "Share invite": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share invite"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dela inbjudan"
           }
         }
       }
@@ -2435,6 +2515,38 @@
         }
       }
     },
+    "Switch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Byt"
+          }
+        }
+      }
+    },
+    "Switch object number?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch object number?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Byt objektsnummer?"
+          }
+        }
+      }
+    },
     "Tag in with your Aptus tag when you start. You can’t tag in before the booked time.": {
       "localizations": {
         "en": {
@@ -2447,6 +2559,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aktivera tvättpasset med din Aptusbricka när du börjar. Du kan inte aktivera passet före bokad tid."
+          }
+        }
+      }
+    },
+    "That was not an invite link or an object number.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That was not an invite link or an object number."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det där var varken en inbjudningslänk eller ett objektsnummer."
           }
         }
       }
@@ -2483,6 +2611,22 @@
         }
       }
     },
+    "The link only points at the app. They sign in with an object number of their own.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The link only points at the app. They sign in with an object number of their own."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Länken pekar bara på appen. De loggar in med ett eget objektsnummer."
+          }
+        }
+      }
+    },
     "The request timed out.": {
       "localizations": {
         "en": {
@@ -2495,6 +2639,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Begäran tog för lång tid."
+          }
+        }
+      }
+    },
+    "This phone will show %@ instead. Your own bookings stay, but they leave this phone along with their reminders.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone will show %@ instead. Your own bookings stay, but they leave this phone along with their reminders."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här telefonen visar %@ i stället. Dina egna bokningar finns kvar, men de lämnar telefonen tillsammans med sina påminnelser."
           }
         }
       }
@@ -2643,22 +2803,6 @@
         }
       }
     },
-    "Unlock object number to change it": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock object number to change it"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lås upp objektsnumret för att ändra det"
-          }
-        }
-      }
-    },
     "Visible groups": {
       "localizations": {
         "en": {
@@ -2671,6 +2815,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Synliga grupper"
+          }
+        }
+      }
+    },
+    "Whoever opens the link is signed in to your object number and can book and cancel for your apartment. With the app installed it signs them in on the spot; without it, the number is copied for them and TestFlight takes over.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whoever opens the link is signed in to your object number and can book and cancel for your apartment. With the app installed it signs them in on the spot; without it, the number is copied for them and TestFlight takes over."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den som öppnar länken loggas in på ditt objektsnummer och kan boka och avboka för din lägenhet. Med appen installerad loggas de in direkt; utan den kopieras numret åt dem och TestFlight tar vid."
           }
         }
       }

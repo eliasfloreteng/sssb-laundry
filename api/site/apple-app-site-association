@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["XQ9HKBVB36.se.floreteng.SSSBLaundry"],
+        "components": [
+          {
+            "/": "/invite",
+            "comment": "Invite links. The object number rides in the fragment, which iOS hands to the app and never sends here."
+          }
+        ]
+      }
+    ]
+  }
+}

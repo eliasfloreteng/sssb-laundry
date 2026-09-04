@@ -38,11 +38,26 @@ otherwise stateless; only push state is persisted.
 | `POST /notifications/test`         | Fires a reminder at this object id's devices (non-prod only) |
 | `GET /health`                      | Liveness, used by the container healthcheck                  |
 | `GET /`                            | The app's landing page, static from `site/`                  |
+| `GET /invite`                      | An invite, for visitors who do *not* have the app installed  |
+| `GET /.well-known/apple-app-site-association` | What makes `/invite` a universal link       |
 
-`site/` is served by `@fastify/static` at the root: one hand-written `index.html` and
-the app icon, copied from `app/SSSBLaundry/Assets.xcassets`. Every route above is
-registered explicitly and so wins over the wildcard the plugin installs. Nothing about
-it is generated, and it loads no fonts or scripts from anywhere else.
+`site/` is served by `@fastify/static` at the root: hand-written `index.html` and
+`invite.html`, the association file, and the app icon copied from
+`app/SSSBLaundry/Assets.xcassets`. Every route above is registered explicitly and so
+wins over the wildcard the plugin installs. Nothing about it is generated, and it loads
+no fonts or scripts from anywhere else.
+
+`apple-app-site-association` needs a route of its own for two reasons: iOS fetches it
+only from `/.well-known/`, and it must come back as `application/json`, which the static
+plugin will not do for a file with no extension. It names the App ID the entitlement in
+`app/SSSBLaundry/SSSBLaundry.entitlements` has to match, and the one path it claims.
+
+**An invite never carries the object number to this server.** The number rides in the
+URL *fragment* — `/invite#1234-5678-901` — which no browser sends anywhere, so it stays
+out of the access log while still reaching the app, because iOS hands the whole URL over
+when it opens a universal link. `invite.html` reads it in the browser and, on the way to
+TestFlight, copies the link to the clipboard: that copy is the only thing that survives
+an install, and it is what the app's sign-in screen offers to paste.
 
 There is no pagination cursor: the next page is `week.toDate + 1 day`, and an empty
 `timeslots` is the end of what this object id may book.

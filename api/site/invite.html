@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>You've been invited · SSSB Laundry</title>
+<title>You have been invited to the SSSB Laundry app</title>
 <meta name="description" content="Someone shared their SSSB laundry room with you. Install the app from TestFlight and the object number comes with you.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="/icon.png">
@@ -108,7 +108,7 @@
 <div class="card">
   <img class="icon" src="/icon.png" alt="">
 
-  <h1 id="title">You've been invited</h1>
+  <h1 id="title">You have been invited to the SSSB Laundry app</h1>
   <p class="lede" id="lede">Someone wants you on SSSB Laundry — the whole week of laundry timeslots for your address, on your phone.</p>
 
   <div class="number" id="number" hidden>
@@ -142,7 +142,7 @@
 
   if (objectNumber) {
     document.getElementById("objectNumber").textContent = objectNumber;
-    document.getElementById("title").textContent = "You've been given a laundry room";
+    document.getElementById("title").textContent = "You have been invited to a laundry room in the SSSB Laundry app";
     document.getElementById("lede").textContent =
       "Install the app and this invite signs you in to the same laundry room.";
     for (const id of ["number", "copyNumber", "steps"]) {

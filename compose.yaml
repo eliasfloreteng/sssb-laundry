@@ -19,9 +19,11 @@ services:
       - "DB_PATH=/data/laundry.db"
       - "PUSH_ENABLED=true"
     env_file:
-      # APNS_KEY_ID, APNS_TEAM_ID, APNS_TOPIC and APNS_KEY_P8. Untracked: this repo
-      # is public. Absent on checkouts that don't send push, and then the server
-      # logs one warning and runs without notifications.
+      # APNS_KEY_ID, APNS_TEAM_ID, APNS_TOPIC and APNS_KEY_P8, plus
+      # UPSTREAM_CHECK_OBJECT_ID — an object id is a credential, so it lives here
+      # rather than above. Untracked: this repo is public. Absent on checkouts that
+      # don't send push, and then the server logs one warning and runs without
+      # notifications; without the object id it also stops probing upstream.
       - path: .env
         required: false
     volumes:

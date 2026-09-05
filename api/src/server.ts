@@ -7,6 +7,7 @@ import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment } from "./db.js";
 import { createPushService, type PushService } from "./notifications.js";
 import { decodeTimeslotId } from "./timeslot-id.js";
+import { createUpstreamCheck, type UpstreamCheck } from "./upstream-check.js";
 
 interface TimeslotsQuery {
   date?: string;
@@ -31,11 +32,14 @@ interface DeviceBody {
 export interface LaundryServer extends FastifyInstance {
   /** Present only when push is configured; started by startServer(), never by tests. */
   push: PushService | null;
+  /** The upstream probe behind `/status`; started by startServer(), never by tests. */
+  upstream: UpstreamCheck;
 }
 
 export function buildServer(args?: {
   aptusClient?: AptusClient;
   pushService?: PushService | null;
+  upstreamCheck?: UpstreamCheck;
 }): LaundryServer {
   const logLevel = process.env.LOG_LEVEL ?? "info";
   const app = Fastify({
@@ -48,6 +52,7 @@ export function buildServer(args?: {
   // Built here so it shares the Aptus session cache and the request logger, but
   // its timers are only started by startServer() — tests must stay timer-free.
   const push = args?.pushService !== undefined ? args.pushService : createPushService(aptus, app.log);
+  const upstream = args?.upstreamCheck ?? createUpstreamCheck(aptus, app.log);
 
   // The app's landing page, on the same host the app already talks to. `site/`
   // is a flat folder of static files; every route below is registered
@@ -56,7 +61,19 @@ export function buildServer(args?: {
     root: fileURLToPath(new URL("../site", import.meta.url))
   });
 
+  // Liveness only, and deliberately blind to Aptus: this is what the container
+  // healthcheck runs, and a portal outage is not a reason to call this process
+  // sick. Upstream health is `/status`, on its own monitor.
   app.get("/health", async () => ({ ok: true }));
+
+  // Is the thing this API wraps still answering? The body is the last probe's
+  // result — `/status` never reaches upstream itself, so it is safe to poll and
+  // safe to leave public. `503` is the signal a monitor acts on.
+  app.get("/status", async (_request, reply) => {
+    const snapshot = upstream.snapshot();
+    reply.code(snapshot.ok ? 200 : 503);
+    return { ok: snapshot.ok, upstream: snapshot };
+  });
 
   // Universal links. iOS fetches this from `/.well-known/` and nowhere else, and
   // insists on `application/json` — which the static plugin cannot give an
@@ -194,7 +211,7 @@ export function buildServer(args?: {
     });
   });
 
-  const server = Object.assign(app, { push }) as unknown as LaundryServer;
+  const server = Object.assign(app, { push, upstream }) as unknown as LaundryServer;
   return server;
 }
 
@@ -322,6 +339,7 @@ function parseGroupIds(value: unknown): number[] {
 export async function startServer(): Promise<void> {
   const app = buildServer();
   app.push?.start();
+  app.upstream.start();
 
   const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? "0.0.0.0";
@@ -330,6 +348,7 @@ export async function startServer(): Promise<void> {
   for (const signal of ["SIGTERM", "SIGINT"] as const) {
     process.once(signal, () => {
       app.push?.stop();
+      app.upstream.stop();
       void app.close().then(() => process.exit(0));
     });
   }

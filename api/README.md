@@ -37,6 +37,7 @@ otherwise stateless; only push state is persisted.
 | `PUT`/`DELETE /notifications/device` | Register or drop a device and its reminder preferences     |
 | `POST /notifications/test`         | Fires a reminder at this object id's devices (non-prod only) |
 | `GET /health`                      | Liveness, used by the container healthcheck                  |
+| `GET /status`                      | Whether Aptus itself still answers — `503` when it does not  |
 | `GET /`                            | The app's landing page, static from `site/`                  |
 | `GET /invite`                      | An invite, for visitors who do *not* have the app installed  |
 | `GET /.well-known/apple-app-site-association` | What makes `/invite` a universal link       |
@@ -69,6 +70,43 @@ catch-all.
 
 Categories are deliberately not part of the API. Upstream has one per location (usually
 "Tvätt") and the client should never learn about them.
+
+## Is upstream still there?
+
+Everything below is a wrapper around someone else's HTML, so the failure that
+matters most is one this server cannot cause and would not otherwise notice: SSSB's
+portal goes down, or changes its markup, and the app stops working while the process
+stays perfectly healthy. `src/upstream-check.ts` is a timer that answers that
+question, and `GET /status` is where the answer is published:
+
+```json
+{ "ok": true, "upstream": { "state": "ok", "checkedAt": "…", "groups": 2, "timeslots": 84, … } }
+```
+
+- **The probe is `listTimeslots` for the current week and nothing else.** It runs
+  against a real object id on a schedule, so it is read-only by construction: the
+  probe is typed against a `TimeslotsSource` that has no `bookTimeslot` on it, and
+  reaching for one is a compile error rather than a booking on someone's account.
+  Nothing it does can queue a push either — reminders are announced from the poll in
+  `notifications.ts` and from the book/cancel routes, and this touches neither.
+- **An empty week is a failure**, `UPSTREAM_EMPTY`. A portal that changed its HTML
+  answers `200` with nothing parsed out of it, which is the quiet break worth
+  catching; the current week always has groups and slots in it.
+- **One failure is not an outage.** Aptus drops requests on its own, so `/status`
+  stays `200` and `degraded` until `UPSTREAM_CHECK_FAILURES` probes fail in a row.
+  Monitor-side retries cannot do this job: the result only changes once per interval,
+  so a retry a minute later just reads the same answer.
+- **`/status` never probes on demand.** It reports the last result. The endpoint is
+  public and upstream is fragile, so a visitor must not be able to pull on it.
+- **A dead timer is an outage too.** No probe within three intervals is `stale`, and
+  `stale` is a `503` — otherwise a check that stopped running would read as healthy
+  forever.
+- **`/health` deliberately knows none of this.** It is the container healthcheck, and
+  a portal outage is not a reason to call this process sick. Two endpoints, two
+  monitors, two meanings.
+
+Uptime Kuma watches both: *SSSB Laundry API* on `/health`, *SSSB Laundry Upstream* on
+`/status`.
 
 ## Upstream quirks
 
@@ -134,6 +172,12 @@ timer-free so tests can call it directly.
 the key lives in the gitignored `secrets/`). Without them the server logs one warning and
 runs without notifications. Tunables: `PUSH_POLL_MINUTES` (default 10), `PUSH_POLL_WEEKS`
 (default 3) — polling is expensive, so leave them alone unless you mean it.
+
+The upstream check reads `UPSTREAM_CHECK_OBJECT_ID`, which is what enables it — unset,
+it logs one warning and `/status` reports `disabled`. It belongs in the same gitignored
+`.env`, because an object id is a credential. `UPSTREAM_CHECK_MINUTES` (default 15) and
+`UPSTREAM_CHECK_FAILURES` (default 2) tune it; every probe is a login plus a calendar
+per group, so the interval is not free.
 
 The repo is public, so those live in the gitignored `.env` beside `../compose.yaml`,
 which is what `env_file` pulls in. After a key rotation:

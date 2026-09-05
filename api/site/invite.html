@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>You have been invited to the SSSB Laundry app</title>
-<meta name="description" content="Someone shared their SSSB laundry room with you. Install the app from TestFlight and the object number comes with you.">
+<meta name="description" content="Someone invited you to the SSSB Laundry app. Install it from TestFlight and the object number comes with you.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="/icon.png">
 <link rel="apple-touch-icon" href="/icon.png">
@@ -142,9 +142,8 @@
 
   if (objectNumber) {
     document.getElementById("objectNumber").textContent = objectNumber;
-    document.getElementById("title").textContent = "You have been invited to a laundry room in the SSSB Laundry app";
     document.getElementById("lede").textContent =
-      "Install the app and this invite signs you in to the same laundry room.";
+      "Install the app and this invite signs you in with the object number below.";
     for (const id of ["number", "copyNumber", "steps"]) {
       document.getElementById(id).hidden = false;
     }

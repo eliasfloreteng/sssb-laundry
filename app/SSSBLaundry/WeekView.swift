@@ -11,6 +11,7 @@ struct WeekView: View {
     @State private var store = LaundryStore()
     @State private var selectedTimeslot: Timeslot?
     @State private var showingSettings = false
+    @State private var showingInvite = false
     @AppStorage(ObjectIdStore.key) private var objectId: String = ""
     @AppStorage(ActiveHoursSetting.enabledKey) private var activeHoursEnabled: Bool = ActiveHoursSetting.defaultEnabled
     @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
@@ -47,6 +48,9 @@ struct WeekView: View {
                             Toggle(isOn: $showAllTimeslots) {
                                 Label("Show all timeslots", systemImage: "eye")
                             }
+                            Button { showingInvite = true } label: {
+                                Label("Invite", systemImage: "person.2.badge.plus")
+                            }
                             Button { showingSettings = true } label: {
                                 Label("Settings", systemImage: "gearshape")
                             }
@@ -71,6 +75,9 @@ struct WeekView: View {
                 }
                 .sheet(isPresented: $showingSettings) {
                     SettingsView(allGroups: store.allGroups)
+                }
+                .sheet(isPresented: $showingInvite) {
+                    InviteSheet()
                 }
                 // One alert per view: SwiftUI silently drops the extras when
                 // several are stacked on the same view, which is how load and

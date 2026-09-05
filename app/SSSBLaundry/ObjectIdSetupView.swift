@@ -99,7 +99,7 @@ struct ObjectIdSetupView: View {
             VStack(spacing: 4) {
                 Text("Invited to an apartment?")
                     .font(.headline)
-                Text("Paste the invite you were sent and the object number fills itself in.")
+                Text("Paste it and you're signed in.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

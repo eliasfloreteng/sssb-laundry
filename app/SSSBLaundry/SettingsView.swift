@@ -20,7 +20,6 @@ struct SettingsView: View {
     @AppStorage(NotificationSetting.alertKey) private var alert: BookingAlert = NotificationSetting.defaultAlert
     @AppStorage(NotificationSetting.secondAlertKey) private var secondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
-    @AppStorage(InviteSetting.includeObjectIdKey) private var inviteIncludesObjectId: Bool = InviteSetting.defaultIncludeObjectId
     @Environment(\.dismiss) private var dismiss
     @State private var confirmingSignOut = false
     @State private var copiedObjectId = false
@@ -52,10 +51,8 @@ struct SettingsView: View {
                 } header: {
                     Text("Object number")
                 } footer: {
-                    Text("From your rental agreement, and the same for everyone in your apartment. Sign out to use a different one.")
+                    Text("From your rental agreement. Sign out to use a different one.")
                 }
-
-                inviteSection
 
                 if allGroups.isEmpty {
                     Section {
@@ -168,28 +165,6 @@ struct SettingsView: View {
             // before it means anything.
             .onChange(of: alert) { _, _ in PushService.syncToServer() }
             .onChange(of: secondAlert) { _, _ in PushService.syncToServer() }
-        }
-    }
-
-    /// One link, shared however the user likes. With the object number in it the
-    /// recipient lands in this same apartment; without, it is a pointer to the
-    /// app and nothing more. The number is a credential — it is username *and*
-    /// password upstream — so the footer says plainly what handing it over does.
-    @ViewBuilder
-    private var inviteSection: some View {
-        Section {
-            Toggle("Include object number", isOn: $inviteIncludesObjectId)
-            ShareLink(item: InviteLink.url(objectId: inviteIncludesObjectId ? objectId : nil)) {
-                Label("Share invite", systemImage: "square.and.arrow.up")
-            }
-        } header: {
-            Text("Invite others")
-        } footer: {
-            if inviteIncludesObjectId {
-                Text("Whoever opens the link is signed in to your object number and can book and cancel for your apartment. With the app installed it signs them in on the spot; without it, the number is copied for them and TestFlight takes over.")
-            } else {
-                Text("The link only points at the app. They sign in with an object number of their own.")
-            }
         }
     }
 

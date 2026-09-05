@@ -2,6 +2,7 @@
   "sourceLanguage": "en",
   "strings": {
     "%@ are free for anyone to book now.": {
+      "comment": "Receipt after releasing several groups",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -18,6 +19,7 @@
       }
     },
     "%@ are released the moment you cancel — anyone else can book them then.": {
+      "comment": "Warning before releasing several booked groups",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -34,6 +36,7 @@
       }
     },
     "%@ are yours. Tag in within 15 minutes of the start or the booking is released.": {
+      "comment": "Receipt after booking several groups",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -50,6 +53,7 @@
       }
     },
     "%@ is free for anyone to book now.": {
+      "comment": "Receipt after releasing one group",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -66,6 +70,7 @@
       }
     },
     "%@ is released the moment you cancel — anyone else can book it then.": {
+      "comment": "Warning before releasing one booked group",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -82,6 +87,7 @@
       }
     },
     "%@ is yours. Tag in within 15 minutes of the start or the booking is released.": {
+      "comment": "Receipt after booking one group",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -98,6 +104,7 @@
       }
     },
     "%@: already yours": {
+      "comment": "Per-group outcome line",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -114,6 +121,7 @@
       }
     },
     "%@: booked": {
+      "comment": "Per-group outcome line",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -130,6 +138,7 @@
       }
     },
     "%@: cancelled": {
+      "comment": "Per-group outcome line",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -146,6 +155,7 @@
       }
     },
     "%@: couldn’t book — %@": {
+      "comment": "Per-group failure line; second placeholder is a lowercase reason clause",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -162,6 +172,7 @@
       }
     },
     "%@: couldn’t cancel — %@": {
+      "comment": "Per-group failure line; second placeholder is a lowercase reason clause",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -178,6 +189,7 @@
       }
     },
     "%@: done": {
+      "comment": "Per-group outcome line",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -194,6 +206,7 @@
       }
     },
     "%@: was not booked": {
+      "comment": "Per-group outcome line",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -210,6 +223,7 @@
       }
     },
     "%lld min": {
+      "comment": "How long the tag still opens the laundry room after a session",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -226,6 +240,7 @@
       }
     },
     "%lld of %lld groups went through:": {
+      "comment": "Body introducing the per-group breakdown after a partial failure",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -242,6 +257,7 @@
       }
     },
     "1 day": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -258,6 +274,7 @@
       }
     },
     "1 day before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -274,6 +291,7 @@
       }
     },
     "1 hour": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -290,6 +308,7 @@
       }
     },
     "1 hour before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -306,6 +325,7 @@
       }
     },
     "1 week": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -322,6 +342,7 @@
       }
     },
     "1 week before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -338,6 +359,7 @@
       }
     },
     "10 minutes": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -354,6 +376,7 @@
       }
     },
     "10 minutes before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -387,6 +410,7 @@
       }
     },
     "15 minutes": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -403,6 +427,7 @@
       }
     },
     "15 minutes before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -419,6 +444,7 @@
       }
     },
     "2 hours": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -435,6 +461,7 @@
       }
     },
     "2 hours before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -451,6 +478,7 @@
       }
     },
     "30 minutes": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -467,6 +495,7 @@
       }
     },
     "30 minutes before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -483,6 +512,7 @@
       }
     },
     "5 minutes": {
+      "comment": "How long before a booking a reminder arrives",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -499,6 +529,7 @@
       }
     },
     "5 minutes before": {
+      "comment": "Reminder offset",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -515,6 +546,7 @@
       }
     },
     "A session you haven’t tagged into within 15 minutes is released to everyone again.": {
+      "comment": "Booking rule shown on the sign-in screen",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -579,6 +611,7 @@
       }
     },
     "Added to Calendar": {
+      "comment": "Alert title confirming the booking was saved to the calendar",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -611,6 +644,7 @@
       }
     },
     "Apply changes": {
+      "comment": "Submit button when the sheet both books and cancels",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -627,6 +661,7 @@
       }
     },
     "Aptus couldn’t complete the request.": {
+      "comment": "Fallback explanation when the service gave no reason",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -643,6 +678,7 @@
       }
     },
     "Aptus didn’t accept your object number": {
+      "comment": "Reason clause: the object number was rejected",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -659,6 +695,7 @@
       }
     },
     "Aptus didn’t accept your object number. Check it and sign in again.": {
+      "comment": "What to do about a rejected object number",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -675,6 +712,7 @@
       }
     },
     "Aptus is having trouble right now. Try again in a few minutes.": {
+      "comment": "What to do when the booking system is failing",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -691,6 +729,7 @@
       }
     },
     "Aptus no longer lists this timeslot — refresh and try again": {
+      "comment": "Reason clause: the timeslot is gone from the portal",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -707,6 +746,7 @@
       }
     },
     "Aptus no longer offers this time — refresh and try again": {
+      "comment": "Reason clause: the timeslot is gone from the portal",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -723,6 +763,7 @@
       }
     },
     "Aptus problem": {
+      "comment": "Error headline: the booking system misbehaved",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -739,6 +780,7 @@
       }
     },
     "Aptus replied with something unexpected. Try again in a moment.": {
+      "comment": "What to do when the response couldn't be read",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -755,6 +797,7 @@
       }
     },
     "Aptus took too long to answer. Try again in a moment.": {
+      "comment": "What to do when the request timed out",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -771,6 +814,7 @@
       }
     },
     "Aptus turned it down — most likely someone just took it, or you already hold as many sessions as your laundry room allows": {
+      "comment": "Reason clause for a refused booking, with no published session limit to name",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -787,6 +831,7 @@
       }
     },
     "Aptus turned it down — most likely someone just took it, or you already hold the maximum of %lld sessions": {
+      "comment": "Reason clause for a refused booking, naming the laundry room's session limit",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -803,6 +848,7 @@
       }
     },
     "Aptus won’t release a session that has already started": {
+      "comment": "Reason clause: the session is already running",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -819,6 +865,7 @@
       }
     },
     "Aptus wouldn’t release it — refresh and try again": {
+      "comment": "Reason clause for a refused cancellation",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -835,6 +882,7 @@
       }
     },
     "At most %lld groups per booking.": {
+      "comment": "Hint under the submit button: Aptus's hard limit per action",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -851,6 +899,7 @@
       }
     },
     "At start": {
+      "comment": "Reminder offset: when the booking starts",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -883,6 +932,7 @@
       }
     },
     "Book": {
+      "comment": "Submit button when one group will be booked",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -915,6 +965,7 @@
       }
     },
     "Book %lld": {
+      "comment": "Submit button when several groups will be booked",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -947,6 +998,7 @@
       }
     },
     "Booked": {
+      "comment": "Receipt heading after a successful booking",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -963,6 +1015,7 @@
       }
     },
     "Booked %@, cancelled %@.": {
+      "comment": "Receipt after booking and cancelling at once; both placeholders are group names",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -979,6 +1032,7 @@
       }
     },
     "Booking didn’t go through": {
+      "comment": "Headline when nothing was booked",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1011,6 +1065,7 @@
       }
     },
     "Calendar access is off. Turn it on in iOS Settings.": {
+      "comment": "Why a booking couldn't be written to the calendar",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1060,6 +1115,7 @@
       }
     },
     "Cancel %lld": {
+      "comment": "Submit button when several groups will be released",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1076,6 +1132,7 @@
       }
     },
     "Cancel a session you won’t use, so someone else can take it.": {
+      "comment": "Booking rule shown on the sign-in screen",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1140,6 +1197,7 @@
       }
     },
     "Cancellation didn’t go through": {
+      "comment": "Headline when nothing was cancelled",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1156,6 +1214,7 @@
       }
     },
     "Cancelled": {
+      "comment": "Receipt heading after a successful cancellation",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1172,6 +1231,7 @@
       }
     },
     "Can’t be booked": {
+      "comment": "Status beside a free group Aptus offers no book button for",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1188,6 +1248,7 @@
       }
     },
     "Can’t be cancelled": {
+      "comment": "Status beside a booking Aptus won’t release",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1204,6 +1265,7 @@
       }
     },
     "Changes applied": {
+      "comment": "Receipt heading after booking and cancelling at once",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1300,6 +1362,7 @@
       }
     },
     "Could not reach the laundry service.": {
+      "comment": "The service couldn't be reached",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1316,6 +1379,7 @@
       }
     },
     "Could not read the response.": {
+      "comment": "The service's answer didn't decode",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1332,6 +1396,7 @@
       }
     },
     "Couldn’t add to Calendar": {
+      "comment": "Alert title when the calendar event couldn't be prepared",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1348,6 +1413,7 @@
       }
     },
     "Couldn’t connect. Try again in a moment.": {
+      "comment": "What to do when the service couldn't be reached",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1396,6 +1462,7 @@
       }
     },
     "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back.": {
+      "comment": "Empty state body when the week is full",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1459,23 +1526,24 @@
         }
       }
     },
-    "From your rental agreement, and the same for everyone in your apartment. Sign out to use a different one.": {
+    "From your rental agreement. Sign out to use a different one.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From your rental agreement, and the same for everyone in your apartment. Sign out to use a different one."
+            "value": "From your rental agreement. Sign out to use a different one."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Från ditt hyresavtal, och detsamma för alla i din lägenhet. Logga ut för att använda ett annat."
+            "value": "Från ditt hyresavtal. Logga ut för att använda ett annat."
           }
         }
       }
     },
     "Get a reminder %@ before your booking starts. Bookings are released 15 minutes after the start unless you tag in.": {
+      "comment": "Body of the one-time offer to turn reminders on; the placeholder is a span like \"10 minutes\"",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1492,6 +1560,7 @@
       }
     },
     "Get a reminder when your booking starts. Bookings are released 15 minutes after the start unless you tag in.": {
+      "comment": "Body of the one-time offer to turn reminders on",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1508,6 +1577,7 @@
       }
     },
     "Group %lld": {
+      "comment": "Stand-in name for a laundry group whose Aptus label the app doesn't have",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1556,6 +1626,7 @@
       }
     },
     "In progress": {
+      "comment": "Status beside a group whose booked session has started",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1588,6 +1659,7 @@
       }
     },
     "Invalid response.": {
+      "comment": "The service answered with something that wasn't HTTP",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1603,18 +1675,18 @@
         }
       }
     },
-    "Invite others": {
+    "Invite": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite others"
+            "value": "Invite"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bjud in andra"
+            "value": "Bjud in"
           }
         }
       }
@@ -1700,6 +1772,7 @@
       }
     },
     "Laundry room: %@": {
+      "comment": "Where the laundry room serving an address actually is",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1764,6 +1837,7 @@
       }
     },
     "Max per month": {
+      "comment": "Settings row title for a monthly booking quota",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1780,6 +1854,7 @@
       }
     },
     "Max per week": {
+      "comment": "Settings row title for a weekly booking quota",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1796,6 +1871,7 @@
       }
     },
     "Max per week/month": {
+      "comment": "Settings row title for a laundry room that publishes no weekly or monthly quota",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1828,6 +1904,7 @@
       }
     },
     "Multiple groups of one time still count as a single session.": {
+      "comment": "Booking rule shown on the sign-in screen",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1844,6 +1921,7 @@
       }
     },
     "No changes": {
+      "comment": "Disabled submit button when nothing is selected",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1860,6 +1938,7 @@
       }
     },
     "No connection": {
+      "comment": "Error headline: the phone couldn't reach the service",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1876,6 +1955,7 @@
       }
     },
     "No free timeslots": {
+      "comment": "Empty state: every timeslot is taken or has started",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1908,6 +1988,7 @@
       }
     },
     "No internet connection.": {
+      "comment": "The phone is offline",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1924,6 +2005,7 @@
       }
     },
     "No maximum": {
+      "comment": "A laundry room rule SSSB publishes no number for",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1956,6 +2038,7 @@
       }
     },
     "No rules shown": {
+      "comment": "What choosing no address means",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1972,6 +2055,7 @@
       }
     },
     "No upcoming timeslots": {
+      "comment": "Empty state: no schedule at all for this object number",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1988,6 +2072,7 @@
       }
     },
     "None": {
+      "comment": "A laundry room that gives no extra access time once the session has ended\nReminder offset: no reminder at all",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2020,6 +2105,7 @@
       }
     },
     "Not open for booking yet": {
+      "comment": "Empty state: the day is past SSSB's booking horizon",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2036,6 +2122,7 @@
       }
     },
     "Not set": {
+      "comment": "Picker row for choosing no laundry-room address\nSettings value when no laundry-room address has been chosen",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2052,6 +2139,7 @@
       }
     },
     "Nothing is scheduled for this laundry room right now.": {
+      "comment": "Empty state body when the portal lists no timeslots at all",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2068,6 +2156,7 @@
       }
     },
     "Nothing was booked — the timeslot is unchanged.": {
+      "comment": "Body when a booking failed outright",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2084,6 +2173,7 @@
       }
     },
     "Nothing was cancelled — your booking is unchanged.": {
+      "comment": "Body when a cancellation failed outright",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2116,6 +2206,7 @@
       }
     },
     "Notifications are off in iOS Settings. Turn them back on there.": {
+      "comment": "Settings footer when the system permission has been revoked",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2148,6 +2239,7 @@
       }
     },
     "Object id is required.": {
+      "comment": "Request refused before it was sent: no object number stored",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2180,6 +2272,7 @@
       }
     },
     "One booking can cover at most %lld groups.": {
+      "comment": "Aptus's hard limit on groups per booking action",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2196,6 +2289,7 @@
       }
     },
     "Only part of it worked": {
+      "comment": "Heading when some groups succeeded and others didn't",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2259,18 +2353,18 @@
         }
       }
     },
-    "Paste the invite you were sent and the object number fills itself in.": {
+    "Paste it and you're signed in.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paste the invite you were sent and the object number fills itself in."
+            "value": "Paste it and you're signed in."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klistra in inbjudan du fick, så fylls objektsnumret i åt dig."
+            "value": "Klistra in den, så är du inloggad."
           }
         }
       }
@@ -2292,6 +2386,7 @@
       }
     },
     "Reminders arrive with the app closed, and for bookings someone else in your apartment made.": {
+      "comment": "Settings footer explaining what booking reminders cover",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2308,6 +2403,7 @@
       }
     },
     "SSSB opens the laundry schedule a few weeks ahead. Nothing from %@ can be booked yet.": {
+      "comment": "Empty state body; the placeholder is a day like \"Monday 1 Sep\"",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2371,18 +2467,18 @@
         }
       }
     },
-    "Share invite": {
+    "Share link": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share invite"
+            "value": "Share link"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dela inbjudan"
+            "value": "Dela länk"
           }
         }
       }
@@ -2468,6 +2564,7 @@
       }
     },
     "Sign-in problem": {
+      "comment": "Error headline: Aptus rejected the object number",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2484,6 +2581,7 @@
       }
     },
     "Something went wrong": {
+      "comment": "Alert title for a failure the app can't name",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2548,6 +2646,7 @@
       }
     },
     "Tag in with your Aptus tag when you start. You can’t tag in before the booked time.": {
+      "comment": "Booking rule shown on the sign-in screen",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2580,6 +2679,7 @@
       }
     },
     "That would be %lld sessions of %lld — SSSB may turn it down.": {
+      "comment": "Hint under the submit button: over the laundry room's published session limit",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2596,6 +2696,7 @@
       }
     },
     "The laundry service returned an error.": {
+      "comment": "Fallback for an HTTP error with no readable body",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2611,23 +2712,8 @@
         }
       }
     },
-    "The link only points at the app. They sign in with an object number of their own.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The link only points at the app. They sign in with an object number of their own."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Länken pekar bara på appen. De loggar in med ett eget objektsnummer."
-          }
-        }
-      }
-    },
     "The request timed out.": {
+      "comment": "The service took too long to answer",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2639,6 +2725,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Begäran tog för lång tid."
+          }
+        }
+      }
+    },
+    "They book and cancel as your apartment.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They book and cancel as your apartment."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De bokar och avbokar som din lägenhet."
           }
         }
       }
@@ -2660,6 +2762,7 @@
       }
     },
     "This timeslot has changed. Pull down to refresh, then try again.": {
+      "comment": "What to do when the week list was stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2692,6 +2795,7 @@
       }
     },
     "Timeslot out of date": {
+      "comment": "Error headline: the week list was stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2724,6 +2828,7 @@
       }
     },
     "Too late": {
+      "comment": "Status beside a free group whose timeslot has already started",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2740,6 +2845,7 @@
       }
     },
     "Too many groups": {
+      "comment": "Error headline: more groups than one action takes",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2788,6 +2894,7 @@
       }
     },
     "Unavailable": {
+      "comment": "Status beside a group somebody else holds",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2819,23 +2926,8 @@
         }
       }
     },
-    "Whoever opens the link is signed in to your object number and can book and cancel for your apartment. With the app installed it signs them in on the spot; without it, the number is copied for them and TestFlight takes over.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Whoever opens the link is signed in to your object number and can book and cancel for your apartment. With the app installed it signs them in on the spot; without it, the number is copied for them and TestFlight takes over."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Den som öppnar länken loggas in på ditt objektsnummer och kan boka och avboka för din lägenhet. Med appen installerad loggas de in direkt; utan den kopieras numret åt dem och TestFlight tar vid."
-          }
-        }
-      }
-    },
     "You appear to be offline. Reconnect and try again.": {
+      "comment": "What to do when the phone has no connection",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2852,6 +2944,7 @@
       }
     },
     "You can hold one or two sessions ahead at a time, depending on your laundry room.": {
+      "comment": "Booking rule shown on the sign-in screen",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2916,6 +3009,7 @@
       }
     },
     "Your object number is missing. Sign in again.": {
+      "comment": "What to do when the app has no object number stored",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2932,6 +3026,7 @@
       }
     },
     "booking.action.cancel": {
+      "comment": "Submit button when one group will be released",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3200,6 +3295,7 @@
       }
     },
     "someone else took it first": {
+      "comment": "Reason clause: another resident booked the slot",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3216,6 +3312,7 @@
       }
     },
     "to tag in": {
+      "comment": "Caption under a Live Activity countdown to the booking being released",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3232,6 +3329,7 @@
       }
     },
     "until your session starts": {
+      "comment": "Caption under a Live Activity countdown to the booking's start",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3248,6 +3346,7 @@
       }
     },
     "you already hold as many sessions as your laundry room allows": {
+      "comment": "Reason clause: the session limit is used up, and the app doesn't know the number",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3264,6 +3363,7 @@
       }
     },
     "you already hold the maximum of %lld sessions": {
+      "comment": "Reason clause: the session limit is used up",
       "localizations": {
         "en": {
           "stringUnit": {

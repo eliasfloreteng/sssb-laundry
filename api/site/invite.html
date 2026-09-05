@@ -109,7 +109,7 @@
   <img class="icon" src="/icon.png" alt="">
 
   <h1 id="title">You've been invited</h1>
-  <p class="lede" id="lede">Someone wants you on SSSB Laundry — the whole week of laundry timeslots for your address, bookable from your phone.</p>
+  <p class="lede" id="lede">Someone wants you on SSSB Laundry — the whole week of laundry timeslots for your address, on your phone.</p>
 
   <div class="number" id="number" hidden>
     <span class="lbl">Object number</span>
@@ -120,8 +120,8 @@
   <button class="btn secondary" id="copyNumber" type="button" hidden>Copy the number</button>
 
   <ol class="steps" id="steps" hidden>
-    <li><span class="n">1</span><span>Install the app from TestFlight — the invite is copied to your clipboard on the way.</span></li>
-    <li><span class="n">2</span><span>Open it and tap <b>Paste</b> on the sign-in screen. That is the whole sign-in.</span></li>
+    <li><span class="n">1</span><span>Install from TestFlight — the invite is copied to your clipboard.</span></li>
+    <li><span class="n">2</span><span>Open the app and tap <b>Paste</b>.</span></li>
   </ol>
 
   <noscript>
@@ -144,7 +144,7 @@
     document.getElementById("objectNumber").textContent = objectNumber;
     document.getElementById("title").textContent = "You've been given a laundry room";
     document.getElementById("lede").textContent =
-      "This invite carries the object number it was shared from, so you book the same laundry room, see the same bookings and get the same reminders.";
+      "Install the app and this invite signs you in to the same laundry room.";
     for (const id of ["number", "copyNumber", "steps"]) {
       document.getElementById(id).hidden = false;
     }

@@ -1,3588 +1,3590 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "%@ are free for anyone to book now.": {
-      "comment": "Receipt after releasing several groups",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ are free for anyone to book now."
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ are free for anyone to book now." : {
+      "comment" : "Receipt after releasing several groups",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ are free for anyone to book now."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ är nu lediga för vem som helst att boka."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ är nu lediga för vem som helst att boka."
           }
         }
       }
     },
-    "%@ are released the moment you cancel — anyone else can book them then.": {
-      "comment": "Warning before releasing several booked groups",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ are released the moment you cancel — anyone else can book them then."
+    "%@ are released the moment you cancel — anyone else can book them then." : {
+      "comment" : "Warning before releasing several booked groups",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ are released the moment you cancel — anyone else can book them then."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ släpps så fort du avbokar — då kan vem som helst boka dem."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ släpps så fort du avbokar — då kan vem som helst boka dem."
           }
         }
       }
     },
-    "%@ are yours. Tag in within 15 minutes of the start or the booking is released.": {
-      "comment": "Receipt after booking several groups",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ are yours. Tag in within 15 minutes of the start or the booking is released."
+    "%@ are yours. Tag in within 15 minutes of the start or the booking is released." : {
+      "comment" : "Receipt after booking several groups",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ are yours. Tag in within 15 minutes of the start or the booking is released."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ är dina. Aktivera inom 15 minuter efter start, annars avbokas passet."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ är dina. Aktivera inom 15 minuter efter start, annars avbokas passet."
           }
         }
       }
     },
-    "%@ is free for anyone to book now.": {
-      "comment": "Receipt after releasing one group",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ is free for anyone to book now."
+    "%@ is free for anyone to book now." : {
+      "comment" : "Receipt after releasing one group",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is free for anyone to book now."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ är nu ledig för vem som helst att boka."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ är nu ledig för vem som helst att boka."
           }
         }
       }
     },
-    "%@ is released the moment you cancel — anyone else can book it then.": {
-      "comment": "Warning before releasing one booked group",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ is released the moment you cancel — anyone else can book it then."
+    "%@ is released the moment you cancel — anyone else can book it then." : {
+      "comment" : "Warning before releasing one booked group",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is released the moment you cancel — anyone else can book it then."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ släpps så fort du avbokar — då kan vem som helst boka det."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ släpps så fort du avbokar — då kan vem som helst boka det."
           }
         }
       }
     },
-    "%@ is yours. Tag in within 15 minutes of the start or the booking is released.": {
-      "comment": "Receipt after booking one group",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ is yours. Tag in within 15 minutes of the start or the booking is released."
+    "%@ is yours. Tag in within 15 minutes of the start or the booking is released." : {
+      "comment" : "Receipt after booking one group",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is yours. Tag in within 15 minutes of the start or the booking is released."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ är din. Aktivera inom 15 minuter efter start, annars avbokas passet."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ är din. Aktivera inom 15 minuter efter start, annars avbokas passet."
           }
         }
       }
     },
-    "%@: already yours": {
-      "comment": "Per-group outcome line",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: already yours"
+    "%@: already yours" : {
+      "comment" : "Per-group outcome line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: already yours"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: redan din"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: redan din"
           }
         }
       }
     },
-    "%@: booked": {
-      "comment": "Per-group outcome line",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: booked"
+    "%@: booked" : {
+      "comment" : "Per-group outcome line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: booked"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: bokad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: bokad"
           }
         }
       }
     },
-    "%@: cancelled": {
-      "comment": "Per-group outcome line",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: cancelled"
+    "%@: cancelled" : {
+      "comment" : "Per-group outcome line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: cancelled"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: avbokad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: avbokad"
           }
         }
       }
     },
-    "%@: couldn’t book — %@": {
-      "comment": "Per-group failure line; second placeholder is a lowercase reason clause",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: couldn’t book — %@"
+    "%@: couldn’t book — %@" : {
+      "comment" : "Per-group failure line; second placeholder is a lowercase reason clause",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: couldn’t book — %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: kunde inte bokas — %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: kunde inte bokas — %@"
           }
         }
       }
     },
-    "%@: couldn’t cancel — %@": {
-      "comment": "Per-group failure line; second placeholder is a lowercase reason clause",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: couldn’t cancel — %@"
+    "%@: couldn’t cancel — %@" : {
+      "comment" : "Per-group failure line; second placeholder is a lowercase reason clause",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: couldn’t cancel — %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: kunde inte avbokas — %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: kunde inte avbokas — %@"
           }
         }
       }
     },
-    "%@: done": {
-      "comment": "Per-group outcome line",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: done"
+    "%@: done" : {
+      "comment" : "Per-group outcome line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: done"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: klar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: klar"
           }
         }
       }
     },
-    "%@: was not booked": {
-      "comment": "Per-group outcome line",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: was not booked"
+    "%@: was not booked" : {
+      "comment" : "Per-group outcome line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: was not booked"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: var inte bokad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: var inte bokad"
           }
         }
       }
     },
-    "%lld min": {
-      "comment": "How long the tag still opens the laundry room after a session",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld min"
+    "%lld min" : {
+      "comment" : "How long the tag still opens the laundry room after a session",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld min"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
           }
         }
       }
     },
-    "%lld of %lld groups went through:": {
-      "comment": "Body introducing the per-group breakdown after a partial failure",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld of %lld groups went through:"
+    "%lld of %lld groups went through:" : {
+      "comment" : "Body introducing the per-group breakdown after a partial failure",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld of %lld groups went through:"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld av %lld grupper gick igenom:"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld av %lld grupper gick igenom:"
           }
         }
       }
     },
-    "1 day": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 day"
+    "1 day" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 day"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 dag"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 dag"
           }
         }
       }
     },
-    "1 day before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 day before"
+    "1 day before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 day before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 dag innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 dag innan"
           }
         }
       }
     },
-    "1 hour": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 hour"
+    "1 hour" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 hour"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 timme"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 timme"
           }
         }
       }
     },
-    "1 hour before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 hour before"
+    "1 hour before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 hour before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 timme innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 timme innan"
           }
         }
       }
     },
-    "1 week": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 week"
+    "1 week" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 week"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 vecka"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 vecka"
           }
         }
       }
     },
-    "1 week before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 week before"
+    "1 week before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 week before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 vecka innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 vecka innan"
           }
         }
       }
     },
-    "10 minutes": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "10 minutes"
+    "2 hours" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 hours"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "10 minuter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 timmar"
           }
         }
       }
     },
-    "10 minutes before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "10 minutes before"
+    "2 hours before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 hours before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "10 minuter innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 timmar innan"
           }
         }
       }
     },
-    "1234-5678-901": {
-      "comment": "Example object number; keep the digits as they are",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1234-5678-901"
+    "5 minutes" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1234-5678-901"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minuter"
           }
         }
       }
     },
-    "15 minutes": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minutes"
+    "5 minutes before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutes before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minuter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minuter innan"
           }
         }
       }
     },
-    "15 minutes before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minutes before"
+    "10 minutes" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minutes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minuter innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minuter"
           }
         }
       }
     },
-    "2 hours": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "2 hours"
+    "10 minutes before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minutes before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "2 timmar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minuter innan"
           }
         }
       }
     },
-    "2 hours before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "2 hours before"
+    "15 minutes" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "2 timmar innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minuter"
           }
         }
       }
     },
-    "30 minutes": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes"
+    "15 minutes before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutes before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minuter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minuter innan"
           }
         }
       }
     },
-    "30 minutes before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes before"
+    "30 minutes" : {
+      "comment" : "How long before a booking a reminder arrives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minutes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minuter innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minuter"
           }
         }
       }
     },
-    "5 minutes": {
-      "comment": "How long before a booking a reminder arrives",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5 minutes"
+    "30 minutes before" : {
+      "comment" : "Reminder offset",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minutes before"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5 minuter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minuter innan"
           }
         }
       }
     },
-    "5 minutes before": {
-      "comment": "Reminder offset",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5 minutes before"
+    "1234-5678-901" : {
+      "comment" : "Example object number; keep the digits as they are",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1234-5678-901"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5 minuter innan"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1234-5678-901"
           }
         }
       }
     },
-    "A session you haven’t tagged into within 15 minutes is released to everyone again.": {
-      "comment": "Booking rule shown on the sign-in screen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A session you haven’t tagged into within 15 minutes is released to everyone again."
+    "A session you haven’t tagged into within 15 minutes is released to everyone again." : {
+      "comment" : "Booking rule shown on the sign-in screen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A session you haven’t tagged into within 15 minutes is released to everyone again."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ett pass du inte aktiverat inom 15 minuter avbokas automatiskt och blir ledigt för alla igen."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ett pass du inte aktiverat inom 15 minuter avbokas automatiskt och blir ledigt för alla igen."
           }
         }
       }
     },
-    "Access after a session": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Access after a session"
+    "Access after a session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access after a session"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tid efter bokning"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tid efter bokning"
           }
         }
       }
     },
-    "Active hours": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Active hours"
+    "Active hours" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active hours"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktiva tider"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiva tider"
           }
         }
       }
     },
-    "Add to Calendar": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add to Calendar"
+    "Add to Calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Calendar"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lägg till i Kalender"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lägg till i Kalender"
           }
         }
       }
     },
-    "Added to Calendar": {
-      "comment": "Alert title confirming the booking was saved to the calendar",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Added to Calendar"
+    "Added to Calendar" : {
+      "comment" : "Alert title confirming the booking was saved to the calendar",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to Calendar"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tillagd i Kalender"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillagd i Kalender"
           }
         }
       }
     },
-    "Alarms are turned off": {
-      "comment": "Alert shown when the system refuses to set an alarm",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alarms are turned off"
+    "Alarms are turned off" : {
+      "comment" : "Alert shown when the system refuses to set an alarm",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alarms are turned off"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Larm är avstängda"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Larm är avstängda"
           }
         }
       }
     },
-    "Alert": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alert"
+    "Alert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alert"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Påminnelse"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Påminnelse"
           }
         }
       }
     },
-    "Apply changes": {
-      "comment": "Submit button when the sheet both books and cancels",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apply changes"
+    "Apply changes" : {
+      "comment" : "Submit button when the sheet both books and cancels",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply changes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tillämpa ändringar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillämpa ändringar"
           }
         }
       }
     },
-    "Aptus couldn’t complete the request.": {
-      "comment": "Fallback explanation when the service gave no reason",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus couldn’t complete the request."
+    "Aptus couldn’t complete the request." : {
+      "comment" : "Fallback explanation when the service gave no reason",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus couldn’t complete the request."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus kunde inte utföra begäran."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus kunde inte utföra begäran."
           }
         }
       }
     },
-    "Aptus didn’t accept your object number": {
-      "comment": "Reason clause: the object number was rejected",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus didn’t accept your object number"
+    "Aptus didn’t accept your object number" : {
+      "comment" : "Reason clause: the object number was rejected",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus didn’t accept your object number"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus godkände inte ditt objektsnummer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus godkände inte ditt objektsnummer"
           }
         }
       }
     },
-    "Aptus didn’t accept your object number. Check it and sign in again.": {
-      "comment": "What to do about a rejected object number",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus didn’t accept your object number. Check it and sign in again."
+    "Aptus didn’t accept your object number. Check it and sign in again." : {
+      "comment" : "What to do about a rejected object number",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus didn’t accept your object number. Check it and sign in again."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus godkände inte ditt objektsnummer. Kontrollera det och logga in igen."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus godkände inte ditt objektsnummer. Kontrollera det och logga in igen."
           }
         }
       }
     },
-    "Aptus is having trouble right now. Try again in a few minutes.": {
-      "comment": "What to do when the booking system is failing",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus is having trouble right now. Try again in a few minutes."
+    "Aptus is having trouble right now. Try again in a few minutes." : {
+      "comment" : "What to do when the booking system is failing",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus is having trouble right now. Try again in a few minutes."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus krånglar just nu. Försök igen om några minuter."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus krånglar just nu. Försök igen om några minuter."
           }
         }
       }
     },
-    "Aptus no longer lists this timeslot — refresh and try again": {
-      "comment": "Reason clause: the timeslot is gone from the portal",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus no longer lists this timeslot — refresh and try again"
+    "Aptus no longer lists this timeslot — refresh and try again" : {
+      "comment" : "Reason clause: the timeslot is gone from the portal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus no longer lists this timeslot — refresh and try again"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus listar inte längre det här tvättpasset — uppdatera och försök igen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus listar inte längre det här tvättpasset — uppdatera och försök igen"
           }
         }
       }
     },
-    "Aptus no longer offers this time — refresh and try again": {
-      "comment": "Reason clause: the timeslot is gone from the portal",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus no longer offers this time — refresh and try again"
+    "Aptus no longer offers this time — refresh and try again" : {
+      "comment" : "Reason clause: the timeslot is gone from the portal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus no longer offers this time — refresh and try again"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus erbjuder inte längre den här tiden — uppdatera och försök igen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus erbjuder inte längre den här tiden — uppdatera och försök igen"
           }
         }
       }
     },
-    "Aptus problem": {
-      "comment": "Error headline: the booking system misbehaved",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus problem"
+    "Aptus problem" : {
+      "comment" : "Error headline: the booking system misbehaved",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus problem"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Problem med Aptus"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problem med Aptus"
           }
         }
       }
     },
-    "Aptus replied with something unexpected. Try again in a moment.": {
-      "comment": "What to do when the response couldn't be read",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus replied with something unexpected. Try again in a moment."
+    "Aptus replied with something unexpected. Try again in a moment." : {
+      "comment" : "What to do when the response couldn't be read",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus replied with something unexpected. Try again in a moment."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus svarade med något oväntat. Försök igen om en stund."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus svarade med något oväntat. Försök igen om en stund."
           }
         }
       }
     },
-    "Aptus took too long to answer. Try again in a moment.": {
-      "comment": "What to do when the request timed out",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus took too long to answer. Try again in a moment."
+    "Aptus took too long to answer. Try again in a moment." : {
+      "comment" : "What to do when the request timed out",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus took too long to answer. Try again in a moment."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus svarade inte i tid. Försök igen om en stund."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus svarade inte i tid. Försök igen om en stund."
           }
         }
       }
     },
-    "Aptus turned it down — most likely someone just took it, or you already hold as many sessions as your laundry room allows": {
-      "comment": "Reason clause for a refused booking, with no published session limit to name",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus turned it down — most likely someone just took it, or you already hold as many sessions as your laundry room allows"
+    "Aptus turned it down — most likely someone just took it, or you already hold as many sessions as your laundry room allows" : {
+      "comment" : "Reason clause for a refused booking, with no published session limit to name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus turned it down — most likely someone just took it, or you already hold as many sessions as your laundry room allows"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus nekade — troligen hann någon annan före, eller så har du redan lika många pass som din tvättstuga tillåter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus nekade — troligen hann någon annan före, eller så har du redan lika många pass som din tvättstuga tillåter"
           }
         }
       }
     },
-    "Aptus turned it down — most likely someone just took it, or you already hold the maximum of %lld sessions": {
-      "comment": "Reason clause for a refused booking, naming the laundry room's session limit",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus turned it down — most likely someone just took it, or you already hold the maximum of %lld sessions"
+    "Aptus turned it down — most likely someone just took it, or you already hold the maximum of %lld sessions" : {
+      "comment" : "Reason clause for a refused booking, naming the laundry room's session limit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus turned it down — most likely someone just took it, or you already hold the maximum of %lld sessions"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus nekade — troligen hann någon annan före, eller så har du redan max antal bokade pass (%lld)"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus nekade — troligen hann någon annan före, eller så har du redan max antal bokade pass (%lld)"
           }
         }
       }
     },
-    "Aptus won’t release a session that has already started": {
-      "comment": "Reason clause: the session is already running",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus won’t release a session that has already started"
+    "Aptus won’t release a session that has already started" : {
+      "comment" : "Reason clause: the session is already running",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus won’t release a session that has already started"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus släpper inte ett pass som redan har börjat"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus släpper inte ett pass som redan har börjat"
           }
         }
       }
     },
-    "Aptus wouldn’t release it — refresh and try again": {
-      "comment": "Reason clause for a refused cancellation",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus wouldn’t release it — refresh and try again"
+    "Aptus wouldn’t release it — refresh and try again" : {
+      "comment" : "Reason clause for a refused cancellation",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus wouldn’t release it — refresh and try again"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aptus ville inte släppa det — uppdatera och försök igen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aptus ville inte släppa det — uppdatera och försök igen"
           }
         }
       }
     },
-    "At most %lld groups per booking.": {
-      "comment": "Hint under the submit button: Aptus's hard limit per action",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "At most %lld groups per booking."
+    "At most %lld groups per booking." : {
+      "comment" : "Hint under the submit button: Aptus's hard limit per action",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At most %lld groups per booking."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Högst %lld grupper per bokning."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Högst %lld grupper per bokning."
           }
         }
       }
     },
-    "At start": {
-      "comment": "Reminder offset: when the booking starts",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "At start"
+    "At start" : {
+      "comment" : "Reminder offset: when the booking starts",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At start"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "När passet börjar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "När passet börjar"
           }
         }
       }
     },
-    "Back to today": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back to today"
+    "Back to today" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to today"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tillbaka till idag"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillbaka till idag"
           }
         }
       }
     },
-    "Book": {
-      "comment": "Submit button when one group will be booked",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Book"
+    "Book" : {
+      "comment" : "Submit button when one group will be booked",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Book"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boka"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boka"
           }
         }
       }
     },
-    "Book %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Book %@"
+    "Book %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Book %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boka %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boka %@"
           }
         }
       }
     },
-    "Book %lld": {
-      "comment": "Submit button when several groups will be booked",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Book %lld"
+    "Book %lld" : {
+      "comment" : "Submit button when several groups will be booked",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Book %lld"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boka %lld"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boka %lld"
           }
         }
       }
     },
-    "Book both": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Book both"
+    "Book both" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Book both"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boka båda"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boka båda"
           }
         }
       }
     },
-    "Booked": {
-      "comment": "Receipt heading after a successful booking",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Booked"
+    "Booked" : {
+      "comment" : "Receipt heading after a successful booking",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Booked"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bokat"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bokat"
           }
         }
       }
     },
-    "Booked %@, cancelled %@.": {
-      "comment": "Receipt after booking and cancelling at once; both placeholders are group names",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Booked %@, cancelled %@."
+    "Booked %@, cancelled %@." : {
+      "comment" : "Receipt after booking and cancelling at once; both placeholders are group names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Booked %@, cancelled %@."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bokade %@, avbokade %@."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bokade %@, avbokade %@."
           }
         }
       }
     },
-    "Booking didn’t go through": {
-      "comment": "Headline when nothing was booked",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Booking didn’t go through"
+    "Booking didn’t go through" : {
+      "comment" : "Headline when nothing was booked",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Booking didn’t go through"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bokningen gick inte igenom"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bokningen gick inte igenom"
           }
         }
       }
     },
-    "Booking reminders": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Booking reminders"
+    "Booking reminders" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Booking reminders"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bokningspåminnelser"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bokningspåminnelser"
           }
         }
       }
     },
-    "Calendar access is off. Turn it on in iOS Settings.": {
-      "comment": "Why a booking couldn't be written to the calendar",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calendar access is off. Turn it on in iOS Settings."
+    "booking.action.cancel" : {
+      "comment" : "Submit button when one group will be released",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalenderåtkomst är avstängd. Slå på den i iOS-inställningarna."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka"
           }
         }
       }
     },
-    "Cancel": {
-      "comment": "Dismisses the sign-out alert without signing out",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel"
+    "Calendar access is off. Turn it on in iOS Settings." : {
+      "comment" : "Why a booking couldn't be written to the calendar",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access is off. Turn it on in iOS Settings."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avbryt"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalenderåtkomst är avstängd. Slå på den i iOS-inställningarna."
           }
         }
       }
     },
-    "Cancel %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel %@"
+    "Can’t be booked" : {
+      "comment" : "Status beside a free group Aptus offers no book button for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t be booked"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan inte bokas"
           }
         }
       }
     },
-    "Cancel %lld": {
-      "comment": "Submit button when several groups will be released",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel %lld"
+    "Can’t be cancelled" : {
+      "comment" : "Status beside a booking Aptus won’t release",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t be cancelled"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka %lld"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan inte avbokas"
           }
         }
       }
     },
-    "Cancel a session you won’t use, so someone else can take it.": {
-      "comment": "Booking rule shown on the sign-in screen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel a session you won’t use, so someone else can take it."
+    "Cancel" : {
+      "comment" : "Dismisses the sign-out alert without signing out",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka tider du inte kommer att använda, så att någon annan kan boka dem."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbryt"
           }
         }
       }
     },
-    "Cancel booking": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel booking"
+    "Cancel %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka %@"
           }
         }
       }
     },
-    "Cancel both": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel both"
+    "Cancel %lld" : {
+      "comment" : "Submit button when several groups will be released",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel %lld"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka båda"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka %lld"
           }
         }
       }
     },
-    "Cancel this booking?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel this booking?"
+    "Cancel a session you won’t use, so someone else can take it." : {
+      "comment" : "Booking rule shown on the sign-in screen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel a session you won’t use, so someone else can take it."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka tvättpasset?"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka tider du inte kommer att använda, så att någon annan kan boka dem."
           }
         }
       }
     },
-    "Cancel timer": {
-      "comment": "Accessibility label for the button that stops a running timer",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel timer"
+    "Cancel booking" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel booking"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avbryt timern"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka"
           }
         }
       }
     },
-    "Cancellation didn’t go through": {
-      "comment": "Headline when nothing was cancelled",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancellation didn’t go through"
+    "Cancel both" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel both"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avbokningen gick inte igenom"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka båda"
           }
         }
       }
     },
-    "Cancelled": {
-      "comment": "Receipt heading after a successful cancellation",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancelled"
+    "Cancel this booking?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel this booking?"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avbokat"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avboka tvättpasset?"
           }
         }
       }
     },
-    "Can’t be booked": {
-      "comment": "Status beside a free group Aptus offers no book button for",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Can’t be booked"
+    "Cancel timer" : {
+      "comment" : "Accessibility label for the button that stops a running timer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel timer"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kan inte bokas"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbryt timern"
           }
         }
       }
     },
-    "Can’t be cancelled": {
-      "comment": "Status beside a booking Aptus won’t release",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Can’t be cancelled"
+    "Cancellation didn’t go through" : {
+      "comment" : "Headline when nothing was cancelled",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancellation didn’t go through"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kan inte avbokas"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbokningen gick inte igenom"
           }
         }
       }
     },
-    "Changes applied": {
-      "comment": "Receipt heading after booking and cancelling at once",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Changes applied"
+    "Cancelled" : {
+      "comment" : "Receipt heading after a successful cancellation",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ändringarna är gjorda"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbokat"
           }
         }
       }
     },
-    "Close": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close"
+    "Changes applied" : {
+      "comment" : "Receipt heading after booking and cancelling at once",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes applied"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stäng"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ändringarna är gjorda"
           }
         }
       }
     },
-    "Continue": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continue"
+    "Close" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fortsätt"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stäng"
           }
         }
       }
     },
-    "Copy": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy"
+    "Continue" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kopiera"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsätt"
           }
         }
       }
     },
-    "Copy object number": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy object number"
+    "Copy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kopiera objektsnummer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiera"
           }
         }
       }
     },
-    "Copy time": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy time"
+    "Copy object number" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy object number"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kopiera tiden"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiera objektsnummer"
           }
         }
       }
     },
-    "Could not reach the laundry service.": {
-      "comment": "The service couldn't be reached",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not reach the laundry service."
+    "Copy time" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy time"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kunde inte nå tvättjänsten."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiera tiden"
           }
         }
       }
     },
-    "Could not read the response.": {
-      "comment": "The service's answer didn't decode",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not read the response."
+    "Could not reach the laundry service." : {
+      "comment" : "The service couldn't be reached",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not reach the laundry service."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kunde inte läsa svaret."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunde inte nå tvättjänsten."
           }
         }
       }
     },
-    "Couldn’t add to Calendar": {
-      "comment": "Alert title when the calendar event couldn't be prepared",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t add to Calendar"
+    "Could not read the response." : {
+      "comment" : "The service's answer didn't decode",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not read the response."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kunde inte lägga till i Kalender"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunde inte läsa svaret."
           }
         }
       }
     },
-    "Couldn’t connect. Try again in a moment.": {
-      "comment": "What to do when the service couldn't be reached",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t connect. Try again in a moment."
+    "Couldn’t add to Calendar" : {
+      "comment" : "Alert title when the calendar event couldn't be prepared",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t add to Calendar"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kunde inte ansluta. Försök igen om en stund."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunde inte lägga till i Kalender"
           }
         }
       }
     },
-    "Done": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
+    "Couldn’t connect. Try again in a moment." : {
+      "comment" : "What to do when the service couldn't be reached",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t connect. Try again in a moment."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunde inte ansluta. Försök igen om en stund."
           }
         }
       }
     },
-    "Ends %@": {
-      "comment": "Subtitle of a running laundry timer; the placeholder is a time like \"14:32\"",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ends %@"
+    "Done" : {
+      "comment" : "Live Activity headline once a laundry timer has run out",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klar %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar"
           }
         }
       }
     },
-    "Enter the object number from your rental agreement.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter the object number from your rental agreement."
+    "Ends %@" : {
+      "comment" : "Subtitle of a running laundry timer; the placeholder is a time like \"14:32\"",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ends %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ange objektsnumret från ditt hyresavtal."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar %@"
           }
         }
       }
     },
-    "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back.": {
-      "comment": "Empty state body when the week is full",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back."
+    "Enter the object number from your rental agreement." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the object number from your rental agreement."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alla tvättpass är bokade eller har redan börjat. Dra nedåt för att uppdatera — en avbokning lägger tillbaka ett."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange objektsnumret från ditt hyresavtal."
           }
         }
       }
     },
-    "Filter timeslots": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filter timeslots"
+    "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back." : {
+      "comment" : "Empty state body when the week is full",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every timeslot is taken or has already started. Pull down to refresh — a cancellation puts one back."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filtrera tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alla tvättpass är bokade eller har redan börjat. Dra nedåt för att uppdatera — en avbokning lägger tillbaka ett."
           }
         }
       }
     },
-    "From": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From"
+    "Filter timeslots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Från"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrera tvättpass"
           }
         }
       }
     },
-    "From sssb.se.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From sssb.se."
+    "From" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Från sssb.se."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Från"
           }
         }
       }
     },
-    "From your rental agreement. Sign out to use a different one.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From your rental agreement. Sign out to use a different one."
+    "From sssb.se." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From sssb.se."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Från ditt hyresavtal. Logga ut för att använda ett annat."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Från sssb.se."
           }
         }
       }
     },
-    "Get a reminder %@ before your booking starts. Bookings are released 15 minutes after the start unless you tag in.": {
-      "comment": "Body of the one-time offer to turn reminders on; the placeholder is a span like \"10 minutes\"",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Get a reminder %@ before your booking starts. Bookings are released 15 minutes after the start unless you tag in."
+    "From your rental agreement. Sign out to use a different one." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From your rental agreement. Sign out to use a different one."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Få en påminnelse %@ innan ditt tvättpass börjar. Pass som inte aktiveras inom 15 minuter efter start avbokas."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Från ditt hyresavtal. Logga ut för att använda ett annat."
           }
         }
       }
     },
-    "Get a reminder when your booking starts. Bookings are released 15 minutes after the start unless you tag in.": {
-      "comment": "Body of the one-time offer to turn reminders on",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Get a reminder when your booking starts. Bookings are released 15 minutes after the start unless you tag in."
+    "Get a reminder %@ before your booking starts. Bookings are released 15 minutes after the start unless you tag in." : {
+      "comment" : "Body of the one-time offer to turn reminders on; the placeholder is a span like \"10 minutes\"",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a reminder %@ before your booking starts. Bookings are released 15 minutes after the start unless you tag in."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Få en påminnelse när ditt tvättpass börjar. Pass som inte aktiveras inom 15 minuter efter start avbokas."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Få en påminnelse %@ innan ditt tvättpass börjar. Pass som inte aktiveras inom 15 minuter efter start avbokas."
           }
         }
       }
     },
-    "Group %lld": {
-      "comment": "Stand-in name for a laundry group whose Aptus label the app doesn't have",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Group %lld"
+    "Get a reminder when your booking starts. Bookings are released 15 minutes after the start unless you tag in." : {
+      "comment" : "Body of the one-time offer to turn reminders on",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a reminder when your booking starts. Bookings are released 15 minutes after the start unless you tag in."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grupp %lld"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Få en påminnelse när ditt tvättpass börjar. Pass som inte aktiveras inom 15 minuter efter start avbokas."
           }
         }
       }
     },
-    "Hidden groups are left out of the week list.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hidden groups are left out of the week list."
+    "Group %lld" : {
+      "comment" : "Stand-in name for a laundry group whose Aptus label the app doesn't have",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Group %lld"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dolda grupper visas inte i veckolistan."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grupp %lld"
           }
         }
       }
     },
-    "Hidden groups are left out of the week list. Useful when your address covers several buildings.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hidden groups are left out of the week list. Useful when your address covers several buildings."
+    "Hidden groups are left out of the week list." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden groups are left out of the week list."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dolda grupper visas inte i veckolistan. Praktiskt när din adress omfattar flera hus."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolda grupper visas inte i veckolistan."
           }
         }
       }
     },
-    "In progress": {
-      "comment": "Status beside a group whose booked session has started",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In progress"
+    "Hidden groups are left out of the week list. Useful when your address covers several buildings." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden groups are left out of the week list. Useful when your address covers several buildings."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pågår"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolda grupper visas inte i veckolistan. Praktiskt när din adress omfattar flera hus."
           }
         }
       }
     },
-    "Include object number": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Include object number"
+    "In progress" : {
+      "comment" : "Status beside a group whose booked session has started",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In progress"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inkludera objektsnummer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pågår"
           }
         }
       }
     },
-    "Invalid response.": {
-      "comment": "The service answered with something that wasn't HTTP",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invalid response."
+    "Include object number" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include object number"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ogiltigt svar."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inkludera objektsnummer"
           }
         }
       }
     },
-    "Invite": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invite"
+    "Invalid response." : {
+      "comment" : "The service answered with something that wasn't HTTP",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid response."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bjud in"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogiltigt svar."
           }
         }
       }
     },
-    "Invited to an apartment?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invited to an apartment?"
+    "Invite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invite"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inbjuden till en lägenhet?"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bjud in"
           }
         }
       }
     },
-    "Jump to date": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jump to date"
+    "Invited to an apartment?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invited to an apartment?"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gå till datum"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inbjuden till en lägenhet?"
           }
         }
       }
     },
-    "Keep booking": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep booking"
+    "Jump to date" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jump to date"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Behåll bokningen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gå till datum"
           }
         }
       }
     },
-    "Laundry": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry"
+    "Keep booking" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep booking"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behåll bokningen"
           }
         }
       }
     },
-    "Laundry done": {
-      "comment": "Alarm title when a laundry timer rings",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry done"
+    "Laundry" : {
+      "comment" : "Alarm title while a laundry timer runs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätten är klar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt"
           }
         }
       }
     },
-    "Laundry room": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry room"
+    "Laundry done" : {
+      "comment" : "Alarm title when a laundry timer rings",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry done"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvättstuga"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätten är klar"
           }
         }
       }
     },
-    "Laundry room: %@": {
-      "comment": "Where the laundry room serving an address actually is",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry room: %@"
+    "Laundry room" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry room"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvättstuga: %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättstuga"
           }
         }
       }
     },
-    "Loading more timeslots": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading more timeslots"
+    "Laundry room: %@" : {
+      "comment" : "Where the laundry room serving an address actually is",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry room: %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Läser in fler tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättstuga: %@"
           }
         }
       }
     },
-    "Loading timeslots": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading timeslots"
+    "left on your timer" : {
+      "comment" : "Caption under a Live Activity countdown of a running laundry timer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "left on your timer"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Läser in tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kvar på timern"
           }
         }
       }
     },
-    "Max future bookings": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max future bookings"
+    "Loading more timeslots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading more timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max framtida bokningar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läser in fler tvättpass"
           }
         }
       }
     },
-    "Max per month": {
-      "comment": "Settings row title for a monthly booking quota",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max per month"
+    "Loading timeslots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max per månad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läser in tvättpass"
           }
         }
       }
     },
-    "Max per week": {
-      "comment": "Settings row title for a weekly booking quota",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max per week"
+    "Max future bookings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max future bookings"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max per vecka"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max framtida bokningar"
           }
         }
       }
     },
-    "Max per week/month": {
-      "comment": "Settings row title for a laundry room that publishes no weekly or monthly quota",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max per week/month"
+    "Max per month" : {
+      "comment" : "Settings row title for a monthly booking quota",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max per month"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max per vecka/månad"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max per månad"
           }
         }
       }
     },
-    "Menu": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
+    "Max per week" : {
+      "comment" : "Settings row title for a weekly booking quota",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max per week"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meny"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max per vecka"
           }
         }
       }
     },
-    "Multiple groups of one time still count as a single session.": {
-      "comment": "Booking rule shown on the sign-in screen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Multiple groups of one time still count as a single session."
+    "Max per week/month" : {
+      "comment" : "Settings row title for a laundry room that publishes no weekly or monthly quota",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max per week/month"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flera grupper på samma tid räknas ändå som ett enda pass."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max per vecka/månad"
           }
         }
       }
     },
-    "No changes": {
-      "comment": "Disabled submit button when nothing is selected",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No changes"
+    "Menu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inga ändringar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meny"
           }
         }
       }
     },
-    "No connection": {
-      "comment": "Error headline: the phone couldn't reach the service",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No connection"
+    "Multiple groups of one time still count as a single session." : {
+      "comment" : "Booking rule shown on the sign-in screen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multiple groups of one time still count as a single session."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingen anslutning"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flera grupper på samma tid räknas ändå som ett enda pass."
           }
         }
       }
     },
-    "No free timeslots": {
-      "comment": "Empty state: every timeslot is taken or has started",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No free timeslots"
+    "No changes" : {
+      "comment" : "Disabled submit button when nothing is selected",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No changes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inga lediga tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga ändringar"
           }
         }
       }
     },
-    "No groups loaded yet.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No groups loaded yet."
+    "No connection" : {
+      "comment" : "Error headline: the phone couldn't reach the service",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No connection"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inga grupper inlästa än."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen anslutning"
           }
         }
       }
     },
-    "No internet connection.": {
-      "comment": "The phone is offline",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No internet connection."
+    "No free timeslots" : {
+      "comment" : "Empty state: every timeslot is taken or has started",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No free timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingen internetanslutning."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga lediga tvättpass"
           }
         }
       }
     },
-    "No maximum": {
-      "comment": "A laundry room rule SSSB publishes no number for",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No maximum"
+    "No groups loaded yet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No groups loaded yet."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inget max"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga grupper inlästa än."
           }
         }
       }
     },
-    "No more timeslots": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No more timeslots"
+    "No internet connection." : {
+      "comment" : "The phone is offline",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inga fler tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen internetanslutning."
           }
         }
       }
     },
-    "No rules shown": {
-      "comment": "What choosing no address means",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No rules shown"
+    "No maximum" : {
+      "comment" : "A laundry room rule SSSB publishes no number for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No maximum"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inga regler visas"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget max"
           }
         }
       }
     },
-    "No upcoming timeslots": {
-      "comment": "Empty state: no schedule at all for this object number",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No upcoming timeslots"
+    "No more timeslots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inga kommande tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga fler tvättpass"
           }
         }
       }
     },
-    "None": {
-      "comment": "A laundry room that gives no extra access time once the session has ended\nReminder offset: no reminder at all",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "None"
+    "No rules shown" : {
+      "comment" : "What choosing no address means",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rules shown"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga regler visas"
           }
         }
       }
     },
-    "Not now": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not now"
+    "No upcoming timeslots" : {
+      "comment" : "Empty state: no schedule at all for this object number",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No upcoming timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inte nu"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga kommande tvättpass"
           }
         }
       }
     },
-    "Not open for booking yet": {
-      "comment": "Empty state: the day is past SSSB's booking horizon",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not open for booking yet"
+    "None" : {
+      "comment" : "A laundry room that gives no extra access time once the session has ended\nReminder offset: no reminder at all",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inte öppen för bokning än"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen"
           }
         }
       }
     },
-    "Not set": {
-      "comment": "Picker row for choosing no laundry-room address\nSettings value when no laundry-room address has been chosen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not set"
+    "Not now" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ej angiven"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inte nu"
           }
         }
       }
     },
-    "Nothing is scheduled for this laundry room right now.": {
-      "comment": "Empty state body when the portal lists no timeslots at all",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing is scheduled for this laundry room right now."
+    "Not open for booking yet" : {
+      "comment" : "Empty state: the day is past SSSB's booking horizon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not open for booking yet"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inget är schemalagt för den här tvättstugan just nu."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inte öppen för bokning än"
           }
         }
       }
     },
-    "Nothing was booked — the timeslot is unchanged.": {
-      "comment": "Body when a booking failed outright",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing was booked — the timeslot is unchanged."
+    "Not set" : {
+      "comment" : "Picker row for choosing no laundry-room address\nSettings value when no laundry-room address has been chosen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not set"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inget bokades — tvättpasset är oförändrat."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ej angiven"
           }
         }
       }
     },
-    "Nothing was cancelled — your booking is unchanged.": {
-      "comment": "Body when a cancellation failed outright",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing was cancelled — your booking is unchanged."
+    "Nothing is scheduled for this laundry room right now." : {
+      "comment" : "Empty state body when the portal lists no timeslots at all",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing is scheduled for this laundry room right now."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inget avbokades — din bokning är oförändrad."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget är schemalagt för den här tvättstugan just nu."
           }
         }
       }
     },
-    "Notifications": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifications"
+    "Nothing was booked — the timeslot is unchanged." : {
+      "comment" : "Body when a booking failed outright",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing was booked — the timeslot is unchanged."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notiser"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget bokades — tvättpasset är oförändrat."
           }
         }
       }
     },
-    "Notifications are off in iOS Settings. Turn them back on there.": {
-      "comment": "Settings footer when the system permission has been revoked",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifications are off in iOS Settings. Turn them back on there."
+    "Nothing was cancelled — your booking is unchanged." : {
+      "comment" : "Body when a cancellation failed outright",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing was cancelled — your booking is unchanged."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notiser är avstängda i iOS-inställningarna. Slå på dem där igen."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget avbokades — din bokning är oförändrad."
           }
         }
       }
     },
-    "OK": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+    "notification.body" : {
+      "comment" : "Push notification sent by the server as an APNs localization key body: day and time only",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
           }
         }
       }
     },
-    "Object id is required.": {
-      "comment": "Request refused before it was sent: no object number stored",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Object id is required."
+    "notification.body.activate" : {
+      "comment" : "Push notification sent by the server as an APNs localization key body: day and time, then the grace-period warning",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@\nActivate with your Aptus tag within 15 minutes or the session is released."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Objektsnummer krävs."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
           }
         }
       }
     },
-    "Object number": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Object number"
+    "notification.body.machines" : {
+      "comment" : "Push notification sent by the server as an APNs localization key body: day and time, then the booked groups",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Objektsnummer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
           }
         }
       }
     },
-    "One booking can cover at most %lld groups.": {
-      "comment": "Aptus's hard limit on groups per booking action",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "One booking can cover at most %lld groups."
+    "notification.body.machines.activate" : {
+      "comment" : "Push notification sent by the server as an APNs localization key body: day and time, the booked groups, then the grace-period warning",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@\nActivate with your Aptus tag within 15 minutes or the session is released."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En bokning kan omfatta högst %lld grupper."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
           }
         }
       }
     },
-    "Only part of it worked": {
-      "comment": "Heading when some groups succeeded and others didn't",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only part of it worked"
+    "notification.title.in.day" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder one day ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ day"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bara en del gick igenom"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ dag"
           }
         }
       }
     },
-    "Only timeslots starting in this range are shown. It can span midnight.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only timeslots starting in this range are shown. It can span midnight."
+    "notification.title.in.days" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder several days ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ days"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Endast tvättpass som börjar inom det här spannet visas. Spannet kan sträcka sig över midnatt."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ dagar"
           }
         }
       }
     },
-    "Open iOS Settings": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open iOS Settings"
+    "notification.title.in.hour" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder one hour ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ hour"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Öppna iOS-inställningar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ timme"
           }
         }
       }
     },
-    "Overnight": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overnight"
+    "notification.title.in.hours" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder several hours ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ hours"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nattpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ timmar"
           }
         }
       }
     },
-    "Paste it and you're signed in.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste it and you're signed in."
+    "notification.title.in.minute" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder one minute ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ minute"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klistra in den, så är du inloggad."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ minut"
           }
         }
       }
     },
-    "Rang %@": {
-      "comment": "Subtitle of a laundry timer that has run out; the placeholder is a time like \"14:32\"",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rang %@"
+    "notification.title.in.minutes" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder several minutes ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ minutes"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ringde %@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ minuter"
           }
         }
       }
     },
-    "Remind you before laundry?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remind you before laundry?"
+    "notification.title.in.week" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder one week ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ week"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Påminnelse innan tvättpasset?"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ vecka"
           }
         }
       }
     },
-    "Reminders arrive with the app closed, and for bookings someone else in your apartment made.": {
-      "comment": "Settings footer explaining what booking reminders cover",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reminders arrive with the app closed, and for bookings someone else in your apartment made."
+    "notification.title.in.weeks" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder several weeks ahead",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry in %@ weeks"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Påminnelser kommer även när appen är stängd, och för bokningar som någon annan i din lägenhet har gjort."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvätt om %@ veckor"
           }
         }
       }
     },
-    "SSSB Laundry needs permission to set alarms, so a timer can ring even when the phone is silenced.": {
-      "comment": "Alert body when alarm permission has been denied",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SSSB Laundry needs permission to set alarms, so a timer can ring even when the phone is silenced."
+    "notification.title.newBooking" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: someone in the apartment booked a time",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New laundry booking"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SSSB Tvätt behöver tillstånd att ställa larm, så att en timer kan ringa även när telefonen är ljudlös."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ny tvättbokning"
           }
         }
       }
     },
-    "SSSB opens the laundry schedule a few weeks ahead. Nothing from %@ can be booked yet.": {
-      "comment": "Empty state body; the placeholder is a day like \"Monday 1 Sep\"",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SSSB opens the laundry schedule a few weeks ahead. Nothing from %@ can be booked yet."
+    "notification.title.startsNow" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: reminder with no lead time",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laundry starts now"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SSSB öppnar tvättschemat några veckor i förväg. Inget från %@ går att boka än."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättpasset börjar nu"
           }
         }
       }
     },
-    "Second alert": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Second alert"
+    "Notifications" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Andra påminnelsen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notiser"
           }
         }
       }
     },
-    "Set your address to see SSSB's rules for your laundry room.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set your address to see SSSB's rules for your laundry room."
+    "Notifications are off in iOS Settings. Turn them back on there." : {
+      "comment" : "Settings footer when the system permission has been revoked",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are off in iOS Settings. Turn them back on there."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ange din adress för att se SSSB:s regler för din tvättstuga."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notiser är avstängda i iOS-inställningarna. Slå på dem där igen."
           }
         }
       }
     },
-    "Settings": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings"
+    "Object id is required." : {
+      "comment" : "Request refused before it was sent: no object number stored",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Object id is required."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inställningar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objektsnummer krävs."
           }
         }
       }
     },
-    "Share link": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Share link"
+    "Object number" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Object number"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dela länk"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objektsnummer"
           }
         }
       }
     },
-    "Show all groups": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show all groups"
+    "OK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visa alla grupper"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         }
       }
     },
-    "Show all timeslots": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show all timeslots"
+    "One booking can cover at most %lld groups." : {
+      "comment" : "Aptus's hard limit on groups per booking action",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One booking can cover at most %lld groups."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visa alla tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En bokning kan omfatta högst %lld grupper."
           }
         }
       }
     },
-    "Sign in": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in"
+    "Only part of it worked" : {
+      "comment" : "Heading when some groups succeeded and others didn't",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only part of it worked"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logga in"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bara en del gick igenom"
           }
         }
       }
     },
-    "Sign out": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign out"
+    "Only timeslots starting in this range are shown. It can span midnight." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only timeslots starting in this range are shown. It can span midnight."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logga ut"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endast tvättpass som börjar inom det här spannet visas. Spannet kan sträcka sig över midnatt."
           }
         }
       }
     },
-    "Sign out?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign out?"
+    "Open iOS Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open iOS Settings"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logga ut?"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna iOS-inställningar"
           }
         }
       }
     },
-    "Sign-in problem": {
-      "comment": "Error headline: Aptus rejected the object number",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign-in problem"
+    "Overnight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overnight"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inloggningsproblem"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nattpass"
           }
         }
       }
     },
-    "Something went wrong": {
-      "comment": "Alert title for a failure the app can't name",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something went wrong"
+    "Paste it and you're signed in." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste it and you're signed in."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Något gick fel"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klistra in den, så är du inloggad."
           }
         }
       }
     },
-    "Start": {
-      "comment": "Button that starts a laundry timer",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start"
+    "Rang %@" : {
+      "comment" : "Subtitle of a laundry timer that has run out; the placeholder is a time like \"14:32\"",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rang %@"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starta"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ringde %@"
           }
         }
       }
     },
-    "Start a timer": {
-      "comment": "Action at the top of the week list",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start a timer"
+    "Remind you before laundry?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remind you before laundry?"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starta en timer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Påminnelse innan tvättpasset?"
           }
         }
       }
     },
-    "Stop": {
-      "comment": "Button that silences a laundry timer's alarm",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop"
+    "Reminders arrive with the app closed, and for bookings someone else in your apartment made." : {
+      "comment" : "Settings footer explaining what booking reminders cover",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminders arrive with the app closed, and for bookings someone else in your apartment made."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stoppa"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Påminnelser kommer även när appen är stängd, och för bokningar som någon annan i din lägenhet har gjort."
           }
         }
       }
     },
-    "Street address": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Street address"
+    "Second alert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Second alert"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gatuadress"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andra påminnelsen"
           }
         }
       }
     },
-    "Switch": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switch"
+    "Set your address to see SSSB's rules for your laundry room." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set your address to see SSSB's rules for your laundry room."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Byt"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange din adress för att se SSSB:s regler för din tvättstuga."
           }
         }
       }
     },
-    "Switch object number?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switch object number?"
+    "Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Byt objektsnummer?"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inställningar"
           }
         }
       }
     },
-    "Tag in with your Aptus tag when you start. You can’t tag in before the booked time.": {
-      "comment": "Booking rule shown on the sign-in screen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tag in with your Aptus tag when you start. You can’t tag in before the booked time."
+    "Share link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share link"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktivera tvättpasset med din Aptusbricka när du börjar. Du kan inte aktivera passet före bokad tid."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dela länk"
           }
         }
       }
     },
-    "That was not an invite link or an object number.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That was not an invite link or an object number."
+    "Show all groups" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all groups"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Det där var varken en inbjudningslänk eller ett objektsnummer."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa alla grupper"
           }
         }
       }
     },
-    "That would be %lld sessions of %lld — SSSB may turn it down.": {
-      "comment": "Hint under the submit button: over the laundry room's published session limit",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That would be %lld sessions of %lld — SSSB may turn it down."
+    "Show all timeslots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all timeslots"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Det skulle bli %lld pass av %lld — SSSB kan neka."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa alla tvättpass"
           }
         }
       }
     },
-    "The laundry service returned an error.": {
-      "comment": "Fallback for an HTTP error with no readable body",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The laundry service returned an error."
+    "Sign in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvättjänsten svarade med ett fel."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga in"
           }
         }
       }
     },
-    "The request timed out.": {
-      "comment": "The service took too long to answer",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The request timed out."
+    "Sign out" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Begäran tog för lång tid."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga ut"
           }
         }
       }
     },
-    "They book and cancel as your apartment.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "They book and cancel as your apartment."
+    "Sign out?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out?"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De bokar och avbokar som din lägenhet."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga ut?"
           }
         }
       }
     },
-    "This phone will show %@ instead. Your own bookings stay, but they leave this phone along with their reminders.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This phone will show %@ instead. Your own bookings stay, but they leave this phone along with their reminders."
+    "Sign-in problem" : {
+      "comment" : "Error headline: Aptus rejected the object number",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in problem"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Den här telefonen visar %@ i stället. Dina egna bokningar finns kvar, men de lämnar telefonen tillsammans med sina påminnelser."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inloggningsproblem"
           }
         }
       }
     },
-    "This timeslot has changed. Pull down to refresh, then try again.": {
-      "comment": "What to do when the week list was stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This timeslot has changed. Pull down to refresh, then try again."
+    "someone else took it first" : {
+      "comment" : "Reason clause: another resident booked the slot",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "someone else took it first"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Det här tvättpasset har ändrats. Dra nedåt för att uppdatera och försök igen."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "någon annan hann före"
           }
         }
       }
     },
-    "Timer": {
-      "comment": "Title of the sheet that sets a laundry timer",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Timer"
+    "Something went wrong" : {
+      "comment" : "Alert title for a failure the app can't name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Timer"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Något gick fel"
           }
         }
       }
     },
-    "Timeslot": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Timeslot"
+    "SSSB Laundry needs permission to set alarms, so a timer can ring even when the phone is silenced." : {
+      "comment" : "Alert body when alarm permission has been denied",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSSB Laundry needs permission to set alarms, so a timer can ring even when the phone is silenced."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvättpass"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSSB Tvätt behöver tillstånd att ställa larm, så att en timer kan ringa även när telefonen är ljudlös."
           }
         }
       }
     },
-    "Timeslot out of date": {
-      "comment": "Error headline: the week list was stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Timeslot out of date"
+    "SSSB opens the laundry schedule a few weeks ahead. Nothing from %@ can be booked yet." : {
+      "comment" : "Empty state body; the placeholder is a day like \"Monday 1 Sep\"",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSSB opens the laundry schedule a few weeks ahead. Nothing from %@ can be booked yet."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvättpasset är inaktuellt"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSSB öppnar tvättschemat några veckor i förväg. Inget från %@ går att boka än."
           }
         }
       }
     },
-    "To": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To"
+    "Start" : {
+      "comment" : "Button that starts a laundry timer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Till"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starta"
           }
         }
       }
     },
-    "Too late": {
-      "comment": "Status beside a free group whose timeslot has already started",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Too late"
+    "Start a timer" : {
+      "comment" : "Action at the top of the week list",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a timer"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "För sent"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starta en timer"
           }
         }
       }
     },
-    "Too many groups": {
-      "comment": "Error headline: more groups than one action takes",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Too many groups"
+    "Stop" : {
+      "comment" : "Button that silences a laundry timer's alarm",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "För många grupper"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stoppa"
           }
         }
       }
     },
-    "Try again": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Try again"
+    "Street address" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Street address"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Försök igen"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gatuadress"
           }
         }
       }
     },
-    "Turn on reminders": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turn on reminders"
+    "Switch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Slå på påminnelser"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Byt"
           }
         }
       }
     },
-    "Unavailable": {
-      "comment": "Status beside a group somebody else holds",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unavailable"
+    "Switch object number?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch object number?"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upptaget"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Byt objektsnummer?"
           }
         }
       }
     },
-    "Visible groups": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visible groups"
+    "Tag in with your Aptus tag when you start. You can’t tag in before the booked time." : {
+      "comment" : "Booking rule shown on the sign-in screen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag in with your Aptus tag when you start. You can’t tag in before the booked time."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synliga grupper"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivera tvättpasset med din Aptusbricka när du börjar. Du kan inte aktivera passet före bokad tid."
           }
         }
       }
     },
-    "You appear to be offline. Reconnect and try again.": {
-      "comment": "What to do when the phone has no connection",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You appear to be offline. Reconnect and try again."
+    "That was not an invite link or an object number." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That was not an invite link or an object number."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Du verkar vara offline. Anslut igen och försök på nytt."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det där var varken en inbjudningslänk eller ett objektsnummer."
           }
         }
       }
     },
-    "You can hold one or two sessions ahead at a time, depending on your laundry room.": {
-      "comment": "Booking rule shown on the sign-in screen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can hold one or two sessions ahead at a time, depending on your laundry room."
+    "That would be %lld sessions of %lld — SSSB may turn it down." : {
+      "comment" : "Hint under the submit button: over the laundry room's published session limit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That would be %lld sessions of %lld — SSSB may turn it down."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Du kan ha ett eller två pass bokade åt gången, beroende på din tvättstuga."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det skulle bli %lld pass av %lld — SSSB kan neka."
           }
         }
       }
     },
-    "Your address": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your address"
+    "The laundry service returned an error." : {
+      "comment" : "Fallback for an HTTP error with no readable body",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The laundry service returned an error."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Din adress"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättjänsten svarade med ett fel."
           }
         }
       }
     },
-    "Your bookings stay, but this phone stops seeing them and reminders end.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your bookings stay, but this phone stops seeing them and reminders end."
+    "The request timed out." : {
+      "comment" : "The service took too long to answer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The request timed out."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dina bokningar finns kvar, men den här telefonen slutar visa dem och påminnelserna upphör."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Begäran tog för lång tid."
           }
         }
       }
     },
-    "Your laundry room": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your laundry room"
+    "They book and cancel as your apartment." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They book and cancel as your apartment."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Din tvättstuga"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De bokar och avbokar som din lägenhet."
           }
         }
       }
     },
-    "Your object number is missing. Sign in again.": {
-      "comment": "What to do when the app has no object number stored",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your object number is missing. Sign in again."
+    "This phone will show %@ instead. Your own bookings stay, but they leave this phone along with their reminders." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This phone will show %@ instead. Your own bookings stay, but they leave this phone along with their reminders."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ditt objektsnummer saknas. Logga in igen."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den här telefonen visar %@ i stället. Dina egna bokningar finns kvar, men de lämnar telefonen tillsammans med sina påminnelser."
           }
         }
       }
     },
-    "booking.action.cancel": {
-      "comment": "Submit button when one group will be released",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel"
+    "This timeslot has changed. Pull down to refresh, then try again." : {
+      "comment" : "What to do when the week list was stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This timeslot has changed. Pull down to refresh, then try again."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avboka"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det här tvättpasset har ändrats. Dra nedåt för att uppdatera och försök igen."
           }
         }
       }
     },
-    "left on your timer": {
-      "comment": "Caption under a Live Activity countdown of a running laundry timer",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "left on your timer"
+    "Timer" : {
+      "comment" : "Title of the sheet that sets a laundry timer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "kvar på timern"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer"
           }
         }
       }
     },
-    "notification.body": {
-      "comment": "Push notification sent by the server as an APNs localization key body: day and time only",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@"
+    "Timeslot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timeslot"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättpass"
           }
         }
       }
     },
-    "notification.body.activate": {
-      "comment": "Push notification sent by the server as an APNs localization key body: day and time, then the grace-period warning",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@\nActivate with your Aptus tag within 15 minutes or the session is released."
+    "Timeslot out of date" : {
+      "comment" : "Error headline: the week list was stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timeslot out of date"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättpasset är inaktuellt"
           }
         }
       }
     },
-    "notification.body.machines": {
-      "comment": "Push notification sent by the server as an APNs localization key body: day and time, then the booked groups",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$@"
+    "To" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$@"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Till"
           }
         }
       }
     },
-    "notification.body.machines.activate": {
-      "comment": "Push notification sent by the server as an APNs localization key body: day and time, the booked groups, then the grace-period warning",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$@\nActivate with your Aptus tag within 15 minutes or the session is released."
+    "to tag in" : {
+      "comment" : "Caption under a Live Activity countdown to the booking being released",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to tag in"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kvar att aktivera"
           }
         }
       }
     },
-    "notification.title.in.day": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder one day ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ day"
+    "Too late" : {
+      "comment" : "Status beside a free group whose timeslot has already started",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too late"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ dag"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För sent"
           }
         }
       }
     },
-    "notification.title.in.days": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder several days ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ days"
+    "Too many groups" : {
+      "comment" : "Error headline: more groups than one action takes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many groups"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ dagar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För många grupper"
           }
         }
       }
     },
-    "notification.title.in.hour": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder one hour ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ hour"
+    "Try again" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ timme"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Försök igen"
           }
         }
       }
     },
-    "notification.title.in.hours": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder several hours ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ hours"
+    "Turn on reminders" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on reminders"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ timmar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå på påminnelser"
           }
         }
       }
     },
-    "notification.title.in.minute": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder one minute ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ minute"
+    "Unavailable" : {
+      "comment" : "Status beside a group somebody else holds",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ minut"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upptaget"
           }
         }
       }
     },
-    "notification.title.in.minutes": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder several minutes ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ minutes"
+    "until your session starts" : {
+      "comment" : "Caption under a Live Activity countdown to the booking's start",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "until your session starts"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ minuter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tills passet börjar"
           }
         }
       }
     },
-    "notification.title.in.week": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder one week ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ week"
+    "Visible groups" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visible groups"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ vecka"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synliga grupper"
           }
         }
       }
     },
-    "notification.title.in.weeks": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder several weeks ahead",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry in %@ weeks"
+    "you already hold as many sessions as your laundry room allows" : {
+      "comment" : "Reason clause: the session limit is used up, and the app doesn't know the number",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "you already hold as many sessions as your laundry room allows"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvätt om %@ veckor"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "du har redan lika många pass som din tvättstuga tillåter"
           }
         }
       }
     },
-    "notification.title.newBooking": {
-      "comment": "Push notification sent by the server as an APNs localization key: someone in the apartment booked a time",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New laundry booking"
+    "you already hold the maximum of %lld sessions" : {
+      "comment" : "Reason clause: the session limit is used up",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "you already hold the maximum of %lld sessions"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ny tvättbokning"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "du har redan max antal bokade pass (%lld)"
           }
         }
       }
     },
-    "notification.title.startsNow": {
-      "comment": "Push notification sent by the server as an APNs localization key: reminder with no lead time",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laundry starts now"
+    "You appear to be offline. Reconnect and try again." : {
+      "comment" : "What to do when the phone has no connection",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You appear to be offline. Reconnect and try again."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvättpasset börjar nu"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du verkar vara offline. Anslut igen och försök på nytt."
           }
         }
       }
     },
-    "someone else took it first": {
-      "comment": "Reason clause: another resident booked the slot",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "someone else took it first"
+    "You can hold one or two sessions ahead at a time, depending on your laundry room." : {
+      "comment" : "Booking rule shown on the sign-in screen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can hold one or two sessions ahead at a time, depending on your laundry room."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "någon annan hann före"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kan ha ett eller två pass bokade åt gången, beroende på din tvättstuga."
           }
         }
       }
     },
-    "to tag in": {
-      "comment": "Caption under a Live Activity countdown to the booking being released",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "to tag in"
+    "Your address" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your address"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "kvar att aktivera"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din adress"
           }
         }
       }
     },
-    "until your session starts": {
-      "comment": "Caption under a Live Activity countdown to the booking's start",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "until your session starts"
+    "Your bookings stay, but this phone stops seeing them and reminders end." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your bookings stay, but this phone stops seeing them and reminders end."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "tills passet börjar"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dina bokningar finns kvar, men den här telefonen slutar visa dem och påminnelserna upphör."
           }
         }
       }
     },
-    "you already hold as many sessions as your laundry room allows": {
-      "comment": "Reason clause: the session limit is used up, and the app doesn't know the number",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "you already hold as many sessions as your laundry room allows"
+    "Your laundry room" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your laundry room"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "du har redan lika många pass som din tvättstuga tillåter"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din tvättstuga"
           }
         }
       }
     },
-    "you already hold the maximum of %lld sessions": {
-      "comment": "Reason clause: the session limit is used up",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "you already hold the maximum of %lld sessions"
+    "Your object number is missing. Sign in again." : {
+      "comment" : "What to do when the app has no object number stored",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your object number is missing. Sign in again."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "du har redan max antal bokade pass (%lld)"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt objektsnummer saknas. Logga in igen."
           }
         }
       }
     },
-    "your timer is up": {
-      "comment": "Caption on the Live Activity once the laundry timer has rung",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "your timer is up"
+    "your timer is up" : {
+      "comment" : "Caption on the Live Activity once the laundry timer has rung",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "your timer is up"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "timern har gått ut"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "timern har gått ut"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

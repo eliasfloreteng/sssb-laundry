@@ -1,69 +1,70 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "CFBundleDisplayName": {
-      "comment": "The app's name on the Home Screen",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SSSB Laundry"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "The app's name on the Home Screen",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSSB Laundry"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SSSB Tvätt"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSSB Tvätt"
           }
         }
       }
     },
-    "CFBundleName": {
-      "comment": "Bundle name",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "SSSBLaundry"
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "SSSBLaundry"
           }
         }
       }
     },
-    "NSAlarmKitUsageDescription": {
-      "comment": "Why the app asks to set alarms",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ring an alarm when the laundry timer you set runs out, even if your phone is silenced."
+    "NSAlarmKitUsageDescription" : {
+      "comment" : "Why the app asks to set alarms",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ring an alarm when the laundry timer you set runs out, even if your phone is silenced."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ringer ett larm när tvättimern du ställt går ut, även om telefonen är ljudlös."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ringer ett larm när tvättimern du ställt går ut, även om telefonen är ljudlös."
           }
         }
       }
     },
-    "NSCalendarsWriteOnlyAccessUsageDescription": {
-      "comment": "Why the app asks to add events to the calendar",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add your laundry bookings to your calendar so you don't forget."
+    "NSCalendarsWriteOnlyAccessUsageDescription" : {
+      "comment" : "Why the app asks to add events to the calendar",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add your laundry bookings to your calendar so you don't forget."
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lägg till dina tvättpass i kalendern så att du inte glömmer bort dem."
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lägg till dina tvättpass i kalendern så att du inte glömmer bort dem."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

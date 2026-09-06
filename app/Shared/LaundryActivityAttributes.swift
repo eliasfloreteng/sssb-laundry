@@ -17,6 +17,22 @@ let laundryActivityLeadWindow: TimeInterval = 60 * 60
 struct LaundryActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         var phase: Phase
+        /// The timer running for this booking, once the user has started one.
+        var timer: LaundryTimer?
+
+        init(phase: Phase, timer: LaundryTimer? = nil) {
+            self.phase = phase
+            self.timer = timer
+        }
+
+        /// Hand-written so that an activity started by an older build — whose
+        /// stored state has no timer in it at all — still decodes instead of
+        /// leaving a dead card on the Lock Screen.
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            phase = try container.decode(Phase.self, forKey: .phase)
+            timer = try container.decodeIfPresent(LaundryTimer.self, forKey: .timer)
+        }
     }
 
     enum Phase: String, Codable, Hashable {

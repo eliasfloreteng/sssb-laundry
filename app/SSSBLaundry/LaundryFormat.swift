@@ -31,6 +31,21 @@ enum LaundryFormat {
         dayLabelFormatter.string(from: date)
     }
 
+    private static let clockTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeZone = LaundryStore.stockholm
+        // 24-hour or not is the display language's business; the fields are
+        // fixed at hour and minute.
+        formatter.setLocalizedDateFormatFromTemplate("Hm")
+        return formatter
+    }()
+
+    /// "14:32" — a wall-clock time the app worked out itself, as opposed to the
+    /// `HH:mm` strings the API hands over ready-made.
+    static func clockTime(_ date: Date) -> String {
+        clockTimeFormatter.string(from: date)
+    }
+
     /// Aptus's own label for a group, kept verbatim, or a stand-in for a group
     /// whose week is no longer loaded.
     static func groupName(_ id: Int, in groups: [Int: LaundryGroup]) -> String {

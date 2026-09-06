@@ -10,5 +10,6 @@ import WidgetKit
 struct SSSBLaundryWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LaundryLiveActivity()
+        LaundryAlarmActivity()
     }
 }

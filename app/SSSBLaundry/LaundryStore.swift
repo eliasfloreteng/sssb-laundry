@@ -54,6 +54,8 @@ struct HeldBooking: Identifiable, Hashable {
     let timeslotId: String
     let groupId: Int
     let start: Date
+    /// When the timeslot itself runs out — not when Aptus would release it.
+    let end: Date
     let startTime: String
     let endTime: String
 }
@@ -66,6 +68,7 @@ struct HeldBooking: Identifiable, Hashable {
 struct BookedSlot: Identifiable, Hashable {
     let id: String
     let start: Date
+    let end: Date
     let startTime: String
     let endTime: String
     /// Aptus group names, already joined for display.
@@ -184,16 +187,24 @@ final class LaundryStore {
     /// real upstream.
     var heldBookings: [HeldBooking] {
         let now = Date()
+        return ownBookings.filter { booking in
+            booking.start.addingTimeInterval(TimeInterval(Self.activationGraceMinutes * 60)) > now
+        }
+    }
+
+    /// Every booking the weeks have carried, whatever has become of it since —
+    /// the same rows as `heldBookings` without the release window applied. A
+    /// session that started an hour ago has left that window and is still the
+    /// one the user is standing in front of.
+    private var ownBookings: [HeldBooking] {
         var seen: Set<String> = []
-        var held: [HeldBooking] = []
+        var all: [HeldBooking] = []
         for bookings in ownBookingsByWeek.values {
-            for booking in bookings {
-                let releasesAt = booking.start.addingTimeInterval(TimeInterval(Self.activationGraceMinutes * 60))
-                guard releasesAt > now, seen.insert(booking.id).inserted else { continue }
-                held.append(booking)
+            for booking in bookings where seen.insert(booking.id).inserted {
+                all.append(booking)
             }
         }
-        return held.sorted { $0.start < $1.start }
+        return all.sorted { $0.start < $1.start }
     }
 
     private static func isEnded(barrenWeeks: Int, sawUsableWeek: Bool) -> Bool {
@@ -215,7 +226,9 @@ final class LaundryStore {
     private static func ownBookings(in week: WeekResponse) -> [HeldBooking] {
         var bookings: [HeldBooking] = []
         for timeslot in week.timeslots {
-            guard let start = parseISO8601(timeslot.startAt) else { continue }
+            guard let start = parseISO8601(timeslot.startAt),
+                  let end = parseISO8601(timeslot.endAt)
+            else { continue }
             for group in timeslot.groups where group.status == .own {
                 bookings.append(
                     HeldBooking(
@@ -223,6 +236,7 @@ final class LaundryStore {
                         timeslotId: timeslot.id,
                         groupId: group.groupId,
                         start: start,
+                        end: end,
                         startTime: timeslot.startTime,
                         endTime: timeslot.endTime
                     )
@@ -257,9 +271,23 @@ final class LaundryStore {
     /// The held bookings collapsed to one entry per timeslot. Already limited to
     /// slots that haven't been released yet, since `heldBookings` drops those.
     var bookedSlots: [BookedSlot] {
-        let groups = groupsById
+        Self.slots(from: heldBookings, groups: groupsById)
+    }
+
+    /// The session the user is in the middle of: from its start until half an
+    /// hour past its end, which is as long as a timer is worth offering for it.
+    /// Built from every booking rather than from `heldBookings`, which drops a
+    /// slot 15 minutes in — that window is about Aptus's quota, not about
+    /// whether the machines are still turning.
+    var runningSession: BookedSlot? {
+        let now = Date()
+        return Self.slots(from: ownBookings, groups: groupsById)
+            .last { $0.start <= now && now < $0.end.addingTimeInterval(laundryTimerOfferWindow) }
+    }
+
+    private static func slots(from bookings: [HeldBooking], groups: [Int: LaundryGroup]) -> [BookedSlot] {
         var byTimeslot: [String: [HeldBooking]] = [:]
-        for booking in heldBookings {
+        for booking in bookings {
             byTimeslot[booking.timeslotId, default: []].append(booking)
         }
         return byTimeslot.values.compactMap { entries -> BookedSlot? in
@@ -271,6 +299,7 @@ final class LaundryStore {
                 // timeslotId, which must not outlive a server change.
                 id: "\(Int(first.start.timeIntervalSince1970))-" + ids.map(String.init).joined(separator: "_"),
                 start: first.start,
+                end: first.end,
                 startTime: first.startTime,
                 endTime: first.endTime,
                 machines: ids.map { LaundryFormat.groupName($0, in: groups) }.joined(separator: ", "),
@@ -281,7 +310,14 @@ final class LaundryStore {
     }
 
     func syncLiveActivity() async {
-        await LiveActivityService.sync(slots: bookedSlots)
+        // A session with a timer running on it keeps its card past the release
+        // deadline, so the one under way is offered alongside the ones the
+        // quota still counts.
+        var slots = bookedSlots
+        if let running = runningSession, !slots.contains(where: { $0.id == running.id }) {
+            slots.append(running)
+        }
+        await LiveActivityService.sync(slots: slots, timer: LaundryTimerStore.shared.timer)
     }
 
     /// The freshest copy of a timeslot, so a sheet that stays open after a

@@ -523,6 +523,7 @@
 				INFOPLIST_FILE = SSSBLaundry/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSAlarmKitUsageDescription = "Ring an alarm when the laundry timer you set runs out, even if your phone is silenced.";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Add your laundry bookings to your calendar so you don't forget.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -562,6 +563,7 @@
 				INFOPLIST_FILE = SSSBLaundry/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SSSB Laundry";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSAlarmKitUsageDescription = "Ring an alarm when the laundry timer you set runs out, even if your phone is silenced.";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Add your laundry bookings to your calendar so you don't forget.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

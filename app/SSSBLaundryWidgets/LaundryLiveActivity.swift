@@ -25,17 +25,14 @@ struct LaundryLiveActivity: Widget {
                     .padding(.leading, 4)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(timerInterval: context.countdownRange, countsDown: true)
-                        .font(.system(.title3, design: .rounded).weight(.semibold))
-                        .monospacedDigit()
+                    CountdownText(context: context, font: .system(.title3, design: .rounded).weight(.semibold))
                         .multilineTextAlignment(.trailing)
                         .frame(width: 84, alignment: .trailing)
-                        .foregroundStyle(context.tint)
                         .padding(.trailing, 4)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 6) {
-                        countdownBar(context)
+                        CountdownBar(context: context)
                         HStack {
                             Text(context.headline)
                             Spacer()
@@ -50,12 +47,17 @@ struct LaundryLiveActivity: Widget {
                 Image(systemName: context.symbolName)
                     .foregroundStyle(context.tint)
             } compactTrailing: {
-                Text(timerInterval: context.countdownRange, countsDown: true, showsHours: false)
-                    .font(.caption.weight(.semibold))
-                    .monospacedDigit()
-                    .multilineTextAlignment(.center)
-                    .frame(width: 44)
-                    .foregroundStyle(context.tint)
+                if let range = context.countdownRange {
+                    Text(timerInterval: range, countsDown: true, showsHours: false)
+                        .font(.caption.weight(.semibold))
+                        .monospacedDigit()
+                        .multilineTextAlignment(.center)
+                        .frame(width: 44)
+                        .foregroundStyle(context.tint)
+                } else {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(context.tint)
+                }
             } minimal: {
                 Image(systemName: context.symbolName)
                     .foregroundStyle(context.tint)
@@ -63,12 +65,43 @@ struct LaundryLiveActivity: Widget {
             .keylineTint(context.tint)
         }
     }
+}
 
-    private func countdownBar(_ context: ActivityViewContext<LaundryActivityAttributes>) -> some View {
-        ProgressView(timerInterval: context.countdownRange, countsDown: true) {
-            EmptyView()
-        } currentValueLabel: {
-            EmptyView()
+/// Whatever the card is counting down: the booking, or the wash the user set a
+/// timer for. A timer that has rung has nothing left to count, so it says so
+/// instead.
+private struct CountdownText: View {
+    let context: ActivityViewContext<LaundryActivityAttributes>
+    let font: Font
+
+    var body: some View {
+        Group {
+            if let range = context.countdownRange {
+                Text(timerInterval: range, countsDown: true)
+            } else {
+                Text("Done", comment: "Live Activity headline once a laundry timer has run out")
+            }
+        }
+        .font(font)
+        .monospacedDigit()
+        .foregroundStyle(context.tint)
+    }
+}
+
+private struct CountdownBar: View {
+    let context: ActivityViewContext<LaundryActivityAttributes>
+
+    var body: some View {
+        Group {
+            if let range = context.countdownRange {
+                ProgressView(timerInterval: range, countsDown: true) {
+                    EmptyView()
+                } currentValueLabel: {
+                    EmptyView()
+                }
+            } else {
+                ProgressView(value: 1, total: 1)
+            }
         }
         .progressViewStyle(.linear)
         .tint(context.tint)
@@ -98,25 +131,16 @@ private struct LockScreenView: View {
                 Spacer(minLength: 8)
 
                 VStack(alignment: .trailing, spacing: 1) {
-                    Text(timerInterval: context.countdownRange, countsDown: true)
-                        .font(.system(.title, design: .rounded).weight(.semibold))
-                        .monospacedDigit()
+                    CountdownText(context: context, font: .system(.title, design: .rounded).weight(.semibold))
                         .multilineTextAlignment(.trailing)
                         .frame(width: 116, alignment: .trailing)
-                        .foregroundStyle(context.tint)
                     Text(context.headline)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            ProgressView(timerInterval: context.countdownRange, countsDown: true) {
-                EmptyView()
-            } currentValueLabel: {
-                EmptyView()
-            }
-            .progressViewStyle(.linear)
-            .tint(context.tint)
+            CountdownBar(context: context)
         }
         .padding(16)
         .activityBackgroundTint(nil)
@@ -128,47 +152,84 @@ private struct LockScreenView: View {
     }
 }
 
+/// What the card is about at this moment. A timer outranks the booking: once a
+/// machine is running, the minutes left on it are the only number worth the
+/// space.
+enum LaundryActivityDisplay {
+    case upcoming
+    case grace
+    case running(LaundryTimer)
+    case done(LaundryTimer)
+}
+
 extension ActivityViewContext where Attributes == LaundryActivityAttributes {
-    /// The app pushes the phase while it is running, but it is normally
-    /// suspended by the time the slot starts — the stale date (set to the start)
-    /// is what actually flips the countdown over on a locked phone.
-    var resolvedPhase: LaundryActivityAttributes.Phase {
-        (state.phase == .grace || isStale) ? .grace : .upcoming
+    /// The app pushes the state while it is running, but it is normally
+    /// suspended by the time anything changes — the stale date (set to the next
+    /// boundary) is what flips the card over on a locked phone.
+    var display: LaundryActivityDisplay {
+        if let timer = state.timer {
+            return timer.isRunning() ? .running(timer) : .done(timer)
+        }
+        return (state.phase == .grace || isStale) ? .grace : .upcoming
     }
 
-    /// Both bounds come from the booking itself, never from `Date.now`, so the
-    /// range can't invert while the system is re-rendering.
-    var countdownRange: ClosedRange<Date> {
-        switch resolvedPhase {
+    /// Both bounds come from the booking or the timer itself, never from
+    /// `Date.now`, so the range can't invert while the system is re-rendering.
+    /// `nil` once a timer has rung: there is nothing left to count.
+    var countdownRange: ClosedRange<Date>? {
+        switch display {
         case .upcoming:
-            return attributes.startAt.addingTimeInterval(-laundryActivityLeadWindow)...attributes.startAt
+            attributes.startAt.addingTimeInterval(-laundryActivityLeadWindow)...attributes.startAt
         case .grace:
-            return attributes.startAt...attributes.deadline
+            attributes.startAt...attributes.deadline
+        case .running(let timer):
+            timer.countdownRange
+        case .done:
+            nil
         }
     }
 
     /// The caption under the countdown, read as the tail of "12:34 …".
     var headline: String {
-        switch resolvedPhase {
+        switch display {
         case .upcoming:
-            return String(
+            String(
                 localized: "until your session starts",
                 comment: "Caption under a Live Activity countdown to the booking's start"
             )
         case .grace:
-            return String(
+            String(
                 localized: "to tag in",
                 comment: "Caption under a Live Activity countdown to the booking being released"
+            )
+        case .running:
+            String(
+                localized: "left on your timer",
+                comment: "Caption under a Live Activity countdown of a running laundry timer"
+            )
+        case .done:
+            String(
+                localized: "your timer is up",
+                comment: "Caption on the Live Activity once the laundry timer has rung"
             )
         }
     }
 
     var symbolName: String {
-        resolvedPhase == .grace ? "exclamationmark.triangle.fill" : "washer.fill"
+        switch display {
+        case .upcoming: "washer.fill"
+        case .grace: "exclamationmark.triangle.fill"
+        case .running: "timer"
+        case .done: "checkmark.circle.fill"
+        }
     }
 
     var tint: Color {
-        resolvedPhase == .grace ? .orange : .accentColor
+        switch display {
+        case .upcoming, .running: .accentColor
+        case .grace: .orange
+        case .done: .green
+        }
     }
 
     var slotLabel: String {

@@ -9,6 +9,9 @@ import UserNotifications
 
 struct WeekView: View {
     @State private var store = LaundryStore()
+    /// One alarm for the whole phone, so the store is shared rather than owned
+    /// by this view.
+    private let timerStore = LaundryTimerStore.shared
     @State private var selectedTimeslot: Timeslot?
     @State private var showingSettings = false
     @State private var showingInvite = false
@@ -96,7 +99,14 @@ struct WeekView: View {
                     Text(ErrorPresenter.explanation(for: err))
                 }
                 .task {
+                    // The alarm outlives the app, so the system's list is
+                    // followed for as long as this is up: stopping it from the
+                    // Lock Screen takes its row off the list too.
+                    timerStore.observeAlarms()
                     await store.loadInitial()
+                }
+                .onChange(of: timerStore.timer) { _, _ in
+                    Task { await store.syncLiveActivity() }
                 }
                 .onChange(of: store.lastOutcome?.id) { _, _ in
                     if store.lastOutcome?.didBook == true {
@@ -113,6 +123,9 @@ struct WeekView: View {
                     guard phase == .active else { return }
                     // Catches permission revoked in iOS Settings while we were away.
                     PushService.syncToServer()
+                    // And the alarm stopped from its own alert while the app was
+                    // away, which is how most of them end.
+                    timerStore.reconcile()
                     // `Activity.request` needs the foreground, so coming forward
                     // inside the lead window is what starts the Live Activity.
                     Task { await store.syncLiveActivity() }
@@ -123,6 +136,7 @@ struct WeekView: View {
                 .onChange(of: store.authFailed) { _, failed in
                     if failed {
                         PushService.deregister(objectId: objectId)
+                        timerStore.endAll()
                         Task { await LiveActivityService.endAll() }
                         objectId = ""
                     }
@@ -269,6 +283,11 @@ struct WeekView: View {
 
     private var listView: some View {
         List {
+            // Above the days, because a session that is already running is not
+            // something the user came here to browse for — it is what they are
+            // standing in front of.
+            SessionTimerSection(session: store.runningSession)
+
             ForEach(filteredDays, id: \.date) { day in
                 Section {
                     ForEach(day.slots) { ts in

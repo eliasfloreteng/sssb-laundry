@@ -18,6 +18,23 @@
         }
       }
     },
+    "NSAlarmKitUsageDescription": {
+      "comment": "Why the app asks to set alarms",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ring an alarm when the laundry timer you set runs out, even if your phone is silenced."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ringer ett larm när tvättimern du ställt går ut, även om telefonen är ljudlös."
+          }
+        }
+      }
+    },
     "NSCalendarsWriteOnlyAccessUsageDescription": {
       "comment": "Why the app asks to add events to the calendar",
       "localizations": {

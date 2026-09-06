@@ -627,6 +627,23 @@
         }
       }
     },
+    "Alarms are turned off": {
+      "comment": "Alert shown when the system refuses to set an alarm",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarms are turned off"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Larm är avstängda"
+          }
+        }
+      }
+    },
     "Alert": {
       "localizations": {
         "en": {
@@ -1196,6 +1213,23 @@
         }
       }
     },
+    "Cancel timer": {
+      "comment": "Accessibility label for the button that stops a running timer",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel timer"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbryt timern"
+          }
+        }
+      }
+    },
     "Cancellation didn’t go through": {
       "comment": "Headline when nothing was cancelled",
       "localizations": {
@@ -1441,6 +1475,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klar"
+          }
+        }
+      }
+    },
+    "Ends %@": {
+      "comment": "Subtitle of a running laundry timer; the placeholder is a time like \"14:32\"",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klar %@"
           }
         }
       }
@@ -1751,6 +1802,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tvätt"
+          }
+        }
+      }
+    },
+    "Laundry done": {
+      "comment": "Alarm title when a laundry timer rings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laundry done"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvätten är klar"
           }
         }
       }
@@ -2369,6 +2437,23 @@
         }
       }
     },
+    "Rang %@": {
+      "comment": "Subtitle of a laundry timer that has run out; the placeholder is a time like \"14:32\"",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rang %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ringde %@"
+          }
+        }
+      }
+    },
     "Remind you before laundry?": {
       "localizations": {
         "en": {
@@ -2398,6 +2483,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Påminnelser kommer även när appen är stängd, och för bokningar som någon annan i din lägenhet har gjort."
+          }
+        }
+      }
+    },
+    "SSSB Laundry needs permission to set alarms, so a timer can ring even when the phone is silenced.": {
+      "comment": "Alert body when alarm permission has been denied",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSSB Laundry needs permission to set alarms, so a timer can ring even when the phone is silenced."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSSB Tvätt behöver tillstånd att ställa larm, så att en timer kan ringa även när telefonen är ljudlös."
           }
         }
       }
@@ -2597,6 +2699,57 @@
         }
       }
     },
+    "Start": {
+      "comment": "Button that starts a laundry timer",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starta"
+          }
+        }
+      }
+    },
+    "Start a timer": {
+      "comment": "Action at the top of the week list",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a timer"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starta en timer"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "comment": "Button that silences a laundry timer's alarm",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppa"
+          }
+        }
+      }
+    },
     "Street address": {
       "localizations": {
         "en": {
@@ -2774,6 +2927,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Det här tvättpasset har ändrats. Dra nedåt för att uppdatera och försök igen."
+          }
+        }
+      }
+    },
+    "Timer": {
+      "comment": "Title of the sheet that sets a laundry timer",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer"
           }
         }
       }
@@ -3038,6 +3208,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avboka"
+          }
+        }
+      }
+    },
+    "left on your timer": {
+      "comment": "Caption under a Live Activity countdown of a running laundry timer",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "left on your timer"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kvar på timern"
           }
         }
       }
@@ -3375,6 +3562,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "du har redan max antal bokade pass (%lld)"
+          }
+        }
+      }
+    },
+    "your timer is up": {
+      "comment": "Caption on the Live Activity once the laundry timer has rung",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "your timer is up"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "timern har gått ut"
           }
         }
       }

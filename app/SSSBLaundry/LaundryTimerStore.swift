@@ -58,17 +58,22 @@ final class LaundryTimerStore {
         }
 
         let id = UUID()
+        // The widget extension deliberately declares no `ActivityConfiguration`
+        // for `AlarmAttributes`, so AlarmKit's own card never goes up: the
+        // booking's Live Activity already counts this timer down, and two cards
+        // for one wash is one too many. The countdown presentation stays
+        // because a timer alarm is configured with one, and no pause button
+        // with it: a paused alarm would leave the app's own copy of the fire
+        // date wrong, and a laundry programme does not pause.
         let presentation = AlarmPresentation(
             alert: Self.alert(),
-            // No pause button: a paused alarm would leave the app's own copy of
-            // the fire date wrong, and a laundry programme does not pause.
             countdown: AlarmPresentation.Countdown(title: LaundryTimer.countdownAlarmTitle)
         )
         let configuration = AlarmManager.AlarmConfiguration.timer(
             duration: duration,
             attributes: AlarmAttributes(
                 presentation: presentation,
-                metadata: LaundryAlarmMetadata(machines: session?.machines ?? ""),
+                metadata: LaundryAlarmMetadata(),
                 tintColor: .accentColor
             ),
             sound: .default

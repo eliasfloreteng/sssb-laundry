@@ -61,10 +61,7 @@ let laundryTimerOfferWindow: TimeInterval = 30 * 60
 /// alert; this is only about the card that says the laundry is done.
 let laundryTimerDoneLinger: TimeInterval = 15 * 60
 
-/// The metadata AlarmKit carries through to the alarm's own Live Activity, so
-/// the alarm can name the machines it is about.
-struct LaundryAlarmMetadata: AlarmMetadata {
-    /// Aptus group names, already joined for display. Empty when the timer was
-    /// started with no booking to name.
-    var machines: String
-}
+/// The metadata every `AlarmAttributes` is built with. Empty on purpose: the
+/// only thing that ever reads it is the alarm's own Live Activity, and this app
+/// does not put one up — the booking's card is what shows the timer.
+struct LaundryAlarmMetadata: AlarmMetadata {}

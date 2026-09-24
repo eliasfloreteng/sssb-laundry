@@ -20,6 +20,8 @@ That same host serves the app's landing page at its root and its invite page at
 
 - The whole week of timeslots for your apartment, with infinite scroll into future weeks
 - Book or cancel 1–2 laundry groups in a single action, with per-group results
+- Dibs on a timeslot somebody else holds — a waiting list Aptus doesn't have. The
+  server books it for the first in line the moment it frees, and pushes when it does
 - The booking rules SSSB publishes for your laundry room, picked by street address
 - Push reminders before a booking — sent by the server, so a booking someone else in the
   apartment made still reaches your phone with the app closed, and taken back down again

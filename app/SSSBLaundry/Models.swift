@@ -54,6 +54,12 @@ struct TimeslotGroup: Decodable, Hashable {
     let status: GroupStatus
     let canBook: Bool
     let canCancel: Bool
+    /// The user is in line for this group. The server leaves it out otherwise.
+    var dibs: Bool? = nil
+    /// Their place in that line, 1 being next.
+    var dibsQueue: Int? = nil
+
+    var hasDibs: Bool { dibs == true }
 }
 
 enum GroupStatus: String, Decodable {
@@ -172,6 +178,11 @@ struct AnyCodable: Decodable {
             value = NSNull()
         }
     }
+}
+
+struct DibsResponse: Decodable {
+    let timeslotId: String
+    let groupIds: [Int]
 }
 
 struct OKResponse: Decodable {

@@ -36,6 +36,10 @@ struct TimeslotRow: View {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.tint)
                     .font(.title3)
+            } else if hasDibs {
+                Image(systemName: "hand.raised.circle.fill")
+                    .foregroundStyle(.tint)
+                    .font(.title3)
             } else if hasBookable {
                 Image(systemName: "chevron.right")
                     .foregroundStyle(.secondary)
@@ -53,9 +57,14 @@ struct TimeslotRow: View {
 
     /// Your own groups plus whatever can still be booked. A group that is free
     /// but no longer bookable — the slot has started, or Aptus offers no button
-    /// for it — is left off rather than shown as an invitation.
+    /// for it — is left off rather than shown as an invitation. A group the
+    /// user is in line for is shown, since it is half theirs.
     private var chipGroups: [TimeslotGroup] {
-        activeGroups.filter { $0.status == .own || $0.restriction(in: timeslot) == nil }
+        activeGroups.filter { $0.status == .own || $0.hasDibs || $0.restriction(in: timeslot) == nil }
+    }
+
+    private var hasDibs: Bool {
+        activeGroups.contains(where: \.hasDibs)
     }
 
     private var hasOwn: Bool {
@@ -69,7 +78,7 @@ struct TimeslotRow: View {
     /// Nothing to book and nothing of yours: a row that is only there for
     /// context.
     private var isSpent: Bool {
-        !hasOwn && !hasBookable
+        !hasOwn && !hasBookable && !hasDibs
     }
 
     private var sharesSingleLocation: Bool {
@@ -87,7 +96,7 @@ private struct FlowChips: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(items, id: \.groupId) { item in
-                    GroupChip(name: label(for: item), status: item.status)
+                    GroupChip(name: label(for: item), status: item.status, dibs: item.hasDibs)
                 }
             }
         }

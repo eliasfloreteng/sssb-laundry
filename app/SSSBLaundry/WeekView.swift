@@ -266,7 +266,7 @@ struct WeekView: View {
                 // free-slots filter are about what is worth browsing; a time
                 // the user actually holds has to be findable whatever they are
                 // set to, and it stays on the list once it has started.
-                if ts.hasOwnGroup(hidden: hidden) { return true }
+                if ts.hasOwnGroup(hidden: hidden) || ts.hasDibs(hidden: hidden) { return true }
                 if !showAllTimeslots {
                     // Free but unbookable — passed, or a slot Aptus offers no
                     // button for — is noise in the browsing list.
@@ -374,6 +374,31 @@ struct WeekView: View {
             }
         }
 
+        // Only while nothing of the slot is the user's: holding one group and
+        // queueing for the other is the sheet's business, not a quick action.
+        if !ts.hasOwnGroup(hidden: hidden) {
+            ForEach(ts.dibsableGroups(hidden: hidden), id: \.groupId) { group in
+                Button {
+                    changeDibs(on: ts, add: [group.groupId], remove: [])
+                } label: {
+                    if named {
+                        Label("Call dibs on \(groupName(group.groupId))", systemImage: "hand.raised")
+                    } else {
+                        Label("Call dibs", systemImage: "hand.raised")
+                    }
+                }
+            }
+        }
+
+        let dibsGroups = ts.groups.filter { !hidden.contains($0.groupId) && $0.hasDibs }
+        if !dibsGroups.isEmpty {
+            Button {
+                changeDibs(on: ts, add: [], remove: dibsGroups.map(\.groupId))
+            } label: {
+                Label("Leave the line", systemImage: "hand.raised.slash")
+            }
+        }
+
         if ts.hasOwnGroup(hidden: hidden) {
             Button {
                 Task {
@@ -458,6 +483,17 @@ struct WeekView: View {
         }
     }
 
+    private func changeDibs(on ts: Timeslot, add: [Int], remove: [Int]) {
+        busyTimeslots.insert(ts.id)
+        Task {
+            let outcome = await store.setDibs(timeslotId: ts.id, add: add, remove: remove)
+            busyTimeslots.remove(ts.id)
+            if case .failure(let error) = outcome {
+                store.lastError = error
+            }
+        }
+    }
+
     private func groupName(_ id: Int) -> String {
         LaundryFormat.groupName(id, in: store.groupsById)
     }
@@ -519,7 +555,10 @@ struct WeekView: View {
     /// calendar and where the groups it covers are listed.
     private func canOpen(_ ts: Timeslot) -> Bool {
         let hidden = hiddenGroups
-        return ts.hasOwnGroup(hidden: hidden) || !ts.actionableGroups(hidden: hidden).isEmpty
+        return ts.hasOwnGroup(hidden: hidden)
+            || ts.hasDibs(hidden: hidden)
+            || !ts.actionableGroups(hidden: hidden).isEmpty
+            || !ts.dibsableGroups(hidden: hidden).isEmpty
     }
 
     /// Three different nothings, said in three different ways: a date SSSB has

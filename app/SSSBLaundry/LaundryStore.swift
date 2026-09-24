@@ -47,6 +47,12 @@ struct ActionOutcome: Identifiable {
     }
 }
 
+/// How joining or leaving a line landed.
+enum DibsOutcome {
+    case success
+    case failure(APIError)
+}
+
 /// A timeslot the user currently holds, one entry per group. Drives the
 /// "2 bookings at a time" limit; reminders are scheduled by the server.
 struct HeldBooking: Identifiable, Hashable {
@@ -466,6 +472,28 @@ final class LaundryStore {
             }
         }
         return outcome
+    }
+
+    /// Joins the line for `add` and leaves it for `remove`, then refreshes the
+    /// week so the rows show it. `nil` means the task was cancelled.
+    @discardableResult
+    func setDibs(timeslotId: String, add: [Int], remove: [Int]) async -> DibsOutcome? {
+        do {
+            if !remove.isEmpty { try await api.dropDibs(timeslotId: timeslotId, groupIds: remove) }
+            if !add.isEmpty { _ = try await api.callDibs(timeslotId: timeslotId, groupIds: add) }
+        } catch {
+            if Self.isCancellation(error) { return nil }
+            let apiError = Self.apiError(from: error)
+            if apiError.code == "AUTH_FAILED" || apiError.code == "MISSING_OBJECT_ID" {
+                authFailed = true
+            }
+            // A NOT_TAKEN means the list is stale in the good direction: the
+            // refresh is what shows the user it can simply be booked.
+            await refreshWeekContaining(timeslotId: timeslotId)
+            return .failure(apiError)
+        }
+        await refreshWeekContaining(timeslotId: timeslotId)
+        return .success
     }
 
     /// Returns whether the week landed. A cancelled request counts as a

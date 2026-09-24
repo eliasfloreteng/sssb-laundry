@@ -11,6 +11,7 @@ struct BookingSheet: View {
     let hiddenGroups: Set<Int>
     let store: LaundryStore
     @AppStorage(LaundryRooms.selectedIdKey) private var laundryRoomId: String = ""
+    @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
     @Environment(\.dismiss) private var dismiss
 
     @State private var selection: Set<Int> = []
@@ -98,8 +99,8 @@ struct BookingSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .onAppear { selection = ownGroupIds }
-        .onChange(of: ownGroupIds) { _, newValue in
+        .onAppear { selection = heldGroupIds }
+        .onChange(of: heldGroupIds) { _, newValue in
             // A refresh landed — show what the server actually holds rather than
             // the selection that was attempted. This is what turns the sheet
             // into the confirmation once an action goes through.
@@ -133,21 +134,32 @@ struct BookingSheet: View {
         // the row explains itself rather than sending a request that can only
         // come back as an error. A row with nothing in its way says nothing:
         // the checkmark is the whole state.
+        //
+        // A group somebody else holds is the exception: ticking it calls dibs
+        // rather than booking, so it stays live with a hand in place of the
+        // checkmark.
         let restriction = item.restriction(in: current)
+        let dibsable = item.canCallDibs(in: current)
+        let blocked = restriction != nil && !dibsable
         return Button {
             toggle(item)
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                Image(systemName: selectionIcon(isSelected: isSelected, dibs: dibsable))
                     .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                     .font(.title3)
+                    .contentTransition(.symbolEffect(.replace))
 
                 Text(name(of: item.groupId))
                     .font(.body)
 
                 Spacer()
 
-                if let restriction {
+                if dibsable {
+                    Text(dibsLabel(for: item, isSelected: isSelected))
+                        .font(isSelected ? .caption.weight(.semibold) : .caption)
+                        .foregroundStyle(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                } else if let restriction {
                     Text(restriction.label(for: item.status))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -160,8 +172,27 @@ struct BookingSheet: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(restriction != nil || submitting)
-        .opacity(restriction != nil ? 0.5 : 1)
+        .disabled(blocked || submitting)
+        .opacity(blocked ? 0.5 : 1)
+    }
+
+    private func selectionIcon(isSelected: Bool, dibs: Bool) -> String {
+        if dibs { return isSelected ? "hand.raised.circle.fill" : "hand.raised.circle" }
+        return isSelected ? "checkmark.circle.fill" : "circle"
+    }
+
+    /// What a taken group says beside its name: who holds it, until the user
+    /// is in line — then where they stand.
+    private func dibsLabel(for item: TimeslotGroup, isSelected: Bool) -> String {
+        if item.hasDibs, isSelected, let place = item.dibsQueue {
+            return place == 1
+                ? String(localized: "Dibs · next in line", comment: "Status beside a taken group the user is first in line for")
+                : String(localized: "Dibs · #\(place) in line", comment: "Status beside a taken group the user is waiting for; the placeholder is their place in line")
+        }
+        if isSelected {
+            return String(localized: "Dibs", comment: "Status beside a taken group the user has ticked to wait for")
+        }
+        return String(localized: "Taken · tick for dibs", comment: "Status beside a group somebody else holds, which the user can wait for")
     }
 
     private var footer: some View {
@@ -183,6 +214,13 @@ struct BookingSheet: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(!hasChanges || submitting || overSlotLimit)
+
+            if feedback == nil, !dibsableIds.isEmpty, dibsIds.isEmpty {
+                Text("Taken? Call dibs, and if it frees up — cancelled, or released 15 minutes in — it’s booked for you.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             if let limitHint {
                 Text(limitHint)
@@ -240,6 +278,33 @@ struct BookingSheet: View {
         Set(visibleGroups.filter { $0.status == .own }.map(\.groupId))
     }
 
+    /// What the user holds or waits for — the state the checkmarks start from
+    /// and return to after every refresh.
+    private var heldGroupIds: Set<Int> {
+        ownGroupIds.union(dibsIds)
+    }
+
+    private var dibsIds: Set<Int> {
+        Set(visibleGroups.filter(\.hasDibs).map(\.groupId))
+    }
+
+    private var dibsableIds: Set<Int> {
+        Set(visibleGroups.filter { $0.canCallDibs(in: current) }.map(\.groupId))
+    }
+
+    private var toCallDibs: [Int] {
+        selection.intersection(dibsableIds).subtracting(dibsIds).sorted()
+    }
+
+    /// Leaving a line is always allowed, even once the slot has started.
+    private var toDropDibs: [Int] {
+        dibsIds.subtracting(selection).sorted()
+    }
+
+    private var hasDibsChanges: Bool {
+        !toCallDibs.isEmpty || !toDropDibs.isEmpty
+    }
+
     /// Hidden groups are filtered out of the UI but still hold a booking, so
     /// the limit has to count them.
     private var ownCountInSlot: Int {
@@ -265,7 +330,7 @@ struct BookingSheet: View {
     }
 
     private var hasChanges: Bool {
-        !toBook.isEmpty || !toCancel.isEmpty
+        !toBook.isEmpty || !toCancel.isEmpty || hasDibsChanges
     }
 
     private var overSlotLimit: Bool {
@@ -327,6 +392,14 @@ struct BookingSheet: View {
     }
 
     private var actionTitle: String {
+        if hasDibsChanges {
+            if !toBook.isEmpty || !toCancel.isEmpty || (!toCallDibs.isEmpty && !toDropDibs.isEmpty) {
+                return String(localized: "Apply changes", comment: "Submit button when the sheet both books and cancels")
+            }
+            return toCallDibs.isEmpty
+                ? String(localized: "Leave the line", comment: "Submit button when the user stops waiting for a taken group")
+                : String(localized: "Call dibs", comment: "Submit button when the user starts waiting for a taken group")
+        }
         switch (toBook.isEmpty, toCancel.isEmpty) {
         case (false, true):
             return toBook.count > 1
@@ -351,7 +424,7 @@ struct BookingSheet: View {
     }
 
     private func toggle(_ item: TimeslotGroup) {
-        guard item.restriction(in: current) == nil else { return }
+        guard item.restriction(in: current) == nil || item.canCallDibs(in: current) || item.hasDibs else { return }
         feedback = nil
         if selection.contains(item.groupId) {
             selection.remove(item.groupId)
@@ -371,24 +444,76 @@ struct BookingSheet: View {
         feedback = nil
         submitting = true
         let attempted = (book: toBook, cancel: toCancel)
+        let dibs = (add: toCallDibs, remove: toDropDibs)
         Task {
-            let outcome = await store.bookAndCancel(
-                timeslotId: current.id,
-                toBook: attempted.book,
-                toCancel: attempted.cancel
-            )
-            submitting = false
-            guard let outcome else {
-                dismiss()
-                return
+            defer { submitting = false }
+            var booked = false
+            if !attempted.book.isEmpty || !attempted.cancel.isEmpty {
+                let outcome = await store.bookAndCancel(
+                    timeslotId: current.id,
+                    toBook: attempted.book,
+                    toCancel: attempted.cancel
+                )
+                guard let outcome else {
+                    dismiss()
+                    return
+                }
+                // The sheet stays open either way: it has already refreshed itself
+                // from the store, so it is the receipt for what just happened —
+                // whether that is a booking, a cancellation, or a reason it failed.
+                guard outcome.isFullSuccess else {
+                    feedback = makeFeedback(from: outcome, attempted: attempted)
+                    return
+                }
+                booked = true
             }
-            // The sheet stays open either way: it has already refreshed itself
-            // from the store, so it is the receipt for what just happened —
-            // whether that is a booking, a cancellation, or a reason it failed.
-            feedback = outcome.isFullSuccess
-                ? successFeedback(for: attempted)
-                : makeFeedback(from: outcome, attempted: attempted)
+            if !dibs.add.isEmpty || !dibs.remove.isEmpty {
+                guard let result = await store.setDibs(timeslotId: current.id, add: dibs.add, remove: dibs.remove) else {
+                    dismiss()
+                    return
+                }
+                if case .failure(let error) = result {
+                    feedback = ActionFeedback(
+                        kind: .failure,
+                        title: ErrorPresenter.headline(for: error),
+                        message: ErrorPresenter.explanation(for: error)
+                    )
+                    return
+                }
+                if !booked {
+                    feedback = dibsFeedback(for: dibs)
+                    return
+                }
+            }
+            feedback = successFeedback(for: attempted)
         }
+    }
+
+    private func dibsFeedback(for dibs: (add: [Int], remove: [Int])) -> ActionFeedback {
+        guard !dibs.add.isEmpty else {
+            return ActionFeedback(
+                kind: .success,
+                title: String(localized: "Left the line", comment: "Receipt heading after leaving a dibs"),
+                message: String(
+                    localized: "You’re no longer waiting for \(names(of: dibs.remove)).",
+                    comment: "Receipt after leaving a dibs; the placeholder is group names"
+                )
+            )
+        }
+        let waiting = names(of: dibs.add)
+        let base = String(
+            localized: "If \(waiting) frees up — cancelled, or released 15 minutes in — it’s booked for you.",
+            comment: "Receipt after calling dibs; the placeholder is group names"
+        )
+        // The booking happens either way; only hearing about it needs this.
+        let hint = notificationsEnabled
+            ? String(localized: "You’ll get a notification when it does.", comment: "Receipt addition after calling dibs, notifications on")
+            : String(localized: "Turn on notifications in Settings to hear when it does.", comment: "Receipt addition after calling dibs, notifications off")
+        return ActionFeedback(
+            kind: .success,
+            title: String(localized: "You’re in line", comment: "Receipt heading after calling dibs"),
+            message: "\(base) \(hint)"
+        )
     }
 
     /// The confirmation the sheet shows in place of dismissing itself. Written

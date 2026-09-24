@@ -660,6 +660,23 @@
         }
       }
     },
+    "Already waiting on two" : {
+      "comment" : "Error headline: too many dibs at once",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already waiting on two"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Väntar redan på två"
+          }
+        }
+      }
+    },
     "Apply changes" : {
       "comment" : "Submit button when the sheet both books and cancels",
       "localizations" : {
@@ -1115,6 +1132,39 @@
         }
       }
     },
+    "Call dibs" : {
+      "comment" : "Submit button when the user starts waiting for a taken group",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Call dibs"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Säg pax"
+          }
+        }
+      }
+    },
+    "Call dibs on %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Call dibs on %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Säg pax på %@"
+          }
+        }
+      }
+    },
     "Can’t be booked" : {
       "comment" : "Status beside a free group Aptus offers no book button for",
       "localizations" : {
@@ -1480,6 +1530,74 @@
         }
       }
     },
+    "Dibs" : {
+      "comment" : "Status beside a taken group the user has ticked to wait for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pax"
+          }
+        }
+      }
+    },
+    "Dibs unavailable" : {
+      "comment" : "Error headline: the server can't watch timeslots",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs unavailable"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pax är inte tillgängligt"
+          }
+        }
+      }
+    },
+    "Dibs · #%lld in line" : {
+      "comment" : "Status beside a taken group the user is waiting for; the placeholder is their place in line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs · #%lld in line"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pax · nr %lld i kön"
+          }
+        }
+      }
+    },
+    "Dibs · next in line" : {
+      "comment" : "Status beside a taken group the user is first in line for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs · next in line"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pax · näst på tur"
+          }
+        }
+      }
+    },
     "Done" : {
       "comment" : "Live Activity headline once a laundry timer has run out",
       "localizations" : {
@@ -1694,6 +1812,23 @@
         }
       }
     },
+    "If %@ frees up — cancelled, or released 15 minutes in — it’s booked for you." : {
+      "comment" : "Receipt after calling dibs; the placeholder is group names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If %@ frees up — cancelled, or released 15 minutes in — it’s booked for you."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blir %@ ledig — avbokad, eller släppt efter 15 minuter — bokas den åt dig."
+          }
+        }
+      }
+    },
     "In progress" : {
       "comment" : "Status beside a group whose booked session has started",
       "localizations" : {
@@ -1772,6 +1907,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inbjuden till en lägenhet?"
+          }
+        }
+      }
+    },
+    "It’s free now" : {
+      "comment" : "Error headline: dibs on a timeslot nobody holds any more",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It’s free now"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den är ledig nu"
           }
         }
       }
@@ -1875,6 +2027,23 @@
         }
       }
     },
+    "Leave the line" : {
+      "comment" : "Submit button when the user stops waiting for a taken group",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leave the line"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lämna kön"
+          }
+        }
+      }
+    },
     "left on your timer" : {
       "comment" : "Caption under a Live Activity countdown of a running laundry timer",
       "localizations" : {
@@ -1888,6 +2057,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "kvar på timern"
+          }
+        }
+      }
+    },
+    "Left the line" : {
+      "comment" : "Receipt heading after leaving a dibs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left the line"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du har lämnat kön"
           }
         }
       }
@@ -2175,6 +2361,23 @@
         }
       }
     },
+    "Nobody holds it any more — book it instead." : {
+      "comment" : "What to do when dibs is called on a free timeslot",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nobody holds it any more — book it instead."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen har den längre — boka den i stället."
+          }
+        }
+      }
+    },
     "None" : {
       "comment" : "A laundry room that gives no extra access time once the session has ended\nReminder offset: no reminder at all",
       "localizations" : {
@@ -2361,6 +2564,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · %2$@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
+          }
+        }
+      }
+    },
+    "notification.title.dibsWon" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: a dibs came through and the server booked the time",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs came through — it’s yours"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paxet gick igenom — tiden är din"
           }
         }
       }
@@ -3120,6 +3341,39 @@
         }
       }
     },
+    "Taken · tick for dibs" : {
+      "comment" : "Status beside a group somebody else holds, which the user can wait for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taken · tick for dibs"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upptagen · bocka för pax"
+          }
+        }
+      }
+    },
+    "Taken? Call dibs, and if it frees up — cancelled, or released 15 minutes in — it’s booked for you." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taken? Call dibs, and if it frees up — cancelled, or released 15 minutes in — it’s booked for you."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upptagen? Säg pax, så bokas den åt dig om den blir ledig — avbokad, eller släppt efter 15 minuter."
+          }
+        }
+      }
+    },
     "That was not an invite link or an object number." : {
       "localizations" : {
         "en" : {
@@ -3149,6 +3403,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Det skulle bli %lld pass av %lld — SSSB kan neka."
+          }
+        }
+      }
+    },
+    "The laundry service can’t watch timeslots right now. Try again later." : {
+      "comment" : "What to do when the server has dibs turned off",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The laundry service can’t watch timeslots right now. Try again later."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvättjänsten kan inte bevaka tider just nu. Försök igen senare."
           }
         }
       }
@@ -3183,6 +3454,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Begäran tog för lång tid."
+          }
+        }
+      }
+    },
+    "The timeslot has already started, so there is nothing left to wait for." : {
+      "comment" : "What to do when dibs is called on a started timeslot",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The timeslot has already started, so there is nothing left to wait for."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiden har redan börjat, så det finns inget kvar att vänta på."
           }
         }
       }
@@ -3369,6 +3657,23 @@
         }
       }
     },
+    "Turn on notifications in Settings to hear when it does." : {
+      "comment" : "Receipt addition after calling dibs, notifications off",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on notifications in Settings to hear when it does."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slå på notiser i Inställningar för att få veta när det händer."
+          }
+        }
+      }
+    },
     "Turn on reminders" : {
       "localizations" : {
         "en" : {
@@ -3503,6 +3808,23 @@
         }
       }
     },
+    "You can wait for at most two timeslots at once. Leave one of the lines first." : {
+      "comment" : "What to do when too many dibs are open",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can wait for at most two timeslots at once. Leave one of the lines first."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kan vänta på högst två tider åt gången. Lämna en av köerna först."
+          }
+        }
+      }
+    },
     "Your address" : {
       "localizations" : {
         "en" : {
@@ -3581,6 +3903,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "timern har gått ut"
+          }
+        }
+      }
+    },
+    "You’ll get a notification when it does." : {
+      "comment" : "Receipt addition after calling dibs, notifications on",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’ll get a notification when it does."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du får en notis när det händer."
+          }
+        }
+      }
+    },
+    "You’re in line" : {
+      "comment" : "Receipt heading after calling dibs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’re in line"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du står i kö"
+          }
+        }
+      }
+    },
+    "You’re no longer waiting for %@." : {
+      "comment" : "Receipt after leaving a dibs; the placeholder is group names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’re no longer waiting for %@."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du väntar inte längre på %@."
           }
         }
       }

@@ -35,12 +35,28 @@ struct APIClient {
         try await action(path: "cancel", timeslotId: timeslotId, groupIds: groupIds)
     }
 
-    private func action(path: String, timeslotId: String, groupIds: [Int]) async throws -> ActionResponse {
+    /// Joins the line for groups somebody else holds. The server books them for
+    /// the first in line the moment they free up.
+    func callDibs(timeslotId: String, groupIds: [Int]) async throws -> DibsResponse {
+        try await action(path: "dibs", timeslotId: timeslotId, groupIds: groupIds)
+    }
+
+    @discardableResult
+    func dropDibs(timeslotId: String, groupIds: [Int]) async throws -> OKResponse {
+        try await action(path: "dibs", method: "DELETE", timeslotId: timeslotId, groupIds: groupIds)
+    }
+
+    private func action<T: Decodable>(
+        path: String,
+        method: String = "POST",
+        timeslotId: String,
+        groupIds: [Int]
+    ) async throws -> T {
         let url = baseURL
             .appendingPathComponent("timeslots")
             .appendingPathComponent(timeslotId)
             .appendingPathComponent(path)
-        var request = try makeRequest(url: url, method: "POST")
+        var request = try makeRequest(url: url, method: method)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         // Lets the server skip this phone when it announces the booking to the
         // other devices on the same object id.

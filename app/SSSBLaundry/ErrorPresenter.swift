@@ -38,6 +38,14 @@ enum ErrorPresenter {
         // Minted by the app, not the API: a long-press action that failed has no
         // sheet to explain itself in, so it borrows the alert instead. The
         // message is already the one line that says what happened.
+        case "NOT_TAKEN":
+            return String(localized: "It’s free now", comment: "Error headline: dibs on a timeslot nobody holds any more")
+        case "TOO_LATE":
+            return String(localized: "Too late", comment: "Error headline: dibs on a timeslot that has started")
+        case "DIBS_LIMIT":
+            return String(localized: "Already waiting on two", comment: "Error headline: too many dibs at once")
+        case "PUSH_DISABLED":
+            return String(localized: "Dibs unavailable", comment: "Error headline: the server can't watch timeslots")
         case "BOOKING_FAILED":
             return bookingFailedHeadline
         case "CANCELLATION_FAILED":
@@ -91,6 +99,26 @@ enum ErrorPresenter {
             return String(
                 localized: "One booking can cover at most \(LaundryStore.maxGroupsPerBooking) groups.",
                 comment: "Aptus's hard limit on groups per booking action"
+            )
+        case "NOT_TAKEN":
+            return String(
+                localized: "Nobody holds it any more — book it instead.",
+                comment: "What to do when dibs is called on a free timeslot"
+            )
+        case "TOO_LATE":
+            return String(
+                localized: "The timeslot has already started, so there is nothing left to wait for.",
+                comment: "What to do when dibs is called on a started timeslot"
+            )
+        case "DIBS_LIMIT":
+            return String(
+                localized: "You can wait for at most two timeslots at once. Leave one of the lines first.",
+                comment: "What to do when too many dibs are open"
+            )
+        case "PUSH_DISABLED":
+            return String(
+                localized: "The laundry service can’t watch timeslots right now. Try again later.",
+                comment: "What to do when the server has dibs turned off"
             )
         case "SERVICE_ERROR":
             return String(

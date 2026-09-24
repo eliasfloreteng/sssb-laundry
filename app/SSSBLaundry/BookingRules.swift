@@ -110,8 +110,27 @@ extension TimeslotGroup {
     }
 }
 
+extension TimeslotGroup {
+    /// Somebody else holds it and it has not started, so there is still time
+    /// for it to free up — cancelled, or released 15 minutes in when nobody
+    /// tags in. Aptus has no waiting list; the server keeps one.
+    func canCallDibs(in timeslot: Timeslot, asOf now: Date = Date()) -> Bool {
+        status == .unavailable && !timeslot.hasStarted(asOf: now)
+    }
+}
+
 extension Timeslot {
     var startDate: Date? { LaundryStore.parseISO8601(startAt) }
+
+    /// Visible groups the user could join the line for and is not in yet.
+    func dibsableGroups(hidden: Set<Int>, asOf now: Date = Date()) -> [TimeslotGroup] {
+        groups.filter { !hidden.contains($0.groupId) && !$0.hasDibs && $0.canCallDibs(in: self, asOf: now) }
+    }
+
+    /// Whether the user is in line for any visible group of this timeslot.
+    func hasDibs(hidden: Set<Int>) -> Bool {
+        groups.contains { !hidden.contains($0.groupId) && $0.hasDibs }
+    }
 
     /// A date the app failed to parse counts as still ahead: an unreadable
     /// timestamp must never be what silently blocks a booking.

@@ -21,7 +21,7 @@ const SENDER_INTERVAL_MS = 30_000;
 const MAX_SEND_ATTEMPTS = 8;
 
 /** One timeslot the object id currently holds, with every group it holds in it. */
-interface OwnedSlot {
+export interface OwnedSlot {
   startAt: string;
   endAt: string;
   groups: { groupId: number; groupName: string | null; location: string | null }[];
@@ -37,7 +37,8 @@ export interface PushServiceOptions {
 }
 
 export class PushService {
-  private readonly store: Store;
+  /** Shared with the dibs service, which queues on the same database. */
+  readonly store: Store;
   private readonly aptus: AptusClient;
   private readonly apns: ApnsClient;
   private readonly logger?: LoggerLike;
@@ -146,6 +147,48 @@ export class PushService {
     }
     // The poll resolves group names, schedules reminders and fans the
     // announcement out to the other devices on this object id.
+    void this.pollObject(objectId);
+  }
+
+  /**
+   * A dibs came through: the server booked a slot on this object id's behalf.
+   * Recorded as already announced, because the `dibs_won` alert queued here is
+   * the announcement — a "new booking" push on top of it would say it twice.
+   */
+  onDibsWon(objectId: string, slot: OwnedSlot): void {
+    for (const group of slot.groups) {
+      this.store.insertBooking({
+        objectId,
+        startAt: slot.startAt,
+        endAt: slot.endAt,
+        groupId: group.groupId,
+        groupName: group.groupName,
+        location: group.location,
+        originToken: null,
+        announcedAt: nowSeconds()
+      });
+    }
+
+    const groupIds = slot.groups.map((g) => g.groupId).sort((a, b) => a - b);
+    const labels = buildLabels(slot);
+    // How far off the start is decides whether the body carries the
+    // "activate within 15 minutes" warning, the same way it does for reminders.
+    const lead = Math.max(0, Math.round(((toEpoch(slot.startAt) ?? nowSeconds()) - nowSeconds()) / 60));
+    for (const device of this.store.devicesForObject(objectId)) {
+      this.store.enqueue({
+        token: device.token,
+        kind: "dibs_won",
+        objectId,
+        startAt: slot.startAt,
+        endAt: slot.endAt,
+        groupIds,
+        labels,
+        offsetMinutes: lead,
+        fireAt: nowSeconds()
+      });
+    }
+    void this.sendDue();
+    // Schedules the reminders that are still ahead.
     void this.pollObject(objectId);
   }
 
@@ -459,8 +502,13 @@ export function buildPayload(
   // sentences: the app bundle holds both languages, so the notification comes
   // out in whatever language iOS is showing the app in — including a language
   // picked per-app in Settings, which the server has no way of knowing.
-  const title = row.kind === "reminder" ? reminderTitle(row.offsetMinutes) : { key: TITLE_NEW_BOOKING };
-  const body = bodyAlert(when, machines, row.kind === "reminder" ? row.offsetMinutes : undefined);
+  const title =
+    row.kind === "reminder"
+      ? reminderTitle(row.offsetMinutes)
+      : { key: row.kind === "dibs_won" ? TITLE_DIBS_WON : TITLE_NEW_BOOKING };
+  // A dibs carries its lead time in `offsetMinutes` too: one won minutes
+  // before the start needs the grace-period warning as much as a reminder does.
+  const body = bodyAlert(when, machines, row.kind === "new_booking" ? undefined : row.offsetMinutes);
 
   const aps: Record<string, unknown> = {
     alert: {
@@ -472,7 +520,7 @@ export function buildPayload(
     sound: "default",
     "thread-id": threadId(row.startAt, row.groupIds)
   };
-  if (row.kind === "reminder") {
+  if (row.kind === "reminder" || row.kind === "dibs_won") {
     aps["interruption-level"] = "time-sensitive";
     aps["relevance-score"] = 1.0;
   }
@@ -499,6 +547,11 @@ function deliveryOptions(
     // on the lock screen.
     return { pushType: "background", priority: 5, expiration: toEpoch(row.endAt) ?? startEpoch };
   }
+  if (row.kind === "dibs_won") {
+    // Won in the grace window means won after the start, so the reminders'
+    // deadline would already have passed. The booking stands until the end.
+    return { collapseId: threadId(row.startAt, row.groupIds), expiration: toEpoch(row.endAt) ?? startEpoch };
+  }
   return {
     collapseId: threadId(row.startAt, row.groupIds),
     // Never let a reminder land after the booking has already been released.
@@ -517,6 +570,7 @@ function deliveryOptions(
  */
 export const TITLE_NEW_BOOKING = "notification.title.newBooking";
 export const TITLE_STARTS_NOW = "notification.title.startsNow";
+export const TITLE_DIBS_WON = "notification.title.dibsWon";
 
 /** A localization key and the strings substituted into it, if any. */
 export interface LocAlert {

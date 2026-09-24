@@ -3,7 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 export type PushEnvironment = "sandbox" | "production";
-export type NotificationKind = "reminder" | "new_booking" | "cancelled";
+export type NotificationKind = "reminder" | "new_booking" | "cancelled" | "dibs_won";
 
 export interface DeviceRow {
   token: string;
@@ -40,6 +40,20 @@ export interface OutboxRow {
   offsetMinutes: number | null;
   fireAt: number;
   attempts: number;
+}
+
+/**
+ * One object id queued on one (timeslot, group) somebody else holds. The row id
+ * is the place in line: the lowest one on a slot is tried first when it frees.
+ */
+export interface DibsRow {
+  id: number;
+  objectId: string;
+  startAt: string;
+  endAt: string;
+  groupId: number;
+  originToken: string | null;
+  createdAt: number;
 }
 
 /** Everything a notification needs to render, resolved when the booking is recorded. */
@@ -104,6 +118,20 @@ CREATE TABLE IF NOT EXISTS outbox (
   UNIQUE (token, kind, start_at, group_ids, offset_minutes)
 );
 CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox(fire_at) WHERE sent_at IS NULL;
+
+-- Dibs on a timeslot somebody else holds. AUTOINCREMENT on purpose: the id is
+-- the place in line, and a reused id would jump a newcomer ahead of the queue.
+CREATE TABLE IF NOT EXISTS dibs (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  object_id    TEXT NOT NULL,
+  start_at     TEXT NOT NULL,
+  end_at       TEXT NOT NULL,
+  group_id     INTEGER NOT NULL,
+  origin_token TEXT,
+  created_at   INTEGER NOT NULL,
+  UNIQUE (object_id, start_at, group_id)
+);
+CREATE INDEX IF NOT EXISTS idx_dibs_slot ON dibs(start_at, group_id);
 `;
 
 export class Store {
@@ -355,6 +383,73 @@ export class Store {
       .run(token);
   }
 
+  // --- dibs ------------------------------------------------------------
+
+  /** Idempotent: calling dibs twice keeps the original place in line. */
+  insertDibs(entry: Omit<DibsRow, "id" | "createdAt">): void {
+    this.db
+      .query(
+        `INSERT OR IGNORE INTO dibs (object_id, start_at, end_at, group_id, origin_token, created_at)
+         VALUES ($objectId, $startAt, $endAt, $groupId, $originToken, $now)`
+      )
+      .run({
+        $objectId: entry.objectId,
+        $startAt: entry.startAt,
+        $endAt: entry.endAt,
+        $groupId: entry.groupId,
+        $originToken: entry.originToken,
+        $now: nowSeconds()
+      });
+  }
+
+  deleteDibs(objectId: string, startAt: string, groupId: number): void {
+    this.db
+      .query("DELETE FROM dibs WHERE object_id = ? AND start_at = ? AND group_id = ?")
+      .run(objectId, startAt, groupId);
+  }
+
+  /** Everyone's dibs on one (timeslot, group) — used once it has been claimed. */
+  deleteDibsForSlot(startAt: string, groupId: number): void {
+    this.db.query("DELETE FROM dibs WHERE start_at = ? AND group_id = ?").run(startAt, groupId);
+  }
+
+  dibsForObject(objectId: string): DibsRow[] {
+    const rows = this.db
+      .query("SELECT * FROM dibs WHERE object_id = ? ORDER BY id")
+      .all(objectId) as Record<string, unknown>[];
+    return rows.map(toDibs);
+  }
+
+  /** Every open dibs, in queue order. */
+  openDibs(): DibsRow[] {
+    const rows = this.db.query("SELECT * FROM dibs ORDER BY id").all() as Record<string, unknown>[];
+    return rows.map(toDibs);
+  }
+
+  /** The queue on one (timeslot, group), first in line first. */
+  dibsQueue(startAt: string, groupId: number): DibsRow[] {
+    const rows = this.db
+      .query("SELECT * FROM dibs WHERE start_at = ? AND group_id = ? ORDER BY id")
+      .all(startAt, groupId) as Record<string, unknown>[];
+    return rows.map(toDibs);
+  }
+
+  countDibs(objectId: string): number {
+    const row = this.db
+      .query("SELECT COUNT(DISTINCT start_at) AS n FROM dibs WHERE object_id = ?")
+      .get(objectId) as { n: number };
+    return row.n;
+  }
+
+  /** Drops dibs whose chance has gone: `cutoffIso` is compared with the start. */
+  pruneDibsStartedBefore(cutoffIso: string): DibsRow[] {
+    const rows = this.db
+      .query("SELECT * FROM dibs WHERE start_at < ?")
+      .all(cutoffIso) as Record<string, unknown>[];
+    this.db.query("DELETE FROM dibs WHERE start_at < ?").run(cutoffIso);
+    return rows.map(toDibs);
+  }
+
   transaction<T>(fn: () => T): T {
     return this.db.transaction(fn)();
   }
@@ -396,6 +491,18 @@ function toBooking(row: Record<string, unknown>): BookingRow {
     location: (row.location as string | null) ?? null,
     originToken: (row.origin_token as string | null) ?? null,
     announcedAt: (row.announced_at as number | null) ?? null
+  };
+}
+
+function toDibs(row: Record<string, unknown>): DibsRow {
+  return {
+    id: row.id as number,
+    objectId: row.object_id as string,
+    startAt: row.start_at as string,
+    endAt: row.end_at as string,
+    groupId: row.group_id as number,
+    originToken: (row.origin_token as string | null) ?? null,
+    createdAt: row.created_at as number
   };
 }
 

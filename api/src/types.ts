@@ -29,6 +29,10 @@ export interface CanonicalGroupState {
   status: GroupSlotStatus;
   canBook: boolean;
   canCancel: boolean;
+  /** The caller is waiting on this group — absent when they are not. */
+  dibs?: boolean;
+  /** The caller's place in that line, 1 being next. */
+  dibsQueue?: number;
 }
 
 export interface CanonicalTimeslot {

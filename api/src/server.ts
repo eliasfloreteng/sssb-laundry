@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment } from "./db.js";
+import { createDibsService, type DibsService } from "./dibs.js";
 import { createPushService, type PushService } from "./notifications.js";
 import { decodeTimeslotId } from "./timeslot-id.js";
 import { createUpstreamCheck, type UpstreamCheck } from "./upstream-check.js";
@@ -32,6 +33,8 @@ interface DeviceBody {
 export interface LaundryServer extends FastifyInstance {
   /** Present only when push is configured; started by startServer(), never by tests. */
   push: PushService | null;
+  /** Present only alongside push; started by startServer(), never by tests. */
+  dibs: DibsService | null;
   /** The upstream probe behind `/status`; started by startServer(), never by tests. */
   upstream: UpstreamCheck;
 }
@@ -39,6 +42,7 @@ export interface LaundryServer extends FastifyInstance {
 export function buildServer(args?: {
   aptusClient?: AptusClient;
   pushService?: PushService | null;
+  dibsService?: DibsService | null;
   upstreamCheck?: UpstreamCheck;
 }): LaundryServer {
   const logLevel = process.env.LOG_LEVEL ?? "info";
@@ -52,6 +56,7 @@ export function buildServer(args?: {
   // Built here so it shares the Aptus session cache and the request logger, but
   // its timers are only started by startServer() — tests must stay timer-free.
   const push = args?.pushService !== undefined ? args.pushService : createPushService(aptus, app.log);
+  const dibs = args?.dibsService !== undefined ? args.dibsService : createDibsService(push, aptus, app.log);
   const upstream = args?.upstreamCheck ?? createUpstreamCheck(aptus, app.log);
 
   // The app's landing page, on the same host the app already talks to. `site/`
@@ -102,7 +107,8 @@ export function buildServer(args?: {
       });
     }
 
-    return aptus.listTimeslots(objectId, date, request.id);
+    const response = await aptus.listTimeslots(objectId, date, request.id);
+    return dibs ? dibs.annotate(objectId, response) : response;
   });
 
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/book", async (request) => {
@@ -135,7 +141,32 @@ export function buildServer(args?: {
       }
     }
 
+    // Whoever is waiting on a slot this app just released gets it now.
+    const released = succeededGroupIds(response.results, new Set(["cancelled"]));
+    if (dibs && released.length > 0) {
+      const { startAt, endAt } = decodeTimeslotId(request.params.timeslotId);
+      dibs.onReleased(startAt, endAt, released);
+    }
+
     return response;
+  });
+
+  // Dibs: a place in line for a timeslot somebody else holds, booked by the
+  // server the moment it frees. See `dibs.ts`.
+  app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/dibs", async (request) => {
+    const objectId = requireObjectId(request);
+    if (!dibs) throw pushDisabled();
+    const groupIds = parseGroupIds(request.body?.groupIds);
+    const rows = await dibs.call(objectId, request.params.timeslotId, groupIds, deviceToken(request), request.id);
+    return { timeslotId: request.params.timeslotId, groupIds: rows.map((r) => r.groupId) };
+  });
+
+  app.delete<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/dibs", async (request) => {
+    const objectId = requireObjectId(request);
+    if (!dibs) throw pushDisabled();
+    const groupIds = parseGroupIds(request.body?.groupIds);
+    dibs.drop(objectId, request.params.timeslotId, groupIds);
+    return { ok: true };
   });
 
   app.put<{ Body: DeviceBody }>("/notifications/device", async (request) => {
@@ -211,7 +242,7 @@ export function buildServer(args?: {
     });
   });
 
-  const server = Object.assign(app, { push, upstream }) as unknown as LaundryServer;
+  const server = Object.assign(app, { push, dibs, upstream }) as unknown as LaundryServer;
   return server;
 }
 
@@ -339,6 +370,7 @@ function parseGroupIds(value: unknown): number[] {
 export async function startServer(): Promise<void> {
   const app = buildServer();
   app.push?.start();
+  app.dibs?.start();
   app.upstream.start();
 
   const port = Number(process.env.PORT ?? 3000);
@@ -348,6 +380,7 @@ export async function startServer(): Promise<void> {
   for (const signal of ["SIGTERM", "SIGINT"] as const) {
     process.once(signal, () => {
       app.push?.stop();
+      app.dibs?.stop();
       app.upstream.stop();
       void app.close().then(() => process.exit(0));
     });

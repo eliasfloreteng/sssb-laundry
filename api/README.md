@@ -34,6 +34,7 @@ otherwise stateless; only push state is persisted.
 | `GET /timeslots?date=YYYY-MM-DD`   | The week containing `date`, in Europe/Stockholm              |
 | `POST /timeslots/:id/book`         | `{ groupIds: [162, 163] }` — 1–2 groups, per-group results   |
 | `POST /timeslots/:id/cancel`       | Same body and result shape                                   |
+| `POST`/`DELETE /timeslots/:id/dibs` | Join or leave the line for groups somebody else holds        |
 | `PUT`/`DELETE /notifications/device` | Register or drop a device and its reminder preferences     |
 | `POST /notifications/test`         | Fires a reminder at this object id's devices (non-prod only) |
 | `GET /health`                      | Liveness, used by the container healthcheck                  |
@@ -137,6 +138,38 @@ its behaviors, not ours, and they are the reason the client looks the way it doe
   slot simply starting.
 - The number of groups, and the shape of the timeslots themselves, varies by object id —
   some cover nine buildings. Don't hard-code either.
+
+## Dibs
+
+A waiting list for a timeslot somebody else holds — something Aptus itself has no notion
+of. `POST /timeslots/:id/dibs` with `{ groupIds }` puts the object id in line for those
+groups; `src/dibs.ts` watches the slot and books it for the first in line the moment it
+frees. `GET /timeslots` marks each group the caller waits on with `dibs: true` and
+`dibsQueue`, their place in line (1 is next).
+
+- **Only a taken group that has not started** — `NOT_TAKEN` for a free one (book it) or
+  one already held, `TOO_LATE` once it has started. At most two timeslots per object id,
+  `DIBS_LIMIT`; both groups of one timeslot count once, as they do in SSSB's quota.
+- **Two ways a slot frees.** Its holder cancels — through this app, `/cancel` hands it
+  over on the spot; anywhere else, a poll every `DIBS_POLL_MINUTES` (default 2) catches
+  it. Or its holder never tags in and Aptus releases it at start + 15 minutes; from
+  start + 14:30 to start + 20:00 the slot is polled every 20 seconds.
+- **Whether Aptus books a released, already started session at all is unverified.** The
+  app has always assumed it does not. A claim only ever follows a group Aptus shows as
+  free, so the grace window costs a few reads and books nothing if it never is; every
+  started slot seen free again is logged as `Dibs: started timeslot seen free again`,
+  which is the evidence to keep or drop the window by.
+- **Free is the `bookable` class, not the book button.** One listing per week covers
+  every dibs in it, read as whoever is first in line — and that viewer may be at their
+  session limit, which hides the button on a slot that is free for everybody else.
+- **First come, first served.** The line is the `dibs` row id. One that Aptus refuses —
+  at the session limit, usually — is passed over and keeps its place; if nobody gets
+  it, the slot was taken again first and everyone waits on.
+- **Only good news is pushed.** A win queues a `dibs_won` alert and records the booking
+  as already announced, so it is not pushed a second time as a new booking. A dibs still
+  standing when its grace window closes is dropped quietly.
+- Dibs needs push — it is how anyone hears it came through — so it is off, and its
+  routes answer `PUSH_DISABLED`, whenever push is.
 
 ## Push notifications
 

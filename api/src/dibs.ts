@@ -6,8 +6,15 @@ import { toEpoch, type OwnedSlot, type PushService } from "./notifications.js";
 import { decodeTimeslotId, encodeTimeslotId } from "./timeslot-id.js";
 import { STOCKHOLM_TZ, type TimeslotsResponse } from "./types.js";
 
-/** Open dibs per object id, counted in timeslots — both groups of one are one. */
-export const DIBS_LIMIT = 2;
+/**
+ * Open dibs per object id, counted in timeslots — both groups of one are one.
+ * Not SSSB's quota: winning more than that is what the order of preference
+ * sorts out. This only bounds what one object id can have watched.
+ */
+export const DIBS_LIMIT = 10;
+
+/** The longest order of preference accepted — every dibs plus every booking. */
+export const PRIORITY_LIMIT = 30;
 
 /**
  * Aptus releases a session nobody tagged into 15 minutes after its start. The
@@ -19,9 +26,13 @@ const GRACE_CLOSES_SECONDS = 20 * 60;
 const GRACE_TICK_MS = 20_000;
 
 const BOOKED = new Set(["booked", "already_booked"]);
+const CANCELLED = new Set(["cancelled", "not_booked"]);
 
-/** The part of the Aptus client dibs needs — reading a week and booking. */
-export type DibsAptus = Pick<AptusClient, "listTimeslots" | "bookTimeslot">;
+/** The part of the Aptus client dibs needs — reading a week, booking, and giving a booking up for a better one. */
+export type DibsAptus = Pick<AptusClient, "listTimeslots" | "bookTimeslot" | "cancelTimeslot">;
+
+/** How one attempt at booking a freed group went. */
+type Attempt = "booked" | "refused" | "failed";
 
 export interface DibsServiceOptions {
   store: Store;
@@ -122,9 +133,14 @@ export class DibsService {
       });
     }
 
-    for (const groupId of groupIds) {
-      this.store.insertDibs({ objectId, startAt, endAt, groupId, originToken });
-    }
+    this.store.transaction(() => {
+      for (const groupId of groupIds) {
+        this.store.insertDibs({ objectId, startAt, endAt, groupId, originToken });
+      }
+      // Wanted least until the user says otherwise, so a new dibs never costs
+      // a booking they have not ranked below it.
+      this.store.appendPriority(objectId, startAt, endAt);
+    });
     this.logger?.info?.({ objectKey: hashObjectId(objectId), startAt, groupIds }, "Dibs called");
     return this.store.dibsForObject(objectId).filter((d) => d.startAt === startAt);
   }
@@ -132,15 +148,46 @@ export class DibsService {
   drop(objectId: string, timeslotId: string, groupIds: number[]): void {
     const { startAt } = decodeTimeslotId(timeslotId);
     for (const groupId of groupIds) this.store.deleteDibs(objectId, startAt, groupId);
+    // Its rank goes with the last dibs on it. Were the slot also booked, that
+    // leaves the booking unranked, which is the side that never gets given up.
+    if (!this.store.dibsForObject(objectId).some((d) => d.startAt === startAt)) {
+      this.store.deletePriority(objectId, startAt);
+    }
   }
 
-  /** Marks the caller's dibs, and their place in line, on a week listing. */
+  /** Every dibs and the order of preference — the app turned dibs off. */
+  dropAll(objectId: string): void {
+    this.store.deleteAllDibs(objectId);
+  }
+
+  /**
+   * The order the object id wants its timeslots in, most wanted first: dibs
+   * and bookings together. A booking ranked below a dibs is given up for it
+   * when that dibs frees and Aptus's session limit is what stands in the way.
+   */
+  setPriority(objectId: string, timeslotIds: string[]): void {
+    const seen = new Set<string>();
+    const slots: { startAt: string; endAt: string }[] = [];
+    for (const id of timeslotIds) {
+      const slot = decodeTimeslotId(id);
+      if (seen.has(slot.startAt)) continue;
+      seen.add(slot.startAt);
+      slots.push(slot);
+    }
+    this.store.setPriority(objectId, slots);
+  }
+
+  /** Marks the caller's dibs, their place in line, and their order of preference, on a week listing. */
   annotate(objectId: string, response: TimeslotsResponse): TimeslotsResponse {
     const mine = this.store.dibsForObject(objectId);
-    if (mine.length === 0) return response;
+    const ranking = this.store.priorityForObject(objectId);
+    if (mine.length === 0 && ranking.length === 0) return response;
     const byKey = new Map(mine.map((d) => [`${d.startAt}#${d.groupId}`, d]));
+    const rankOf = new Map(ranking.map((p, index) => [p.startAt, index + 1]));
 
     for (const timeslot of response.timeslots) {
+      const rank = rankOf.get(timeslot.startAt);
+      if (rank !== undefined) timeslot.priority = rank;
       for (const group of timeslot.groups) {
         const dibs = byKey.get(`${timeslot.startAt}#${group.groupId}`);
         if (!dibs) continue;
@@ -246,8 +293,9 @@ export class DibsService {
   /**
    * Books a freed (timeslot, group) for the first object id in line that
    * Aptus will take it for. One that cannot — at its session limit, most
-   * likely — is passed over but keeps its place: if nobody gets it, the slot
-   * was taken again first and everyone waits on.
+   * likely — first gets the chance to give up a booking it wants less; one
+   * that still cannot is passed over but keeps its place: if nobody gets it,
+   * the slot was taken again first and everyone waits on.
    */
   private async claim(
     startAt: string,
@@ -258,29 +306,135 @@ export class DibsService {
     const timeslotId = encodeTimeslotId(startAt, endAt);
     for (const dibs of this.store.dibsQueue(startAt, groupId)) {
       const objectKey = hashObjectId(dibs.objectId);
-      try {
-        const response = await this.aptus.bookTimeslot(dibs.objectId, timeslotId, [groupId]);
-        const result = response.results[0];
-        if (!result || !BOOKED.has(result.status)) {
-          this.logger?.info?.({ objectKey, startAt, groupId, status: result?.status }, "Dibs passed over");
-          continue;
+      let replaced: { startAt: string } | undefined;
+      let attempt = await this.book(dibs.objectId, timeslotId, groupId);
+      // A started slot is not a future session, so the quota is not what
+      // refused it and nothing booked is worth giving up for it.
+      if (attempt === "refused" && !isStarted(startAt)) {
+        const swap = await this.swap(dibs, timeslotId, groupId);
+        if (swap) {
+          attempt = "booked";
+          replaced = swap;
         }
-      } catch (error) {
-        this.logger?.warn?.({ objectKey, startAt, groupId, err: describe(error) }, "Dibs booking failed");
+      }
+      if (attempt !== "booked") {
+        this.logger?.info?.({ objectKey, startAt, groupId, attempt }, "Dibs passed over");
         continue;
       }
 
       this.store.deleteDibsForSlot(startAt, groupId);
-      this.logger?.info?.({ objectKey, startAt, groupId }, "Dibs came through");
+      this.logger?.info?.({ objectKey, startAt, groupId, swapped: Boolean(replaced) }, "Dibs came through");
       const info = week?.groups.find((g) => g.id === groupId);
       const slot: OwnedSlot = {
         startAt,
         endAt,
         groups: [{ groupId, groupName: info?.name ?? null, location: info?.location ?? null }]
       };
-      this.push.onDibsWon(dibs.objectId, slot);
+      this.push.onDibsWon(dibs.objectId, slot, replaced);
       return;
     }
+  }
+
+  private async book(objectId: string, timeslotId: string, groupId: number): Promise<Attempt> {
+    try {
+      const response = await this.aptus.bookTimeslot(objectId, timeslotId, [groupId]);
+      const result = response.results[0];
+      if (result && BOOKED.has(result.status)) return "booked";
+      // No book button for this viewer on a slot that is free for everyone:
+      // the session limit, nearly always.
+      return result?.status === "not_bookable" ? "refused" : "failed";
+    } catch (error) {
+      this.logger?.warn?.(
+        { objectKey: hashObjectId(objectId), timeslotId, groupId, err: describe(error) },
+        "Dibs booking failed"
+      );
+      return "failed";
+    }
+  }
+
+  /**
+   * Gives up the booking this object id wants least — only one it ranked
+   * below the dibs — and books the dibs in its place. Either both happen or,
+   * as near as Aptus allows, neither: a dibs that still cannot be booked puts
+   * the old booking straight back, before anyone else in line hears it freed.
+   * Resolves to the booking given up, or null when nothing was swapped.
+   */
+  private async swap(dibs: DibsRow, timeslotId: string, groupId: number): Promise<{ startAt: string } | null> {
+    const objectKey = hashObjectId(dibs.objectId);
+    const ranking = this.store.priorityForObject(dibs.objectId);
+    const rank = ranking.findIndex((p) => p.startAt === dibs.startAt);
+    if (rank < 0) return null;
+
+    // Wanted least first. Only the first one actually held is tried: one
+    // session given back is all a single booking needs.
+    for (const entry of ranking.slice(rank + 1).reverse()) {
+      if (isStarted(entry.startAt)) continue;
+      const held = await this.heldGroups(dibs.objectId, entry);
+      if (held === null) return null;
+      if (held.length === 0) continue;
+
+      const entryId = encodeTimeslotId(entry.startAt, entry.endAt);
+      let released: number[];
+      try {
+        const response = await this.aptus.cancelTimeslot(dibs.objectId, entryId, held);
+        released = response.results.filter((r) => CANCELLED.has(r.status)).map((r) => r.groupId);
+      } catch (error) {
+        this.logger?.warn?.({ objectKey, err: describe(error) }, "Dibs swap: cancelling failed");
+        return null;
+      }
+
+      const attempt = released.length === held.length ? await this.book(dibs.objectId, timeslotId, groupId) : "failed";
+      if (attempt !== "booked") {
+        if (released.length > 0) await this.restore(dibs.objectId, entry, released);
+        return null;
+      }
+
+      this.logger?.info?.(
+        { objectKey, startAt: dibs.startAt, groupId, replacedStartAt: entry.startAt },
+        "Dibs swap: gave up a booking wanted less"
+      );
+      this.store.deletePriority(dibs.objectId, entry.startAt);
+      this.push.onCancelled(dibs.objectId, entry.startAt, released);
+      // Only now is it free for anyone else in line for it. Queued behind this
+      // claim rather than awaited, so the chain stays one task at a time.
+      this.onReleased(entry.startAt, entry.endAt, released);
+      return { startAt: entry.startAt };
+    }
+    return null;
+  }
+
+  /**
+   * The groups of a ranked timeslot this object id holds and may still hand
+   * back — none when it no longer holds it, null when Aptus could not say.
+   */
+  private async heldGroups(objectId: string, entry: { startAt: string; endAt: string }): Promise<number[] | null> {
+    try {
+      const week = await this.aptus.listTimeslots(objectId, localDate(entry.startAt));
+      const timeslot = week.timeslots.find((t) => t.startAt === entry.startAt);
+      return timeslot?.groups.filter((g) => g.status === "own" && g.canCancel).map((g) => g.groupId) ?? [];
+    } catch (error) {
+      this.logger?.warn?.(
+        { objectKey: hashObjectId(objectId), err: describe(error) },
+        "Dibs swap: reading the booking failed"
+      );
+      return null;
+    }
+  }
+
+  /** Puts back a booking given up for a dibs that then fell through. */
+  private async restore(objectId: string, entry: { startAt: string; endAt: string }, groupIds: number[]): Promise<void> {
+    const objectKey = hashObjectId(objectId);
+    let lost = groupIds;
+    try {
+      const response = await this.aptus.bookTimeslot(objectId, encodeTimeslotId(entry.startAt, entry.endAt), groupIds);
+      lost = response.results.filter((r) => !BOOKED.has(r.status)).map((r) => r.groupId);
+    } catch (error) {
+      this.logger?.error?.({ objectKey, err: describe(error) }, "Dibs swap: putting a booking back failed");
+    }
+    if (lost.length === 0) return;
+    // Somebody took it in the moment between. Its reminders must not outlive it.
+    this.logger?.error?.({ objectKey, startAt: entry.startAt, groupIds: lost }, "Dibs swap: could not put a booking back");
+    this.push.onCancelled(objectId, entry.startAt, lost);
   }
 
   private enqueue(task: () => Promise<void>): Promise<void> {

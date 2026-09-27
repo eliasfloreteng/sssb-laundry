@@ -35,6 +35,8 @@ otherwise stateless; only push state is persisted.
 | `POST /timeslots/:id/book`         | `{ groupIds: [162, 163] }` — 1–2 groups, per-group results   |
 | `POST /timeslots/:id/cancel`       | Same body and result shape                                   |
 | `POST`/`DELETE /timeslots/:id/dibs` | Join or leave the line for groups somebody else holds        |
+| `PUT /dibs/priority`               | `{ timeslotIds }` — dibs and bookings, most wanted first      |
+| `DELETE /dibs`                     | Every dibs and the order with them                           |
 | `PUT`/`DELETE /notifications/device` | Register or drop a device and its reminder preferences     |
 | `POST /notifications/test`         | Fires a reminder at this object id's devices (non-prod only) |
 | `GET /health`                      | Liveness, used by the container healthcheck                  |
@@ -145,10 +147,11 @@ A waiting list for a timeslot somebody else holds — something Aptus itself has
 of. `POST /timeslots/:id/dibs` with `{ groupIds }` puts the object id in line for those
 groups; `src/dibs.ts` watches the slot and books it for the first in line the moment it
 frees. `GET /timeslots` marks each group the caller waits on with `dibs: true` and
-`dibsQueue`, their place in line (1 is next).
+`dibsQueue`, their place in line (1 is next), and each timeslot they have ranked with
+`priority` (1 is most wanted).
 
 - **Only a taken group that has not started** — `NOT_TAKEN` for a free one (book it) or
-  one already held, `TOO_LATE` once it has started. At most two timeslots per object id,
+  one already held, `TOO_LATE` once it has started. At most ten timeslots per object id,
   `DIBS_LIMIT`; both groups of one timeslot count once, as they do in SSSB's quota.
 - **Two ways a slot frees.** Its holder cancels — through this app, `/cancel` hands it
   over on the spot; anywhere else, a poll every `DIBS_POLL_MINUTES` (default 2) catches
@@ -165,6 +168,17 @@ frees. `GET /timeslots` marks each group the caller waits on with `dibs: true` a
 - **First come, first served.** The line is the `dibs` row id. One that Aptus refuses —
   at the session limit, usually — is passed over and keeps its place; if nobody gets
   it, the slot was taken again first and everyone waits on.
+- **An order of preference decides what a win may cost.** `PUT /dibs/priority` ranks
+  the object id's timeslots, dibs and bookings together, in `dibs_priority`. When a
+  freed slot is refused with `not_bookable` — the session limit, nearly always — the
+  server cancels the booking ranked lowest *below* that dibs and books the dibs in its
+  place. Should the dibs still fail, the booking is booked straight back before anyone
+  else in line hears it was free; only after the swap is it handed to their dibs. The
+  win's push says what was given up (`notification.title.dibsSwapped`).
+- **Nothing is given up that was not ranked below.** A new dibs goes last, and a booking
+  missing from the order is never cancelled — so no swap happens until the user puts a
+  dibs above a booking. Nor is anything given up for a slot that has already started:
+  that is no future session, so the quota is not what refused it.
 - **Only good news is pushed.** A win queues a `dibs_won` alert and records the booking
   as already announced, so it is not pushed a second time as a new booking. A dibs still
   standing when its grace window closes is dropped quietly.

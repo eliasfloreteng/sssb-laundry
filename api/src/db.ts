@@ -56,6 +56,17 @@ export interface DibsRow {
   createdAt: number;
 }
 
+/**
+ * One timeslot in an object id's order of preference — a dibs or a booking
+ * alike. `position` 0 is the one wanted most.
+ */
+export interface PriorityRow {
+  objectId: string;
+  startAt: string;
+  endAt: string;
+  position: number;
+}
+
 /** Everything a notification needs to render, resolved when the booking is recorded. */
 export interface NotificationLabels {
   machines: string[];
@@ -63,6 +74,8 @@ export interface NotificationLabels {
   dayLabel: string;
   startTime: string;
   endTime: string;
+  /** A dibs won by giving up another booking: when that one was, day and time. */
+  replaced?: string;
 }
 
 const SCHEMA = `
@@ -132,6 +145,16 @@ CREATE TABLE IF NOT EXISTS dibs (
   UNIQUE (object_id, start_at, group_id)
 );
 CREATE INDEX IF NOT EXISTS idx_dibs_slot ON dibs(start_at, group_id);
+
+-- The order an object id wants its dibs and bookings in, one row per timeslot.
+-- A booking missing from it is never given up for a dibs.
+CREATE TABLE IF NOT EXISTS dibs_priority (
+  object_id TEXT NOT NULL,
+  start_at  TEXT NOT NULL,
+  end_at    TEXT NOT NULL,
+  position  INTEGER NOT NULL,
+  PRIMARY KEY (object_id, start_at)
+);
 `;
 
 export class Store {
@@ -447,7 +470,52 @@ export class Store {
       .query("SELECT * FROM dibs WHERE start_at < ?")
       .all(cutoffIso) as Record<string, unknown>[];
     this.db.query("DELETE FROM dibs WHERE start_at < ?").run(cutoffIso);
+    this.db.query("DELETE FROM dibs_priority WHERE start_at < ?").run(cutoffIso);
     return rows.map(toDibs);
+  }
+
+  /** Every dibs and the whole order of preference, for one object id. */
+  deleteAllDibs(objectId: string): void {
+    this.transaction(() => {
+      this.db.query("DELETE FROM dibs WHERE object_id = ?").run(objectId);
+      this.db.query("DELETE FROM dibs_priority WHERE object_id = ?").run(objectId);
+    });
+  }
+
+  // --- priority ----------------------------------------------------------
+
+  /** Most wanted first. */
+  priorityForObject(objectId: string): PriorityRow[] {
+    const rows = this.db
+      .query("SELECT * FROM dibs_priority WHERE object_id = ? ORDER BY position")
+      .all(objectId) as Record<string, unknown>[];
+    return rows.map(toPriority);
+  }
+
+  /** Replaces the whole order, most wanted first. */
+  setPriority(objectId: string, slots: { startAt: string; endAt: string }[]): void {
+    this.transaction(() => {
+      this.db.query("DELETE FROM dibs_priority WHERE object_id = ?").run(objectId);
+      const insert = this.db.query(
+        "INSERT OR IGNORE INTO dibs_priority (object_id, start_at, end_at, position) VALUES (?, ?, ?, ?)"
+      );
+      slots.forEach((slot, index) => insert.run(objectId, slot.startAt, slot.endAt, index));
+    });
+  }
+
+  /** Puts a timeslot last — wanted least — unless it already has a place. */
+  appendPriority(objectId: string, startAt: string, endAt: string): void {
+    this.db
+      .query(
+        `INSERT OR IGNORE INTO dibs_priority (object_id, start_at, end_at, position)
+         VALUES ($objectId, $startAt, $endAt,
+           (SELECT COALESCE(MAX(position), -1) + 1 FROM dibs_priority WHERE object_id = $objectId))`
+      )
+      .run({ $objectId: objectId, $startAt: startAt, $endAt: endAt });
+  }
+
+  deletePriority(objectId: string, startAt: string): void {
+    this.db.query("DELETE FROM dibs_priority WHERE object_id = ? AND start_at = ?").run(objectId, startAt);
   }
 
   transaction<T>(fn: () => T): T {
@@ -503,6 +571,15 @@ function toDibs(row: Record<string, unknown>): DibsRow {
     groupId: row.group_id as number,
     originToken: (row.origin_token as string | null) ?? null,
     createdAt: row.created_at as number
+  };
+}
+
+function toPriority(row: Record<string, unknown>): PriorityRow {
+  return {
+    objectId: row.object_id as string,
+    startAt: row.start_at as string,
+    endAt: row.end_at as string,
+    position: row.position as number
   };
 }
 

@@ -44,6 +44,8 @@ export interface CanonicalTimeslot {
   endTime: string;
   spansMidnight: boolean;
   groups: CanonicalGroupState[];
+  /** Where the caller ranks this timeslot among their dibs and bookings, 1 being most wanted — absent when unranked. */
+  priority?: number;
 }
 
 export interface WeekWindow {

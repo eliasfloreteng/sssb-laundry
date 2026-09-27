@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment } from "./db.js";
-import { createDibsService, type DibsService } from "./dibs.js";
+import { createDibsService, PRIORITY_LIMIT, type DibsService } from "./dibs.js";
 import { createPushService, type PushService } from "./notifications.js";
 import { decodeTimeslotId } from "./timeslot-id.js";
 import { createUpstreamCheck, type UpstreamCheck } from "./upstream-check.js";
@@ -169,6 +169,22 @@ export function buildServer(args?: {
     return { ok: true };
   });
 
+  // The order the caller wants their dibs and bookings in, most wanted first.
+  app.put<{ Body: { timeslotIds?: unknown } }>("/dibs/priority", async (request) => {
+    const objectId = requireObjectId(request);
+    if (!dibs) throw pushDisabled();
+    dibs.setPriority(objectId, parseTimeslotIds(request.body?.timeslotIds));
+    return { ok: true };
+  });
+
+  // Every dibs and the order with them — the app's dibs setting was turned off.
+  app.delete("/dibs", async (request) => {
+    const objectId = requireObjectId(request);
+    if (!dibs) throw pushDisabled();
+    dibs.dropAll(objectId);
+    return { ok: true };
+  });
+
   app.put<{ Body: DeviceBody }>("/notifications/device", async (request) => {
     const objectId = requireObjectId(request);
     if (!push) throw pushDisabled();
@@ -323,6 +339,17 @@ function requireObjectId(request: FastifyRequest): string {
     });
   }
   return objectId.trim();
+}
+
+function parseTimeslotIds(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > PRIORITY_LIMIT || !value.every((id) => typeof id === "string")) {
+    throw new AppError({
+      statusCode: 400,
+      code: "INVALID_TIMESLOT_IDS",
+      message: `Body must contain timeslotIds as an array of at most ${PRIORITY_LIMIT} timeslot ids`
+    });
+  }
+  return value;
 }
 
 function parseGroupIds(value: unknown): number[] {

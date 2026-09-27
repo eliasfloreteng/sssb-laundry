@@ -155,7 +155,7 @@ export class PushService {
    * Recorded as already announced, because the `dibs_won` alert queued here is
    * the announcement — a "new booking" push on top of it would say it twice.
    */
-  onDibsWon(objectId: string, slot: OwnedSlot): void {
+  onDibsWon(objectId: string, slot: OwnedSlot, replaced?: { startAt: string }): void {
     for (const group of slot.groups) {
       this.store.insertBooking({
         objectId,
@@ -171,6 +171,10 @@ export class PushService {
 
     const groupIds = slot.groups.map((g) => g.groupId).sort((a, b) => a - b);
     const labels = buildLabels(slot);
+    if (replaced) {
+      const start = DateTime.fromISO(replaced.startAt).setZone(STOCKHOLM_TZ);
+      labels.replaced = start.isValid ? start.toFormat("ccc d LLL HH:mm") : replaced.startAt;
+    }
     // How far off the start is decides whether the body carries the
     // "activate within 15 minutes" warning, the same way it does for reminders.
     const lead = Math.max(0, Math.round(((toEpoch(slot.startAt) ?? nowSeconds()) - nowSeconds()) / 60));
@@ -505,7 +509,9 @@ export function buildPayload(
   const title =
     row.kind === "reminder"
       ? reminderTitle(row.offsetMinutes)
-      : { key: row.kind === "dibs_won" ? TITLE_DIBS_WON : TITLE_NEW_BOOKING };
+      : row.kind === "dibs_won"
+        ? dibsWonTitle(labels)
+        : { key: TITLE_NEW_BOOKING };
   // A dibs carries its lead time in `offsetMinutes` too: one won minutes
   // before the start needs the grace-period warning as much as a reminder does.
   const body = bodyAlert(when, machines, row.kind === "new_booking" ? undefined : row.offsetMinutes);
@@ -571,11 +577,17 @@ function deliveryOptions(
 export const TITLE_NEW_BOOKING = "notification.title.newBooking";
 export const TITLE_STARTS_NOW = "notification.title.startsNow";
 export const TITLE_DIBS_WON = "notification.title.dibsWon";
+export const TITLE_DIBS_SWAPPED = "notification.title.dibsSwapped";
 
 /** A localization key and the strings substituted into it, if any. */
 export interface LocAlert {
   key: string;
   args?: string[];
+}
+
+/** A dibs that cost a booking says which one — it vanished from the user's list. */
+function dibsWonTitle(labels: NotificationLabels): LocAlert {
+  return labels.replaced ? { key: TITLE_DIBS_SWAPPED, args: [labels.replaced] } : { key: TITLE_DIBS_WON };
 }
 
 function reminderTitle(offsetMinutes: number | null): LocAlert {

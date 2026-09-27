@@ -138,6 +138,17 @@ enum ActiveGroupsSetting {
 enum DibsSetting {
     static let enabledKey = "dibs.enabled"
     static let defaultEnabled = false
+
+    /// Dibs came before its setting did: a build from then has lines open on
+    /// the server that an update would otherwise hide behind a switch reading
+    /// off. The first week that shows one turns it on — but only if the user
+    /// has never set it either way.
+    static func adoptExisting(in week: WeekResponse, defaults: UserDefaults = .standard) {
+        guard defaults.object(forKey: enabledKey) == nil,
+              week.timeslots.contains(where: { $0.groups.contains(where: \.hasDibs) })
+        else { return }
+        defaults.set(true, forKey: enabledKey)
+    }
 }
 
 enum ActiveHoursSetting {

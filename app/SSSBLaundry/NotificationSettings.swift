@@ -81,6 +81,13 @@ enum BookingAlert: Int, CaseIterable, Identifiable {
 }
 
 enum NotificationSetting {
+    /// Which notification titles this build's string catalog holds, as the
+    /// server counts them (`PUSH_VERSION` in `api/src/notifications.ts`). The
+    /// server sends a device no title newer than this, because a key missing
+    /// from the catalog lands on the lock screen raw. Bump both together when
+    /// a `notification.title.*` key is added.
+    static let pushVersion = 1
+
     static let enabledKey = "notifications.enabled"
     static let alertKey = "notifications.alert"
     static let secondAlertKey = "notifications.secondAlert"

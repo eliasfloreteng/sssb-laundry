@@ -602,6 +602,7 @@ final class LaundryStore {
                 knownGroups[group.id] = group
             }
             ownBookingsByWeek[resp.week.fromDate] = Self.ownBookings(in: resp)
+            DibsSetting.adoptExisting(in: resp)
 
             let barren = Self.isBarren(resp, now: Date())
             if replaceAll {

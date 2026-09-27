@@ -99,7 +99,8 @@ struct APIClient {
             "environment": environment,
             "enabled": enabled,
             "alertMinutes": alertMinutes as Any? ?? NSNull(),
-            "secondAlertMinutes": secondAlertMinutes as Any? ?? NSNull()
+            "secondAlertMinutes": secondAlertMinutes as Any? ?? NSNull(),
+            "pushVersion": NotificationSetting.pushVersion
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         return try await send(request)

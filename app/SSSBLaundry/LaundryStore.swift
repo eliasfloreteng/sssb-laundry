@@ -228,13 +228,17 @@ final class LaundryStore {
     }
 
     /// Nothing in this week the user could act on: no slot they hold, and none
-    /// still to come that Aptus offers a book button for. Deliberately blind to
-    /// the hidden-groups setting — that is a display filter, and where the list
-    /// ends is not a matter of what the user chose to look at.
+    /// still to come that is free. Free is the status, not the book button: a
+    /// user at their session limit gets no button anywhere, and must still be
+    /// able to page ahead to line up the next session. Past the booking window
+    /// Aptus renders every slot as taken, which is what ends the list.
+    /// Deliberately blind to the hidden-groups setting — that is a display
+    /// filter, and where the list ends is not a matter of what the user chose
+    /// to look at.
     private static func isBarren(_ week: WeekResponse, now: Date) -> Bool {
         !week.timeslots.contains { timeslot in
             timeslot.groups.contains { group in
-                group.status == .own || (group.canBook && !timeslot.hasStarted(asOf: now))
+                group.status == .own || (group.status == .bookable && !timeslot.hasStarted(asOf: now))
             }
         }
     }

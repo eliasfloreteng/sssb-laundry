@@ -286,8 +286,11 @@ struct WeekView: View {
                 if ts.hasOwnGroup(hidden: hidden) || ts.hasDibs(hidden: hidden) { return true }
                 if !showAllTimeslots {
                     // Free but unbookable — passed, or a slot Aptus offers no
-                    // button for — is noise in the browsing list.
-                    guard !ts.actionableGroups(hidden: hidden).isEmpty else { return false }
+                    // button for — is noise in the browsing list. Unless the
+                    // button is missing only because of the session limit and
+                    // dibs can line it up for when that frees.
+                    let linable = dibsEnabled && !ts.freePastLimitGroups(hidden: hidden).isEmpty
+                    guard linable || !ts.actionableGroups(hidden: hidden).isEmpty else { return false }
                 }
                 if applyActiveHours {
                     return ActiveHoursSetting.includes(timeslot: ts, startMinutes: activeHoursStart, endMinutes: activeHoursEnd)
@@ -317,7 +320,8 @@ struct WeekView: View {
                                 timeslot: ts,
                                 groupsById: store.groupsById,
                                 hiddenGroups: hiddenGroups,
-                                isBusy: busyTimeslots.contains(ts.id)
+                                isBusy: busyTimeslots.contains(ts.id),
+                                dibsEnabled: dibsEnabled
                             )
                         }
                         .buttonStyle(.plain)

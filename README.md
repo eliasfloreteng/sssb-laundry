@@ -20,8 +20,9 @@ That same host serves the app's landing page at its root and its invite page at
 
 - The whole week of timeslots for your apartment, with infinite scroll into future weeks
 - Book or cancel 1–2 laundry groups in a single action, with per-group results
-- Dibs on a timeslot somebody else holds — a waiting list Aptus doesn't have. The
-  server books it for the first in line the moment it frees, and pushes when it does.
+- Dibs on a timeslot you can't book yet — somebody else's, or a free one past your
+  session limit, lined up ahead. A waiting list Aptus doesn't have: the server books it
+  for the first in line the moment it can, and pushes when it does.
   Opt-in from Settings; dibs and bookings can be ranked, and a booking ranked below a
   dibs is given up for it when the session limit is in the way
 - The booking rules SSSB publishes for your laundry room, picked by street address

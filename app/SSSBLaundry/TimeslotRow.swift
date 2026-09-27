@@ -12,6 +12,9 @@ struct TimeslotRow: View {
     /// An action from the long-press menu is in flight. The row is the only
     /// thing on screen that can say so — nothing else opens.
     var isBusy = false
+    /// Whether a free group past the session limit is something to offer: with
+    /// dibs on it can be lined up, with it off it is as unbookable as any other.
+    var dibsEnabled = false
 
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
@@ -60,7 +63,10 @@ struct TimeslotRow: View {
     /// for it — is left off rather than shown as an invitation. A group the
     /// user is in line for is shown, since it is half theirs.
     private var chipGroups: [TimeslotGroup] {
-        activeGroups.filter { $0.status == .own || $0.hasDibs || $0.restriction(in: timeslot) == nil }
+        activeGroups.filter { group in
+            group.status == .own || group.hasDibs || group.restriction(in: timeslot) == nil
+                || (dibsEnabled && group.isFreePastLimit && group.canCallDibs(in: timeslot))
+        }
     }
 
     private var hasDibs: Bool {
@@ -73,6 +79,7 @@ struct TimeslotRow: View {
 
     private var hasBookable: Bool {
         !timeslot.actionableGroups(hidden: hiddenGroups).isEmpty
+            || (dibsEnabled && !timeslot.freePastLimitGroups(hidden: hiddenGroups).isEmpty)
     }
 
     /// Nothing to book and nothing of yours: a row that is only there for

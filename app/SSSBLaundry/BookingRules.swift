@@ -111,11 +111,22 @@ extension TimeslotGroup {
 }
 
 extension TimeslotGroup {
-    /// Somebody else holds it and it has not started, so there is still time
-    /// for it to free up — cancelled, or released 15 minutes in when nobody
-    /// tags in. Aptus has no waiting list; the server keeps one.
+    /// Not the user's to book yet, and not started, so the server can still
+    /// book it for them. Either somebody else holds it and it may free up —
+    /// cancelled, or released 15 minutes in when nobody tags in — or it is
+    /// free but past the user's session limit, and is booked once one of their
+    /// sessions starts or is cancelled. Aptus has no waiting list; the server
+    /// keeps one.
     func canCallDibs(in timeslot: Timeslot, asOf now: Date = Date()) -> Bool {
-        status == .unavailable && !timeslot.hasStarted(asOf: now)
+        guard !timeslot.hasStarted(asOf: now) else { return false }
+        return status == .unavailable || isFreePastLimit
+    }
+
+    /// Free for everyone else, but Aptus offers the user no book button —
+    /// their session limit. Past the booking window Aptus shows slots as
+    /// taken rather than like this, so this is the limit and nothing else.
+    var isFreePastLimit: Bool {
+        status == .bookable && !canBook
     }
 }
 
@@ -125,6 +136,13 @@ extension Timeslot {
     /// Visible groups the user could join the line for and is not in yet.
     func dibsableGroups(hidden: Set<Int>, asOf now: Date = Date()) -> [TimeslotGroup] {
         groups.filter { !hidden.contains($0.groupId) && !$0.hasDibs && $0.canCallDibs(in: self, asOf: now) }
+    }
+
+    /// Visible free groups the user could line up for because their session
+    /// limit is what stops them booking — the ones worth showing in the week
+    /// list, unlike somebody else's booking.
+    func freePastLimitGroups(hidden: Set<Int>, asOf now: Date = Date()) -> [TimeslotGroup] {
+        dibsableGroups(hidden: hidden, asOf: now).filter(\.isFreePastLimit)
     }
 
     /// Whether the user is in line for any visible group of this timeslot.

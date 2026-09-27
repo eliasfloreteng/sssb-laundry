@@ -193,6 +193,9 @@ struct BookingSheet: View {
         if isSelected {
             return String(localized: "Dibs", comment: "Status beside a taken group the user has ticked to wait for")
         }
+        if item.isFreePastLimit {
+            return String(localized: "At your limit · tick for dibs", comment: "Status beside a free group the user can't book because of their session limit, which they can line up for")
+        }
         return String(localized: "Taken · tick for dibs", comment: "Status beside a group somebody else holds, which the user can wait for")
     }
 
@@ -217,10 +220,16 @@ struct BookingSheet: View {
             .disabled(!hasChanges || submitting || overSlotLimit)
 
             if feedback == nil, !dibsableIds.isEmpty, dibsIds.isEmpty {
-                Text("Taken? Call dibs, and if it frees up — cancelled, or released 15 minutes in — it’s booked for you.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Group {
+                    if dibsableAreFree {
+                        Text("At your limit? Call dibs, and it’s booked for you as soon as one of your sessions starts or is cancelled.")
+                    } else {
+                        Text("Taken? Call dibs, and if it frees up — cancelled, or released 15 minutes in — it’s booked for you.")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             if let limitHint {
@@ -297,6 +306,11 @@ struct BookingSheet: View {
     /// already in line for, which stays live so the line can be left.
     private func isDibsable(_ item: TimeslotGroup) -> Bool {
         item.canCallDibs(in: current) && (dibsEnabled || item.hasDibs)
+    }
+
+    /// Every group dibs could be called on here is free, just past the limit.
+    private var dibsableAreFree: Bool {
+        visibleGroups.filter { dibsableIds.contains($0.groupId) }.allSatisfy(\.isFreePastLimit)
     }
 
     private var toCallDibs: [Int] {
@@ -508,10 +522,16 @@ struct BookingSheet: View {
             )
         }
         let waiting = names(of: dibs.add)
-        let base = String(
-            localized: "If \(waiting) frees up — cancelled, or released 15 minutes in — it’s booked for you.",
-            comment: "Receipt after calling dibs; the placeholder is group names"
-        )
+        let free = current.groups.filter { dibs.add.contains($0.groupId) }.allSatisfy(\.isFreePastLimit)
+        let base = free
+            ? String(
+                localized: "\(waiting) is booked for you as soon as your limit allows — when one of your sessions starts or is cancelled — unless someone books it first.",
+                comment: "Receipt after calling dibs on a free group past the user's session limit; the placeholder is group names"
+            )
+            : String(
+                localized: "If \(waiting) frees up — cancelled, or released 15 minutes in — it’s booked for you.",
+                comment: "Receipt after calling dibs; the placeholder is group names"
+            )
         // The booking happens either way; only hearing about it needs this.
         let hint = notificationsEnabled
             ? String(localized: "You’ll get a notification when it does.", comment: "Receipt addition after calling dibs, notifications on")

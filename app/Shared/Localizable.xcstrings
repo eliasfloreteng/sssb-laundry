@@ -52,6 +52,23 @@
         }
       }
     },
+    "%@ is booked for you as soon as your limit allows — when one of your sessions starts or is cancelled — unless someone books it first." : {
+      "comment" : "Receipt after calling dibs on a free group past the user's session limit; the placeholder is group names",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is booked for you as soon as your limit allows — when one of your sessions starts or is cancelled — unless someone books it first."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ bokas åt dig så fort din gräns tillåter — när ett av dina pass börjar eller avbokas — om ingen annan hinner boka den först."
+          }
+        }
+      }
+    },
     "%@ is free for anyone to book now." : {
       "comment" : "Receipt after releasing one group",
       "localizations" : {
@@ -928,6 +945,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "När passet börjar"
+          }
+        }
+      }
+    },
+    "At your limit · tick for dibs" : {
+      "comment" : "Status beside a free group the user can't book because of their session limit, which they can line up for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At your limit · tick for dibs"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max bokat · bocka för pax"
+          }
+        }
+      }
+    },
+    "At your limit? Call dibs, and it’s booked for you as soon as one of your sessions starts or is cancelled." : {
+      "comment" : "Hint in the booking sheet when the only groups to call dibs on are free but past the session limit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At your limit? Call dibs, and it’s booked for you as soon as one of your sessions starts or is cancelled."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Har du redan max antal bokningar? Säg pax, så bokas den åt dig så fort ett av dina pass börjar eller avbokas."
           }
         }
       }

@@ -47,6 +47,9 @@ struct Timeslot: Decodable, Identifiable, Hashable {
     let endTime: String
     let spansMidnight: Bool
     let groups: [TimeslotGroup]
+    /// Where the user ranks this timeslot among their dibs and bookings, 1
+    /// being most wanted. The server leaves it out for one they never ranked.
+    var priority: Int? = nil
 }
 
 struct TimeslotGroup: Decodable, Hashable {
@@ -128,6 +131,13 @@ enum ActiveGroupsSetting {
     static func isActive(groupId: Int, hidden: Set<Int>) -> Bool {
         !hidden.contains(groupId)
     }
+}
+
+/// Dibs is opt-in: with it off, a taken group is just taken, and nothing the
+/// server does on the user's behalf can cancel one of their bookings.
+enum DibsSetting {
+    static let enabledKey = "dibs.enabled"
+    static let defaultEnabled = false
 }
 
 enum ActiveHoursSetting {

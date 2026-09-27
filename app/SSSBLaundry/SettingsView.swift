@@ -9,6 +9,7 @@ import UserNotifications
 
 struct SettingsView: View {
     let allGroups: [LaundryGroup]
+    let store: LaundryStore
 
     @AppStorage(ObjectIdStore.key) private var objectId: String = ""
     @AppStorage(ActiveHoursSetting.enabledKey) private var activeHoursEnabled: Bool = ActiveHoursSetting.defaultEnabled
@@ -20,11 +21,14 @@ struct SettingsView: View {
     @AppStorage(NotificationSetting.alertKey) private var alert: BookingAlert = NotificationSetting.defaultAlert
     @AppStorage(NotificationSetting.secondAlertKey) private var secondAlert: BookingAlert = NotificationSetting.defaultSecondAlert
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
+    @AppStorage(DibsSetting.enabledKey) private var dibsEnabled: Bool = DibsSetting.defaultEnabled
     @Environment(\.dismiss) private var dismiss
     @State private var confirmingSignOut = false
     @State private var copiedObjectId = false
     @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @State private var requestingAuthorization = false
+    @State private var leavingLines = false
+    @State private var dibsError: APIError?
 
     var body: some View {
         NavigationStack {
@@ -139,6 +143,8 @@ struct SettingsView: View {
                 }
 
                 laundryRoomSection
+
+                dibsSection
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -199,6 +205,58 @@ struct SettingsView: View {
                 Text("Set your address to see SSSB's rules for your laundry room.")
             }
         }
+    }
+
+    /// Last, and off until asked for: dibs lets the server book — and, for a
+    /// dibs ranked above a booking, cancel — on the user's behalf.
+    private var dibsSection: some View {
+        Section {
+            Toggle("Dibs", isOn: dibsEnabledBinding)
+                .disabled(leavingLines)
+            if dibsEnabled {
+                NavigationLink("Priority") {
+                    DibsPriorityView(store: store)
+                }
+            }
+        } header: {
+            Text("Dibs")
+        } footer: {
+            Text("Call dibs on a taken timeslot and it’s booked for you if it frees up. Rank your dibs and bookings to have a booking given up for a dibs you want more. Turning this off leaves every line you’re in.")
+        }
+        // On the section: the list already owns the sign-out alert, and a
+        // second one on the same view is silently dropped.
+        .alert(
+            dibsError.map { ErrorPresenter.headline(for: $0) } ?? ErrorPresenter.genericHeadline,
+            isPresented: Binding(get: { dibsError != nil }, set: { if !$0 { dibsError = nil } }),
+            presenting: dibsError
+        ) { _ in
+            Button("OK", role: .cancel) { dibsError = nil }
+        } message: { error in
+            Text(ErrorPresenter.explanation(for: error))
+        }
+    }
+
+    /// Off only once the server has let go: a dibs left standing while the
+    /// setting reads off could still book, or cancel, behind the user's back.
+    private var dibsEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { dibsEnabled },
+            set: { wantsEnabled in
+                guard !wantsEnabled else {
+                    dibsEnabled = true
+                    return
+                }
+                leavingLines = true
+                Task {
+                    if let error = await store.dropAllDibs() {
+                        dibsError = error
+                    } else {
+                        dibsEnabled = false
+                    }
+                    leavingLines = false
+                }
+            }
+        )
     }
 
     private var selectedRoom: LaundryRoom? {

@@ -44,7 +44,8 @@ SSSBLaundry/
   BookingFeedback.swift    Haptic and alert for a finished book/cancel
   LaundryFormat.swift      Day and time strings, always Europe/Stockholm
   EventEditView.swift      Calendar event editor wrapper
-  SettingsView.swift       Object number, laundry room, visible groups, active hours
+  SettingsView.swift       Object number, laundry room, visible groups, active hours, dibs
+  DibsPriorityView.swift   Dibs and bookings in one list, ranked most wanted first
   LaundryRoomPicker.swift  Street-address picker for the laundry room rules
   LaundryRooms.swift       SSSB's per-room rules, transcribed from sssb.se
   BookingRules.swift       What Aptus refuses, and what SSSB only publishes

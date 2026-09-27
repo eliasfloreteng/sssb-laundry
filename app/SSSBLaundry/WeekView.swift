@@ -23,6 +23,8 @@ struct WeekView: View {
     @AppStorage("showAllTimeslots") private var showAllTimeslots: Bool = false
     @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
     @AppStorage(NotificationSetting.promptedKey) private var notificationsPrompted: Bool = false
+    @AppStorage(DibsSetting.enabledKey) private var dibsEnabled: Bool = DibsSetting.defaultEnabled
+    @State private var showingDibsPriority = false
     @State private var showingNotificationPrompt = false
     @State private var showingDatePicker = false
     @State private var jumpDate = Date()
@@ -51,6 +53,11 @@ struct WeekView: View {
                             Toggle(isOn: $showAllTimeslots) {
                                 Label("Show all timeslots", systemImage: "eye")
                             }
+                            if dibsEnabled {
+                                Button { showingDibsPriority = true } label: {
+                                    Label("Dibs priority", systemImage: "list.number")
+                                }
+                            }
                             Button { showingInvite = true } label: {
                                 Label("Invite", systemImage: "person.2.badge.plus")
                             }
@@ -77,10 +84,20 @@ struct WeekView: View {
                     }
                 }
                 .sheet(isPresented: $showingSettings) {
-                    SettingsView(allGroups: store.allGroups)
+                    SettingsView(allGroups: store.allGroups, store: store)
                 }
                 .sheet(isPresented: $showingInvite) {
                     InviteSheet()
+                }
+                .sheet(isPresented: $showingDibsPriority) {
+                    NavigationStack {
+                        DibsPriorityView(store: store)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button("Done") { showingDibsPriority = false }
+                                }
+                            }
+                    }
                 }
                 // One alert per view: SwiftUI silently drops the extras when
                 // several are stacked on the same view, which is how load and
@@ -376,7 +393,7 @@ struct WeekView: View {
 
         // Only while nothing of the slot is the user's: holding one group and
         // queueing for the other is the sheet's business, not a quick action.
-        if !ts.hasOwnGroup(hidden: hidden) {
+        if dibsEnabled, !ts.hasOwnGroup(hidden: hidden) {
             ForEach(ts.dibsableGroups(hidden: hidden), id: \.groupId) { group in
                 Button {
                     changeDibs(on: ts, add: [group.groupId], remove: [])
@@ -558,7 +575,7 @@ struct WeekView: View {
         return ts.hasOwnGroup(hidden: hidden)
             || ts.hasDibs(hidden: hidden)
             || !ts.actionableGroups(hidden: hidden).isEmpty
-            || !ts.dibsableGroups(hidden: hidden).isEmpty
+            || (dibsEnabled && !ts.dibsableGroups(hidden: hidden).isEmpty)
     }
 
     /// Three different nothings, said in three different ways: a date SSSB has

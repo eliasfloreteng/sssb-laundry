@@ -53,6 +53,16 @@ enum DibsOutcome {
     case failure(APIError)
 }
 
+/// A timeslot in the user's order of preference: one still ahead that they
+/// hold, wait for, or both.
+struct PriorityItem: Identifiable, Hashable {
+    let timeslot: Timeslot
+
+    var id: String { timeslot.id }
+    var isBooked: Bool { timeslot.groups.contains { $0.status == .own } }
+    var dibsGroups: [TimeslotGroup] { timeslot.groups.filter(\.hasDibs) }
+}
+
 /// A timeslot the user currently holds, one entry per group. Drives the
 /// "2 bookings at a time" limit; reminders are scheduled by the server.
 struct HeldBooking: Identifiable, Hashable {
@@ -494,6 +504,87 @@ final class LaundryStore {
         }
         await refreshWeekContaining(timeslotId: timeslotId)
         return .success
+    }
+
+    /// Every timeslot still ahead that the user holds or waits for, in the order
+    /// the server acts on it: bookings never ranked come first, because nothing
+    /// is ever given up for a dibs unless it was ranked below it; then the
+    /// ranked ones; then any dibs not ranked yet.
+    var priorityItems: [PriorityItem] {
+        let now = Date()
+        var seen: Set<String> = []
+        var items: [PriorityItem] = []
+        for week in weeks {
+            for timeslot in week.timeslots where !timeslot.hasStarted(asOf: now) {
+                let item = PriorityItem(timeslot: timeslot)
+                guard item.isBooked || !item.dibsGroups.isEmpty, seen.insert(timeslot.id).inserted else { continue }
+                items.append(item)
+            }
+        }
+        func tier(_ item: PriorityItem) -> Int {
+            if item.timeslot.priority != nil { return 1 }
+            return item.isBooked ? 0 : 2
+        }
+        return items.sorted {
+            (tier($0), $0.timeslot.priority ?? 0, $0.timeslot.startAt) < (tier($1), $1.timeslot.priority ?? 0, $1.timeslot.startAt)
+        }
+    }
+
+    /// Pages to the end of what Aptus will book, so every booking and every
+    /// dibs is on hand to be ranked. Bounded: the window is a few weeks.
+    func loadToEnd() async {
+        await loadInitial()
+        for _ in 0..<8 where !reachedEnd {
+            let before = weeks.count
+            await loadMoreIfNeeded()
+            if weeks.count == before { break }
+        }
+    }
+
+    /// Sends the whole order, most wanted first. Shown at once, and put back
+    /// the way it was when the server turns it down. `nil` means it landed.
+    func setPriority(_ timeslotIds: [String]) async -> APIError? {
+        let previous = Dictionary(
+            weeks.flatMap(\.timeslots).map { ($0.id, $0.priority) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let ranks = Dictionary(timeslotIds.enumerated().map { ($1, $0 + 1) }, uniquingKeysWith: { first, _ in first })
+        applyPriority { ranks[$0] }
+        do {
+            try await api.setDibsPriority(timeslotIds: timeslotIds)
+            return nil
+        } catch {
+            applyPriority { previous[$0] ?? nil }
+            return Self.isCancellation(error) ? nil : Self.apiError(from: error)
+        }
+    }
+
+    private func applyPriority(_ rank: (String) -> Int?) {
+        weeks = weeks.map { week in
+            WeekResponse(
+                week: week.week,
+                groups: week.groups,
+                timeslots: week.timeslots.map { timeslot in
+                    var ranked = timeslot
+                    ranked.priority = rank(timeslot.id)
+                    return ranked
+                }
+            )
+        }
+    }
+
+    /// Leaves every line and forgets the order — dibs was turned off. A
+    /// server with dibs off has nothing to leave, which is the same answer.
+    func dropAllDibs() async -> APIError? {
+        do {
+            try await api.dropAllDibs()
+        } catch {
+            if Self.isCancellation(error) { return nil }
+            let apiError = Self.apiError(from: error)
+            if apiError.code != "PUSH_DISABLED" { return apiError }
+        }
+        await refresh()
+        return nil
     }
 
     /// Returns whether the week landed. A cancelled request counts as a

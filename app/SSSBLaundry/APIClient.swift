@@ -46,6 +46,23 @@ struct APIClient {
         try await action(path: "dibs", method: "DELETE", timeslotId: timeslotId, groupIds: groupIds)
     }
 
+    /// The order the user wants their dibs and bookings in, most wanted first.
+    /// A booking ranked below a dibs is given up for it when it frees.
+    @discardableResult
+    func setDibsPriority(timeslotIds: [String]) async throws -> OKResponse {
+        var request = try makeRequest(url: baseURL.appendingPathComponent("dibs/priority"), method: "PUT")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["timeslotIds": timeslotIds])
+        return try await send(request)
+    }
+
+    /// Leaves every line at once — the dibs setting was turned off.
+    @discardableResult
+    func dropAllDibs() async throws -> OKResponse {
+        let request = try makeRequest(url: baseURL.appendingPathComponent("dibs"), method: "DELETE")
+        return try await send(request)
+    }
+
     private func action<T: Decodable>(
         path: String,
         method: String = "POST",

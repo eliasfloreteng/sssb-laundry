@@ -12,6 +12,7 @@ struct BookingSheet: View {
     let store: LaundryStore
     @AppStorage(LaundryRooms.selectedIdKey) private var laundryRoomId: String = ""
     @AppStorage(NotificationSetting.enabledKey) private var notificationsEnabled: Bool = NotificationSetting.defaultEnabled
+    @AppStorage(DibsSetting.enabledKey) private var dibsEnabled: Bool = DibsSetting.defaultEnabled
     @Environment(\.dismiss) private var dismiss
 
     @State private var selection: Set<Int> = []
@@ -139,7 +140,7 @@ struct BookingSheet: View {
         // rather than booking, so it stays live with a hand in place of the
         // checkmark.
         let restriction = item.restriction(in: current)
-        let dibsable = item.canCallDibs(in: current)
+        let dibsable = isDibsable(item)
         let blocked = restriction != nil && !dibsable
         return Button {
             toggle(item)
@@ -289,7 +290,13 @@ struct BookingSheet: View {
     }
 
     private var dibsableIds: Set<Int> {
-        Set(visibleGroups.filter { $0.canCallDibs(in: current) }.map(\.groupId))
+        Set(visibleGroups.filter(isDibsable).map(\.groupId))
+    }
+
+    /// With dibs off a taken group is just taken — except one the user is
+    /// already in line for, which stays live so the line can be left.
+    private func isDibsable(_ item: TimeslotGroup) -> Bool {
+        item.canCallDibs(in: current) && (dibsEnabled || item.hasDibs)
     }
 
     private var toCallDibs: [Int] {
@@ -424,7 +431,7 @@ struct BookingSheet: View {
     }
 
     private func toggle(_ item: TimeslotGroup) {
-        guard item.restriction(in: current) == nil || item.canCallDibs(in: current) || item.hasDibs else { return }
+        guard item.restriction(in: current) == nil || isDibsable(item) || item.hasDibs else { return }
         feedback = nil
         if selection.contains(item.groupId) {
             selection.remove(item.groupId)

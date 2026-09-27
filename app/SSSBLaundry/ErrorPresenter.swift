@@ -43,7 +43,7 @@ enum ErrorPresenter {
         case "TOO_LATE":
             return String(localized: "Too late", comment: "Error headline: dibs on a timeslot that has started")
         case "DIBS_LIMIT":
-            return String(localized: "Already waiting on two", comment: "Error headline: too many dibs at once")
+            return String(localized: "Too many dibs", comment: "Error headline: too many dibs at once")
         case "PUSH_DISABLED":
             return String(localized: "Dibs unavailable", comment: "Error headline: the server can't watch timeslots")
         case "BOOKING_FAILED":
@@ -111,9 +111,11 @@ enum ErrorPresenter {
                 comment: "What to do when dibs is called on a started timeslot"
             )
         case "DIBS_LIMIT":
+            // The server says how many; ten is what it has always been.
+            let limit = error.details?["limit"]?.value as? Int ?? 10
             return String(
-                localized: "You can wait for at most two timeslots at once. Leave one of the lines first.",
-                comment: "What to do when too many dibs are open"
+                localized: "You can wait for at most \(limit) timeslots at once. Leave one of the lines first.",
+                comment: "What to do when too many dibs are open; the placeholder is the limit"
             )
         case "PUSH_DISABLED":
             return String(

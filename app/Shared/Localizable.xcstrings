@@ -660,23 +660,6 @@
         }
       }
     },
-    "Already waiting on two" : {
-      "comment" : "Error headline: too many dibs at once",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Already waiting on two"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Väntar redan på två"
-          }
-        }
-      }
-    },
     "Apply changes" : {
       "comment" : "Submit button when the sheet both books and cancels",
       "localizations" : {
@@ -1065,6 +1048,23 @@
         }
       }
     },
+    "Booked: %@" : {
+      "comment" : "Priority list: the machines of a timeslot the user holds",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Booked: %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bokad: %@"
+          }
+        }
+      }
+    },
     "Booking didn’t go through" : {
       "comment" : "Headline when nothing was booked",
       "localizations" : {
@@ -1161,6 +1161,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Säg pax på %@"
+          }
+        }
+      }
+    },
+    "Call dibs on a taken timeslot and it shows up here, alongside your bookings." : {
+      "comment" : "Empty priority list body",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Call dibs on a taken timeslot and it shows up here, alongside your bookings."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Säg pax på en upptagen tid så visas den här, tillsammans med dina bokningar."
+          }
+        }
+      }
+    },
+    "Call dibs on a taken timeslot and it’s booked for you if it frees up. Rank your dibs and bookings to have a booking given up for a dibs you want more. Turning this off leaves every line you’re in." : {
+      "comment" : "Settings footer explaining dibs and what turning it off does",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Call dibs on a taken timeslot and it’s booked for you if it frees up. Rank your dibs and bookings to have a booking given up for a dibs you want more. Turning this off leaves every line you’re in."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Säg pax på en upptagen tid så bokas den åt dig om den blir ledig. Rangordna dina pax och bokningar för att släppa en bokning till förmån för ett pax du hellre vill ha. Stänger du av lämnar du alla köer du står i."
           }
         }
       }
@@ -1543,6 +1577,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pax"
+          }
+        }
+      }
+    },
+    "Dibs on %@" : {
+      "comment" : "Priority list: machines the user waits for",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs on %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pax på %@"
+          }
+        }
+      }
+    },
+    "Dibs on %@ · #%lld in line" : {
+      "comment" : "Priority list: machines the user waits for, and their best place in line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs on %1$@ · #%2$lld in line"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pax på %1$@ · nr %2$lld i kön"
+          }
+        }
+      }
+    },
+    "Dibs priority" : {
+      "comment" : "Title of the list ranking dibs and bookings; also the menu item opening it",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs priority"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paxprioritet"
           }
         }
       }
@@ -2193,6 +2278,23 @@
         }
       }
     },
+    "Most wanted at the top. When a dibs frees up and you’re at your booking limit, the booking furthest below it is cancelled to make room. Nothing ranked above a dibs is ever cancelled for it." : {
+      "comment" : "Footer under the priority list explaining what the order does",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most wanted at the top. When a dibs frees up and you’re at your booking limit, the booking furthest below it is cancelled to make room. Nothing ranked above a dibs is ever cancelled for it."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mest önskad överst. Blir ett pax ledigt när du redan har max antal bokningar avbokas den bokning som ligger längst ner under det för att ge plats. Inget som ligger ovanför ett pax avbokas någonsin för det."
+          }
+        }
+      }
+    },
     "Multiple groups of one time still count as a single session." : {
       "comment" : "Booking rule shown on the sign-in screen",
       "localizations" : {
@@ -2462,6 +2564,23 @@
         }
       }
     },
+    "Nothing to rank" : {
+      "comment" : "Empty priority list heading",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to rank"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget att rangordna"
+          }
+        }
+      }
+    },
     "Nothing was booked — the timeslot is unchanged." : {
       "comment" : "Body when a booking failed outright",
       "localizations" : {
@@ -2564,6 +2683,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · %2$@\nAktivera med din Aptusbricka inom 15 minuter, annars avbokas passet."
+          }
+        }
+      }
+    },
+    "notification.title.dibsSwapped" : {
+      "comment" : "Push notification sent by the server as an APNs localization key: a dibs came through by giving up another booking; the placeholder is that booking's day and time",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibs came through — gave up %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paxet gick igenom — %@ släpptes"
           }
         }
       }
@@ -2942,6 +3079,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Klistra in den, så är du inloggad."
+          }
+        }
+      }
+    },
+    "Priority" : {
+      "comment" : "Settings row opening the dibs priority list",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Priority"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prioritet"
           }
         }
       }
@@ -3608,7 +3762,7 @@
       }
     },
     "Too late" : {
-      "comment" : "Status beside a free group whose timeslot has already started",
+      "comment" : "Error headline: dibs on a timeslot that has started\nStatus beside a free group whose timeslot has already started",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3620,6 +3774,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "För sent"
+          }
+        }
+      }
+    },
+    "Too many dibs" : {
+      "comment" : "Error headline: too many dibs at once",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many dibs"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För många pax"
           }
         }
       }
@@ -3808,19 +3979,19 @@
         }
       }
     },
-    "You can wait for at most two timeslots at once. Leave one of the lines first." : {
-      "comment" : "What to do when too many dibs are open",
+    "You can wait for at most %lld timeslots at once. Leave one of the lines first." : {
+      "comment" : "What to do when too many dibs are open; the placeholder is the limit",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can wait for at most two timeslots at once. Leave one of the lines first."
+            "value" : "You can wait for at most %lld timeslots at once. Leave one of the lines first."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du kan vänta på högst två tider åt gången. Lämna en av köerna först."
+            "value" : "Du kan vänta på högst %lld tider åt gången. Lämna en av köerna först."
           }
         }
       }

@@ -59,6 +59,12 @@ export class DibsService {
   private readonly pollMinutes: number;
   private timers: ReturnType<typeof setInterval>[] = [];
   private chain: Promise<void> = Promise.resolve();
+  /**
+   * `objectId#startAt` of dibs whose swap fell through: something other than
+   * the session limit refused them, and a retry every sweep would cancel and
+   * rebook the same booking over and over. Cleared when the order changes.
+   */
+  private readonly swapFailed = new Set<string>();
 
   constructor(options: DibsServiceOptions) {
     this.store = options.store;
@@ -83,9 +89,11 @@ export class DibsService {
   // --- route hooks -----------------------------------------------------
 
   /**
-   * Queues this object id on groups of a timeslot someone else holds. Only a
-   * taken group that has not started can be dibs'd: a free one should just be
-   * booked, and a started one has nothing left to wait for.
+   * Queues this object id on groups of a timeslot it cannot book yet: one
+   * somebody else holds, or one that is free but past the caller's session
+   * limit — booked for them once a session of theirs starts or is cancelled.
+   * A group the caller could book right now should just be booked, and a
+   * started one has nothing left to wait for.
    */
   async call(
     objectId: string,
@@ -113,7 +121,10 @@ export class DibsService {
           message: `Group ${groupId} is not part of this timeslot`
         });
       }
-      if (group.status !== "unavailable") {
+      // Read as the caller: no book button on a free group is their own
+      // session limit. Past the booking window Aptus shows slots as taken.
+      const waitable = group.status === "unavailable" || (group.status === "bookable" && !group.canBook);
+      if (!waitable) {
         throw new AppError({
           statusCode: 409,
           code: "NOT_TAKEN",
@@ -175,6 +186,10 @@ export class DibsService {
       slots.push(slot);
     }
     this.store.setPriority(objectId, slots);
+    // A new order is a new question: every swap gets its chance again.
+    for (const key of this.swapFailed) {
+      if (key.startsWith(`${objectId}#`)) this.swapFailed.delete(key);
+    }
   }
 
   /** Marks the caller's dibs, their place in line, and their order of preference, on a week listing. */
@@ -361,6 +376,8 @@ export class DibsService {
    */
   private async swap(dibs: DibsRow, timeslotId: string, groupId: number): Promise<{ startAt: string } | null> {
     const objectKey = hashObjectId(dibs.objectId);
+    const failedKey = `${dibs.objectId}#${dibs.startAt}`;
+    if (this.swapFailed.has(failedKey)) return null;
     const ranking = this.store.priorityForObject(dibs.objectId);
     const rank = ranking.findIndex((p) => p.startAt === dibs.startAt);
     if (rank < 0) return null;
@@ -386,6 +403,9 @@ export class DibsService {
       const attempt = released.length === held.length ? await this.book(dibs.objectId, timeslotId, groupId) : "failed";
       if (attempt !== "booked") {
         if (released.length > 0) await this.restore(dibs.objectId, entry, released);
+        // A dibs on a free slot is retried every sweep; its swap must not be.
+        this.swapFailed.add(failedKey);
+        this.logger?.info?.({ objectKey, startAt: dibs.startAt, groupId }, "Dibs swap fell through, not retried");
         return null;
       }
 

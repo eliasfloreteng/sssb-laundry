@@ -502,10 +502,67 @@ describe("a dibs right after the user's own booking", () => {
     expect(w.holder(next.startAt)).toBe(ALICE);
   });
 
-  it("cannot be called on a slot that is free but past the user's limit", async () => {
+  it("can be called on a free slot past the user's limit, and books it once the limit frees", async () => {
     const w = world([first, next]);
     w.hold(ALICE, first.startAt);
+    await w.dibs.call(ALICE, next.id, [162], null);
+
+    await w.dibs.sweep("ahead");
+    expect(w.holder(next.startAt)).toBeUndefined();
+    expect(w.store.openDibs()).toHaveLength(1);
+
+    w.free(first.startAt);
+    await w.dibs.sweep("ahead");
+    expect(w.holder(next.startAt)).toBe(ALICE);
+  });
+
+  it("still refuses a free slot the user could book right now", async () => {
+    const w = world([first, next]);
     const error = await w.dibs.call(ALICE, next.id, [162], null).catch((e: AppError) => e);
     expect((error as AppError).code).toBe("NOT_TAKEN");
+  });
+
+  it("swaps a free slot ranked above a booking in at once", async () => {
+    const w = world([first, next]);
+    w.hold(ALICE, first.startAt);
+    await w.dibs.call(ALICE, next.id, [162], null);
+    w.dibs.setPriority(ALICE, [next.id, first.id]);
+
+    await w.dibs.sweep("ahead");
+    await settle();
+    expect(w.holder(next.startAt)).toBe(ALICE);
+    expect(w.holder(first.startAt)).toBeUndefined();
+  });
+
+  it("tries a swap that falls through only once, until the order changes", async () => {
+    const w = world([first, next]);
+    w.hold(ALICE, first.startAt);
+    await w.dibs.call(ALICE, next.id, [162], null);
+    w.dibs.setPriority(ALICE, [next.id, first.id]);
+
+    // Something besides the limit refuses her: somebody books it the moment
+    // her booking is cancelled.
+    const record = w.calls.push.bind(w.calls);
+    let intercept = true;
+    w.calls.push = (entry: string) => {
+      if (intercept && entry.startsWith("cancel")) {
+        w.hold("3333-3333-333", next.startAt);
+        intercept = false;
+      }
+      return record(entry);
+    };
+    await w.dibs.sweep("ahead");
+    expect(w.holder(first.startAt)).toBe(ALICE);
+
+    w.free(next.startAt);
+    await w.dibs.sweep("ahead");
+    await w.dibs.sweep("ahead");
+    expect(w.calls.filter((c) => c.startsWith("cancel"))).toHaveLength(1);
+    expect(w.holder(first.startAt)).toBe(ALICE);
+
+    w.dibs.setPriority(ALICE, [next.id, first.id]);
+    await w.dibs.sweep("ahead");
+    await settle();
+    expect(w.holder(next.startAt)).toBe(ALICE);
   });
 });

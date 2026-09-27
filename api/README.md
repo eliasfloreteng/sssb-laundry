@@ -143,16 +143,22 @@ its behaviors, not ours, and they are the reason the client looks the way it doe
 
 ## Dibs
 
-A waiting list for a timeslot somebody else holds — something Aptus itself has no notion
-of. `POST /timeslots/:id/dibs` with `{ groupIds }` puts the object id in line for those
+A waiting list for a timeslot the caller cannot book yet — something Aptus itself has no
+notion of. Either somebody else holds it, or it is free but past the caller's session
+limit, which is how a session is lined up before the one ahead of it has started. `POST /timeslots/:id/dibs` with `{ groupIds }` puts the object id in line for those
 groups; `src/dibs.ts` watches the slot and books it for the first in line the moment it
 frees. `GET /timeslots` marks each group the caller waits on with `dibs: true` and
 `dibsQueue`, their place in line (1 is next), and each timeslot they have ranked with
 `priority` (1 is most wanted).
 
-- **Only a taken group that has not started** — `NOT_TAKEN` for a free one (book it) or
-  one already held, `TOO_LATE` once it has started. At most ten timeslots per object id,
-  `DIBS_LIMIT`; both groups of one timeslot count once, as they do in SSSB's quota.
+- **Only a group the caller cannot book, that has not started** — taken, or free with no
+  book button for them (their session limit: past the booking window Aptus shows slots as
+  taken, not free). `NOT_TAKEN` for one they could book right now, or already hold;
+  `TOO_LATE` once it has started. At most ten timeslots per object id, `DIBS_LIMIT`; both
+  groups of one timeslot count once, as they do in SSSB's quota.
+- **A free one is retried every poll** until the limit allows it — one of the caller's
+  sessions starts or is cancelled — or someone else books it first. The queue on a free
+  slot only ever holds object ids at their limit, since anyone else is told to book it.
 - **Two ways a slot frees.** Its holder cancels — through this app, `/cancel` hands it
   over on the spot; anywhere else, a poll every `DIBS_POLL_MINUTES` (default 2) catches
   it. Or its holder never tags in and Aptus releases it at start + 15 minutes; from
@@ -173,7 +179,9 @@ frees. `GET /timeslots` marks each group the caller waits on with `dibs: true` a
   freed slot is refused with `not_bookable` — the session limit, nearly always — the
   server cancels the booking ranked lowest *below* that dibs and books the dibs in its
   place. Should the dibs still fail, the booking is booked straight back before anyone
-  else in line hears it was free; only after the swap is it handed to their dibs. The
+  else in line hears it was free; only after the swap is it handed to their dibs. A swap
+  that fell through is not tried again for that dibs until the order is changed — a free
+  slot is retried every poll, and its swap must not cancel and rebook every time. The
   win's push says what was given up (`notification.title.dibsSwapped`).
 - **Nothing is given up that was not ranked below.** A new dibs goes last, and a booking
   missing from the order is never cancelled — so no swap happens until the user puts a

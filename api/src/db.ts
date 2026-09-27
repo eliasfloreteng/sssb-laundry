@@ -12,6 +12,12 @@ export interface DeviceRow {
   enabled: boolean;
   alertMinutes: number | null;
   secondAlertMinutes: number | null;
+  /**
+   * Which notification titles the app build knows, as `PUSH_VERSION` in
+   * `notifications.ts` counts them. 0 — or absent — is a build from before
+   * the app said, which only knows the titles every build has.
+   */
+  pushVersion?: number;
 }
 
 /** One booked (timeslot, group) pair. Bookings are per group; notifications are per timeslot. */
@@ -86,6 +92,7 @@ CREATE TABLE IF NOT EXISTS devices (
   enabled              INTEGER NOT NULL DEFAULT 1,
   alert_minutes        INTEGER,
   second_alert_minutes INTEGER,
+  push_version         INTEGER NOT NULL DEFAULT 0,
   created_at           INTEGER NOT NULL,
   updated_at           INTEGER NOT NULL
 );
@@ -167,6 +174,15 @@ export class Store {
     this.db.exec("PRAGMA busy_timeout = 5000");
     this.db.exec("PRAGMA foreign_keys = ON");
     this.db.exec(SCHEMA);
+    this.migrate();
+  }
+
+  /** Columns added after a table first shipped — `CREATE TABLE IF NOT EXISTS` never adds them. */
+  private migrate(): void {
+    const columns = this.db.query("PRAGMA table_info(devices)").all() as { name: string }[];
+    if (!columns.some((c) => c.name === "push_version")) {
+      this.db.exec("ALTER TABLE devices ADD COLUMN push_version INTEGER NOT NULL DEFAULT 0");
+    }
   }
 
   close(): void {
@@ -179,14 +195,15 @@ export class Store {
     const now = nowSeconds();
     this.db
       .query(
-        `INSERT INTO devices (token, object_id, environment, enabled, alert_minutes, second_alert_minutes, created_at, updated_at)
-         VALUES ($token, $objectId, $environment, $enabled, $alert, $second, $now, $now)
+        `INSERT INTO devices (token, object_id, environment, enabled, alert_minutes, second_alert_minutes, push_version, created_at, updated_at)
+         VALUES ($token, $objectId, $environment, $enabled, $alert, $second, $pushVersion, $now, $now)
          ON CONFLICT(token) DO UPDATE SET
            object_id            = excluded.object_id,
            environment          = excluded.environment,
            enabled              = excluded.enabled,
            alert_minutes        = excluded.alert_minutes,
            second_alert_minutes = excluded.second_alert_minutes,
+           push_version         = excluded.push_version,
            updated_at           = excluded.updated_at`
       )
       .run({
@@ -196,6 +213,7 @@ export class Store {
         $enabled: device.enabled ? 1 : 0,
         $alert: device.alertMinutes,
         $second: device.secondAlertMinutes,
+        $pushVersion: device.pushVersion ?? 0,
         $now: now
       });
   }
@@ -545,7 +563,8 @@ function toDevice(row: Record<string, unknown>): DeviceRow {
     environment: row.environment as PushEnvironment,
     enabled: Boolean(row.enabled),
     alertMinutes: (row.alert_minutes as number | null) ?? null,
-    secondAlertMinutes: (row.second_alert_minutes as number | null) ?? null
+    secondAlertMinutes: (row.second_alert_minutes as number | null) ?? null,
+    pushVersion: (row.push_version as number | null) ?? 0
   };
 }
 

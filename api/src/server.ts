@@ -28,6 +28,8 @@ interface DeviceBody {
   enabled?: unknown;
   alertMinutes?: unknown;
   secondAlertMinutes?: unknown;
+  /** Absent from builds older than the field — they know only the original titles. */
+  pushVersion?: unknown;
 }
 
 export interface LaundryServer extends FastifyInstance {
@@ -195,7 +197,10 @@ export function buildServer(args?: {
       environment: parseEnvironment(body.environment),
       enabled: body.enabled !== false,
       alertMinutes: parseAlertMinutes(body.alertMinutes, "alertMinutes"),
-      secondAlertMinutes: parseAlertMinutes(body.secondAlertMinutes, "secondAlertMinutes")
+      secondAlertMinutes: parseAlertMinutes(body.secondAlertMinutes, "secondAlertMinutes"),
+      // Lenient on purpose: a value this server does not understand must not
+      // cost the device its reminders. It only falls back to the oldest titles.
+      pushVersion: Number.isInteger(body.pushVersion) && (body.pushVersion as number) > 0 ? (body.pushVersion as number) : 0
     });
     return { ok: true };
   });

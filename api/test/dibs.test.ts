@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { DateTime } from "luxon";
 import { Store } from "../src/db.js";
 import { DibsService, DIBS_LIMIT, type DibsAptus } from "../src/dibs.js";
-import { PushService, buildPayload } from "../src/notifications.js";
+import { PUSH_VERSION, PushService, buildPayload } from "../src/notifications.js";
 import { decodeTimeslotId, encodeTimeslotId } from "../src/timeslot-id.js";
 import type { AppError } from "../src/errors.js";
 import type { ApnsClient } from "../src/apns.js";
@@ -256,12 +256,28 @@ describe("dibs_won payload", () => {
     const labels = { machines: ["Grupp 1"], location: "Domus", dayLabel: "Thu 24 Sep", startTime: "10:00", endTime: "12:30" };
     const row = { kind: "dibs_won" as const, startAt: "2026-09-24T10:00:00.000+02:00", endAt: "2026-09-24T12:30:00.000+02:00", groupIds: "162" };
 
-    const soon = buildPayload({ ...row, offsetMinutes: 5 }, labels, [162]) as { aps: { alert: Record<string, unknown> } };
+    const soon = buildPayload({ ...row, offsetMinutes: 5 }, labels, [162], PUSH_VERSION) as { aps: { alert: Record<string, unknown> } };
     expect(soon.aps.alert["title-loc-key"]).toBe("notification.title.dibsWon");
     expect(soon.aps.alert["loc-key"]).toBe("notification.body.machines.activate");
 
-    const later = buildPayload({ ...row, offsetMinutes: 600 }, labels, [162]) as { aps: { alert: Record<string, unknown> } };
+    const later = buildPayload({ ...row, offsetMinutes: 600 }, labels, [162], PUSH_VERSION) as { aps: { alert: Record<string, unknown> } };
     expect(later.aps.alert["loc-key"]).toBe("notification.body.machines");
+  });
+
+  it("falls back to a title every build knows for a device that never said which it knows", () => {
+    const labels = { machines: ["Grupp 1"], location: "Domus", dayLabel: "Thu 24 Sep", startTime: "10:00", endTime: "12:30" };
+    const row = { kind: "dibs_won" as const, startAt: "2026-09-24T10:00:00.000+02:00", endAt: "2026-09-24T12:30:00.000+02:00", groupIds: "162", offsetMinutes: 600 };
+    type Alert = { aps: { alert: Record<string, unknown> } };
+
+    const legacy = buildPayload(row, labels, [162]) as Alert;
+    expect(legacy.aps.alert["title-loc-key"]).toBe("notification.title.newBooking");
+    const swapped = buildPayload(row, { ...labels, replaced: "Fri 25 Sep 10:00" }, [162]) as Alert;
+    expect(swapped.aps.alert["title-loc-key"]).toBe("notification.title.newBooking");
+    expect(swapped.aps.alert["title-loc-args"]).toBeUndefined();
+
+    const current = buildPayload(row, { ...labels, replaced: "Fri 25 Sep 10:00" }, [162], PUSH_VERSION) as Alert;
+    expect(current.aps.alert["title-loc-key"]).toBe("notification.title.dibsSwapped");
+    expect(current.aps.alert["title-loc-args"]).toEqual(["Fri 25 Sep 10:00"]);
   });
 });
 
@@ -332,7 +348,8 @@ function world(slots: { startAt: string; endAt: string }[]) {
     environment: "sandbox",
     enabled: true,
     alertMinutes: null,
-    secondAlertMinutes: null
+    secondAlertMinutes: null,
+    pushVersion: PUSH_VERSION
   });
 
   const hold = (objectId: string, startAt: string, groupId = 162) => holders.set(key(startAt, groupId), objectId);
@@ -460,5 +477,35 @@ describe("order of preference", () => {
     w.dibs.dropAll(ALICE);
     expect(w.store.dibsForObject(ALICE)).toHaveLength(0);
     expect(w.store.priorityForObject(ALICE)).toHaveLength(0);
+  });
+});
+
+describe("a dibs right after the user's own booking", () => {
+  const first = futureSlot(48);
+  const next = futureSlot(51);
+
+  it("is booked on a later sweep, once the first booking stops counting", async () => {
+    const w = world([first, next]);
+    w.hold(ALICE, first.startAt);
+    w.hold(BOB, next.startAt);
+    await w.dibs.call(ALICE, next.id, [162], null);
+
+    // Bob lets it go while Alice is still at her limit: refused, kept in line.
+    w.free(next.startAt);
+    await w.dibs.sweep("ahead");
+    expect(w.holder(next.startAt)).toBeUndefined();
+    expect(w.store.openDibs()).toHaveLength(1);
+
+    // Her first session starts, which frees the quota — modelled as it leaving her count.
+    w.free(first.startAt);
+    await w.dibs.sweep("ahead");
+    expect(w.holder(next.startAt)).toBe(ALICE);
+  });
+
+  it("cannot be called on a slot that is free but past the user's limit", async () => {
+    const w = world([first, next]);
+    w.hold(ALICE, first.startAt);
+    const error = await w.dibs.call(ALICE, next.id, [162], null).catch((e: AppError) => e);
+    expect((error as AppError).code).toBe("NOT_TAKEN");
   });
 });

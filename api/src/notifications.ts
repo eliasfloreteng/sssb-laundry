@@ -75,14 +75,7 @@ export class PushService {
 
   // --- route hooks -----------------------------------------------------
 
-  registerDevice(device: {
-    token: string;
-    objectId: string;
-    environment: PushEnvironment;
-    enabled: boolean;
-    alertMinutes: number | null;
-    secondAlertMinutes: number | null;
-  }): void {
+  registerDevice(device: DeviceRow): void {
     const previous = this.store.getDevice(device.token);
     this.store.upsertDevice(device);
     // A token that moved to another object id must not keep the old one's
@@ -456,7 +449,7 @@ export class PushService {
     const outcome = await this.apns.send({
       token: row.token,
       environment: row.environment,
-      payload: buildPayload(row, labels, groupIds),
+      payload: buildPayload(row, labels, groupIds, this.store.getDevice(row.token)?.pushVersion ?? 0),
       ...deliveryOptions(row)
     });
 
@@ -486,7 +479,8 @@ export class PushService {
 export function buildPayload(
   row: Pick<OutboxRow, "kind" | "startAt" | "endAt" | "groupIds" | "offsetMinutes">,
   labels: NotificationLabels,
-  groupIds: number[]
+  groupIds: number[],
+  pushVersion = 0
 ): unknown {
   if (row.kind === "cancelled") {
     return {
@@ -510,7 +504,7 @@ export function buildPayload(
     row.kind === "reminder"
       ? reminderTitle(row.offsetMinutes)
       : row.kind === "dibs_won"
-        ? dibsWonTitle(labels)
+        ? dibsWonTitle(labels, pushVersion)
         : { key: TITLE_NEW_BOOKING };
   // A dibs carries its lead time in `offsetMinutes` too: one won minutes
   // before the start needs the grace-period warning as much as a reminder does.
@@ -579,14 +573,29 @@ export const TITLE_STARTS_NOW = "notification.title.startsNow";
 export const TITLE_DIBS_WON = "notification.title.dibsWon";
 export const TITLE_DIBS_SWAPPED = "notification.title.dibsSwapped";
 
+/**
+ * The newest set of titles the app declares it knows, sent up with its device.
+ * A key missing from the app's catalog shows up raw on the lock screen, and a
+ * push reaches every device on the object id — a roommate's old build too — so
+ * a title added after the first release is only sent to a device at or above
+ * the version that added it. Bump it together with the app's `pushVersion`.
+ *
+ * 1 — `dibsWon` and `dibsSwapped`.
+ */
+export const PUSH_VERSION = 1;
+
 /** A localization key and the strings substituted into it, if any. */
 export interface LocAlert {
   key: string;
   args?: string[];
 }
 
-/** A dibs that cost a booking says which one — it vanished from the user's list. */
-function dibsWonTitle(labels: NotificationLabels): LocAlert {
+/**
+ * A dibs that cost a booking says which one — it vanished from the user's
+ * list. A build that knows neither title hears of it as the new booking it is.
+ */
+function dibsWonTitle(labels: NotificationLabels, pushVersion: number): LocAlert {
+  if (pushVersion < 1) return { key: TITLE_NEW_BOOKING };
   return labels.replaced ? { key: TITLE_DIBS_SWAPPED, args: [labels.replaced] } : { key: TITLE_DIBS_WON };
 }
 

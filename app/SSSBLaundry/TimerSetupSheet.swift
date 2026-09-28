@@ -39,7 +39,7 @@ struct TimerSetupSheet: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(starting)
+                .disabled(starting || duration < 60)
 
                 Spacer(minLength: 0)
             }
@@ -83,37 +83,27 @@ struct TimerSetupSheet: View {
     }
 }
 
-/// `UIDatePicker` in countdown mode, which is the Clock app's own wheel — hours
-/// and minutes, with the labels beside them. SwiftUI has no equivalent, and a
-/// pair of plain wheel pickers would be a worse imitation of a control the user
-/// already knows.
+/// The Clock app's timer wheel — hours and minutes, with the units standing
+/// still beside the numbers. `UIDatePicker`'s countdown mode draws the same
+/// thing but refuses to rest on zero, which is where this one opens, so it is
+/// rebuilt from a `UIPickerView`.
 private struct DurationPicker: UIViewRepresentable {
     @Binding var duration: TimeInterval
 
-    func makeUIView(context: Context) -> UIDatePicker {
-        let picker = UIDatePicker()
-        picker.datePickerMode = .countDownTimer
-        picker.minuteInterval = 1
-        picker.addTarget(
-            context.coordinator,
-            action: #selector(Coordinator.durationChanged(_:)),
-            for: .valueChanged
-        )
-        // UIKit ignores a countdown duration set before the picker has been
-        // laid out, which is what leaves it sitting on 1 minute instead of the
-        // hour it was told to open on.
-        DispatchQueue.main.async {
-            picker.countDownDuration = duration
-        }
+    func makeUIView(context: Context) -> DurationPickerView {
+        let picker = DurationPickerView()
+        picker.dataSource = context.coordinator
+        picker.delegate = context.coordinator
+        select(duration, in: picker, animated: false)
         return picker
     }
 
-    func updateUIView(_ picker: UIDatePicker, context: Context) {
+    func updateUIView(_ picker: DurationPickerView, context: Context) {
         context.coordinator.duration = $duration
         // Only when it disagrees: writing the wheel's own value back to it
         // interrupts the spin the user is in the middle of.
-        if abs(picker.countDownDuration - duration) >= 1 {
-            picker.countDownDuration = duration
+        if abs(Coordinator.duration(of: picker) - duration) >= 1 {
+            select(duration, in: picker, animated: true)
         }
     }
 
@@ -121,15 +111,109 @@ private struct DurationPicker: UIViewRepresentable {
         Coordinator(duration: $duration)
     }
 
-    final class Coordinator: NSObject {
+    private func select(_ duration: TimeInterval, in picker: UIPickerView, animated: Bool) {
+        let minutes = Int(duration / 60)
+        picker.selectRow(min(minutes / 60, Coordinator.hours - 1), inComponent: 0, animated: animated)
+        picker.selectRow(minutes % 60, inComponent: 1, animated: animated)
+    }
+
+    final class Coordinator: NSObject, UIPickerViewDataSource, UIPickerViewDelegate {
+        static let hours = 24
+        static let componentWidth: CGFloat = 100
+
         var duration: Binding<TimeInterval>
 
         init(duration: Binding<TimeInterval>) {
             self.duration = duration
         }
 
-        @objc func durationChanged(_ picker: UIDatePicker) {
-            duration.wrappedValue = picker.countDownDuration
+        static func duration(of picker: UIPickerView) -> TimeInterval {
+            TimeInterval(picker.selectedRow(inComponent: 0) * 3600 + picker.selectedRow(inComponent: 1) * 60)
         }
+
+        func numberOfComponents(in pickerView: UIPickerView) -> Int { 2 }
+
+        func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+            component == 0 ? Self.hours : 60
+        }
+
+        func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
+            Self.componentWidth
+        }
+
+        func pickerView(
+            _ pickerView: UIPickerView,
+            viewForRow row: Int,
+            forComponent component: Int,
+            reusing view: UIView?
+        ) -> UIView {
+            let label = UILabel()
+            label.text = row.formatted()
+            label.font = .preferredFont(forTextStyle: .title2)
+            // The number sits left of centre, leaving the right-hand side of
+            // the column to the unit that stays put while it spins.
+            label.textAlignment = .right
+            let container = UIView()
+            container.addSubview(label)
+            label.frame = CGRect(x: 0, y: 0, width: DurationPickerView.numberWidth, height: 32)
+            return container
+        }
+
+        func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+            duration.wrappedValue = Self.duration(of: pickerView)
+        }
+    }
+}
+
+/// The wheel with its two unit labels pinned beside the selection band, where
+/// the Clock app keeps them.
+private final class DurationPickerView: UIPickerView {
+    static let numberWidth: CGFloat = 36
+
+    private let unitLabels: [UILabel] = [
+        String(localized: "hours", comment: "Unit beside the hours wheel of the laundry timer"),
+        String(localized: "min", comment: "Unit beside the minutes wheel of the laundry timer"),
+    ].map { text in
+        let label = UILabel()
+        label.text = text
+        label.font = .preferredFont(forTextStyle: .body).withWeight(.semibold)
+        label.isUserInteractionEnabled = false
+        return label
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        unitLabels.forEach(addSubview)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        for (component, label) in unitLabels.enumerated() {
+            // The selected row's view is where UIKit put this column; the
+            // unit goes just past its number.
+            guard let row = view(forRow: selectedRow(inComponent: component), forComponent: component) else {
+                continue
+            }
+            let origin = row.convert(CGPoint.zero, to: self)
+            label.sizeToFit()
+            label.frame.origin = CGPoint(
+                x: origin.x + Self.numberWidth + 8,
+                y: bounds.midY - label.bounds.height / 2
+            )
+            bringSubviewToFront(label)
+        }
+    }
+}
+
+private extension UIFont {
+    func withWeight(_ weight: UIFont.Weight) -> UIFont {
+        let descriptor = fontDescriptor.addingAttributes([
+            .traits: [UIFontDescriptor.TraitKey.weight: weight],
+        ])
+        return UIFont(descriptor: descriptor, size: pointSize)
     }
 }

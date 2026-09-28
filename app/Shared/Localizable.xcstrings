@@ -4179,6 +4179,40 @@
           }
         }
       }
+    },
+    "hours" : {
+      "comment" : "Unit beside the hours wheel of the laundry timer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hours"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tim"
+          }
+        }
+      }
+    },
+    "min" : {
+      "comment" : "Unit beside the minutes wheel of the laundry timer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "min"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "min"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

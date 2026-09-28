@@ -46,9 +46,9 @@ struct LaundryTimer: Codable, Hashable, Identifiable, Sendable {
     )
 }
 
-/// What the duration wheel opens on: the length of an ordinary programme, and
-/// the number the user most often just accepts.
-let laundryTimerDefaultDuration: TimeInterval = 60 * 60
+/// What the duration wheel opens on: nothing, so the length is always one the
+/// user dialled in for the programme actually running.
+let laundryTimerDefaultDuration: TimeInterval = 0
 
 /// How long past the end of a session a timer can still be started. The washing
 /// and the drying both happen inside the booked time, but the last load comes

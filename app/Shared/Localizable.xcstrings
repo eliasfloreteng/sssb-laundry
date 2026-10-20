@@ -3349,21 +3349,22 @@
         }
       }
     },
-    "Show all timeslots" : {
+    "Show hidden" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show all timeslots"
+            "value" : "Show hidden"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visa alla tvättpass"
+            "value" : "Visa dolda"
           }
         }
-      }
+      },
+      "comment" : "Week menu toggle: also show timeslots outside active hours and ones that can’t be booked"
     },
     "Sign in" : {
       "localizations" : {

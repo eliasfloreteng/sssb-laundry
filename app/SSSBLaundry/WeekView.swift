@@ -52,7 +52,7 @@ struct WeekView: View {
                             // reader has to decode; off means free timeslots
                             // within the active hours only.
                             Toggle(isOn: $showAllTimeslots) {
-                                Label("Show all timeslots", systemImage: "eye")
+                                Label("Show hidden", systemImage: "eye")
                             }
                             if dibsEnabled {
                                 Button { showingDibsPriority = true } label: {

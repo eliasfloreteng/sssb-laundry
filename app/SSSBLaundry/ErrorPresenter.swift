@@ -46,6 +46,8 @@ enum ErrorPresenter {
             return String(localized: "Too many dibs", comment: "Error headline: too many dibs at once")
         case "PUSH_DISABLED":
             return String(localized: "Dibs unavailable", comment: "Error headline: the server can't watch timeslots")
+        case "FEEDBACK_FAILED", "FEEDBACK_DISABLED", "FEEDBACK_RATE_LIMITED":
+            return String(localized: "Feedback not sent", comment: "Error headline: the feedback message didn't go through")
         case "BOOKING_FAILED":
             return bookingFailedHeadline
         case "CANCELLATION_FAILED":
@@ -121,6 +123,16 @@ enum ErrorPresenter {
             return String(
                 localized: "The laundry service can’t watch timeslots right now. Try again later.",
                 comment: "What to do when the server has dibs turned off"
+            )
+        case "FEEDBACK_FAILED", "FEEDBACK_DISABLED":
+            return String(
+                localized: "Your message is kept here. Try again in a moment.",
+                comment: "What to do when feedback couldn't be delivered"
+            )
+        case "FEEDBACK_RATE_LIMITED":
+            return String(
+                localized: "That’s a lot at once. Your message is kept here — try again in a few minutes.",
+                comment: "What to do when too much feedback was sent in a short time"
             )
         case "SERVICE_ERROR":
             return String(

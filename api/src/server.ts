@@ -6,6 +6,7 @@ import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment } from "./db.js";
 import { createDibsService, PRIORITY_LIMIT, type DibsService } from "./dibs.js";
+import { createFeedbackService, FEEDBACK_MAX_LENGTH, type FeedbackContext, type FeedbackService } from "./feedback.js";
 import { createPushService, type PushService } from "./notifications.js";
 import { decodeTimeslotId } from "./timeslot-id.js";
 import { createUpstreamCheck, type UpstreamCheck } from "./upstream-check.js";
@@ -32,6 +33,11 @@ interface DeviceBody {
   pushVersion?: unknown;
 }
 
+interface FeedbackBody {
+  message?: unknown;
+  context?: unknown;
+}
+
 export interface LaundryServer extends FastifyInstance {
   /** Present only when push is configured; started by startServer(), never by tests. */
   push: PushService | null;
@@ -45,6 +51,7 @@ export function buildServer(args?: {
   aptusClient?: AptusClient;
   pushService?: PushService | null;
   dibsService?: DibsService | null;
+  feedbackService?: FeedbackService | null;
   upstreamCheck?: UpstreamCheck;
 }): LaundryServer {
   const logLevel = process.env.LOG_LEVEL ?? "info";
@@ -60,6 +67,7 @@ export function buildServer(args?: {
   const push = args?.pushService !== undefined ? args.pushService : createPushService(aptus, app.log);
   const dibs = args?.dibsService !== undefined ? args.dibsService : createDibsService(push, aptus, app.log);
   const upstream = args?.upstreamCheck ?? createUpstreamCheck(aptus, app.log);
+  const feedback = args?.feedbackService !== undefined ? args.feedbackService : createFeedbackService(app.log);
 
   // The app's landing page, on the same host the app already talks to. `site/`
   // is a flat folder of static files; every route below is registered
@@ -212,6 +220,22 @@ export function buildServer(args?: {
     return { ok: true };
   });
 
+  // Feedback from inside the app, forwarded to the developer with the object id
+  // it came from. Requiring it also keeps this from being an open relay.
+  app.post<{ Body: FeedbackBody }>("/feedback", async (request) => {
+    const objectId = requireObjectId(request);
+    if (!feedback) {
+      throw new AppError({
+        statusCode: 503,
+        code: "FEEDBACK_DISABLED",
+        message: "Feedback is not configured on this server"
+      });
+    }
+    const body = request.body ?? {};
+    await feedback.submit(objectId, parseFeedbackMessage(body.message), parseFeedbackContext(body.context));
+    return { ok: true };
+  });
+
   if (process.env.NODE_ENV !== "production") {
     app.post("/notifications/test", async (request) => {
       const objectId = requireObjectId(request);
@@ -344,6 +368,35 @@ function requireObjectId(request: FastifyRequest): string {
     });
   }
   return objectId.trim();
+}
+
+function parseFeedbackMessage(value: unknown): string {
+  const message = typeof value === "string" ? value.trim() : "";
+  if (!message || message.length > FEEDBACK_MAX_LENGTH) {
+    throw new AppError({
+      statusCode: 400,
+      code: "INVALID_FEEDBACK",
+      message: `message must be a non-empty string of at most ${FEEDBACK_MAX_LENGTH} characters`
+    });
+  }
+  return message;
+}
+
+/** Lenient: context only helps read the message, so a bad field is dropped, not refused. */
+function parseFeedbackContext(value: unknown): FeedbackContext {
+  if (typeof value !== "object" || value === null) return {};
+  const raw = value as Record<string, unknown>;
+  const field = (key: keyof FeedbackContext) => {
+    const v = raw[key];
+    return typeof v === "string" && v.trim() ? v.trim().slice(0, 100) : undefined;
+  };
+  return {
+    appVersion: field("appVersion"),
+    osVersion: field("osVersion"),
+    device: field("device"),
+    locale: field("locale"),
+    laundryRoom: field("laundryRoom")
+  };
 }
 
 function parseTimeslotIds(value: unknown): string[] {

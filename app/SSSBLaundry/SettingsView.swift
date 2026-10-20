@@ -29,6 +29,7 @@ struct SettingsView: View {
     @State private var requestingAuthorization = false
     @State private var leavingLines = false
     @State private var dibsError: APIError?
+    @State private var showingFeedback = false
 
     var body: some View {
         NavigationStack {
@@ -145,6 +146,12 @@ struct SettingsView: View {
                 laundryRoomSection
 
                 dibsSection
+
+                Section {
+                    Button("Send feedback", systemImage: "bubble.left") { showingFeedback = true }
+                } footer: {
+                    Text("Something broken, missing or confusing? It goes straight to the developer.")
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -152,6 +159,9 @@ struct SettingsView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showingFeedback) {
+                FeedbackSheet()
             }
             .alert("Sign out?", isPresented: $confirmingSignOut) {
                 Button("Cancel", role: .cancel) {}

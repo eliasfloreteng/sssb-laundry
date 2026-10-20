@@ -15,6 +15,7 @@ struct WeekView: View {
     @State private var selectedTimeslot: Timeslot?
     @State private var showingSettings = false
     @State private var showingInvite = false
+    @State private var showingFeedback = false
     @AppStorage(ObjectIdStore.key) private var objectId: String = ""
     @AppStorage(ActiveHoursSetting.enabledKey) private var activeHoursEnabled: Bool = ActiveHoursSetting.defaultEnabled
     @AppStorage(ActiveHoursSetting.startKey) private var activeHoursStart: Int = ActiveHoursSetting.defaultStartMinutes
@@ -61,6 +62,9 @@ struct WeekView: View {
                             Button { showingInvite = true } label: {
                                 Label("Invite", systemImage: "person.2.badge.plus")
                             }
+                            Button { showingFeedback = true } label: {
+                                Label("Send feedback", systemImage: "bubble.left")
+                            }
                             Button { showingSettings = true } label: {
                                 Label("Settings", systemImage: "gearshape")
                             }
@@ -88,6 +92,9 @@ struct WeekView: View {
                 }
                 .sheet(isPresented: $showingInvite) {
                     InviteSheet()
+                }
+                .sheet(isPresented: $showingFeedback) {
+                    FeedbackSheet()
                 }
                 .sheet(isPresented: $showingDibsPriority) {
                     NavigationStack {

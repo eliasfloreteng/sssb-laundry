@@ -63,6 +63,16 @@ struct APIClient {
         return try await send(request)
     }
 
+    /// Forwards a message to the developer. `context` is shown beside it as-is;
+    /// the server sends on only a hash of the object id.
+    @discardableResult
+    func sendFeedback(message: String, context: [String: String]) async throws -> OKResponse {
+        var request = try makeRequest(url: baseURL.appendingPathComponent("feedback"), method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["message": message, "context": context])
+        return try await send(request)
+    }
+
     private func action<T: Decodable>(
         path: String,
         method: String = "POST",

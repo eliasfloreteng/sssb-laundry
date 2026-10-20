@@ -1801,6 +1801,40 @@
         }
       }
     },
+    "Feedback" : {
+      "comment" : "Title of the feedback sheet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback"
+          }
+        }
+      }
+    },
+    "Feedback not sent" : {
+      "comment" : "Error headline: the feedback message didn't go through",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback not sent"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedbacken skickades inte"
+          }
+        }
+      }
+    },
     "Filter timeslots" : {
       "localizations" : {
         "en" : {
@@ -3217,6 +3251,40 @@
         }
       }
     },
+    "Send" : {
+      "comment" : "Button sending the feedback message",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skicka"
+          }
+        }
+      }
+    },
+    "Send feedback" : {
+      "comment" : "Menu item and Settings button opening the feedback sheet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send feedback"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skicka feedback"
+          }
+        }
+      }
+    },
     "Set your address to see SSSB's rules for your laundry room." : {
       "localizations" : {
         "en" : {
@@ -3375,6 +3443,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "någon annan hann före"
+          }
+        }
+      }
+    },
+    "Something broken, missing or confusing? It goes straight to the developer." : {
+      "comment" : "Settings footer under Send feedback",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something broken, missing or confusing? It goes straight to the developer."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Något som är trasigt, saknas eller är förvirrande? Det går direkt till utvecklaren."
           }
         }
       }
@@ -3579,6 +3664,23 @@
         }
       }
     },
+    "Thanks — it’s sent." : {
+      "comment" : "Shown after feedback was delivered",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanks — it’s sent."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tack — det är skickat."
+          }
+        }
+      }
+    },
     "That was not an invite link or an object number." : {
       "localizations" : {
         "en" : {
@@ -3608,6 +3710,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Det skulle bli %lld pass av %lld — SSSB kan neka."
+          }
+        }
+      }
+    },
+    "That’s a lot at once. Your message is kept here — try again in a few minutes." : {
+      "comment" : "What to do when too much feedback was sent in a short time",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That’s a lot at once. Your message is kept here — try again in a few minutes."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det var mycket på en gång. Ditt meddelande finns kvar här — försök igen om några minuter."
           }
         }
       }
@@ -3962,6 +4081,23 @@
         }
       }
     },
+    "What’s on your mind?" : {
+      "comment" : "Placeholder in the feedback text field",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What’s on your mind?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vad tänker du på?"
+          }
+        }
+      }
+    },
     "you already hold as many sessions as your laundry room allows" : {
       "comment" : "Reason clause: the session limit is used up, and the app doesn't know the number",
       "localizations" : {
@@ -4091,6 +4227,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Din tvättstuga"
+          }
+        }
+      }
+    },
+    "Your message is kept here. Try again in a moment." : {
+      "comment" : "What to do when feedback couldn't be delivered",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your message is kept here. Try again in a moment."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditt meddelande finns kvar här. Försök igen om en stund."
           }
         }
       }

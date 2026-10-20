@@ -38,6 +38,7 @@ otherwise stateless; only push state is persisted.
 | `PUT /dibs/priority`               | `{ timeslotIds }` — dibs and bookings, most wanted first      |
 | `DELETE /dibs`                     | Every dibs and the order with them                           |
 | `PUT`/`DELETE /notifications/device` | Register or drop a device and its reminder preferences     |
+| `POST /feedback`                   | `{ message, context? }` — forwarded to the developer on Telegram |
 | `POST /notifications/test`         | Fires a reminder at this object id's devices (non-prod only) |
 | `GET /health`                      | Liveness, used by the container healthcheck                  |
 | `GET /status`                      | Whether Aptus itself still answers — `503` when it does not  |
@@ -233,6 +234,13 @@ it logs one warning and `/status` reports `disabled`. It belongs in the same git
 `.env`, because an object id is a credential. `UPSTREAM_CHECK_MINUTES` (default 15) and
 `UPSTREAM_CHECK_FAILURES` (default 2) tune it; every probe is a login plus a calendar
 per group, so the interval is not free.
+
+Feedback reads `FEEDBACK_TELEGRAM_BOT_TOKEN` and `FEEDBACK_TELEGRAM_CHAT_ID` — unset, it
+logs one warning and `/feedback` answers `FEEDBACK_DISABLED`. Nothing is stored: the chat
+is the record, and a failed forward is a `502` the app shows with the text still in place.
+The message carries the object id in full, so a report can be reproduced — which makes
+that chat as sensitive as the id; the log still only gets `hashObjectId()`. Five messages per object id per ten
+minutes, in memory.
 
 The repo is public, so those live in the gitignored `.env` beside `../compose.yaml`,
 which is what `env_file` pulls in. After a key rotation:

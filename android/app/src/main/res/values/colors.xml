@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- SSSB's brand blue, and the lighter blue from the same palette for dark mode. -->
+    <color name="brand_blue">#FF064A88</color>
+    <color name="brand_blue_light">#FF3E8BC8</color>
+    <color name="splash_background">#FFFFFFFF</color>
+</resources>

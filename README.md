@@ -8,6 +8,7 @@ Two halves of one product, in one repo:
 | Path            | What it is                                                                   |
 | --------------- | ---------------------------------------------------------------------------- |
 | [`app/`](./app) | Native iOS app — SwiftUI, iOS 26+, with a Live Activity and push reminders    |
+| [`android/`](./android) | Native Android app — Jetpack Compose, Material 3 Expressive, Android 10+ |
 | [`api/`](./api) | The backend it talks to — Bun + Fastify, wrapping SSSB's Aptus Portal in JSON |
 
 The app is distributed through TestFlight under `se.floreteng.SSSBLaundry`; the API runs

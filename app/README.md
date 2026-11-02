@@ -269,7 +269,9 @@ Steps 1 and 2 also have a workflow: `.github/workflows/bump-build.yml` bumps
 `v<MARKETING_VERSION>-<CURRENT_PROJECT_VERSION>`. Run it from the Actions tab when an
 update is ready; it also runs itself once the latest release is 80 days old, so an
 expiring TestFlight build has a fresh build number waiting before the 90 days are up.
-The archive and the upload are still steps 3–4 here, on a Mac.
+Xcode Cloud's "SSSB Laundry new version" workflow archives every tag for TestFlight, so
+steps 3–4 are the fallback on a Mac. The same tag also ships the Android app to Play's
+closed testing (`.github/workflows/android-release.yml`, see `android/README.md`).
 
 1. **Bump the version** in the `SSSBLaundry` target → General, or directly in `SSSBLaundry.xcodeproj/project.pbxproj`:
    - `CURRENT_PROJECT_VERSION` — increment for every upload (e.g. `1` → `2`).

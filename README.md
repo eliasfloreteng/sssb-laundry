@@ -129,5 +129,7 @@ credentials live beside it in untracked `compose.override.yaml` and `.env`; the 
 also replaces the published port. `./data` is a bind mount and must be writable by uid
 1000 — losing it drops every device token and queued reminder.
 
-**App** — TestFlight, uploaded from Xcode. Nothing about a push to `main` ships an app
-build; see [`app/README.md`](./app/README.md).
+**Apps** — a version tag ships both: Xcode Cloud archives it for TestFlight, and
+`.github/workflows/android-release.yml` rolls it out to Play's closed testing.
+`bump-build.yml` cuts the tags. Nothing about a plain push to `main` ships an app build;
+see [`app/README.md`](./app/README.md) and [`android/README.md`](./android/README.md).

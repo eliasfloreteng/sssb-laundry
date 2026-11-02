@@ -3,6 +3,10 @@ name: Bump the build number
 # TestFlight builds expire 90 days after upload, so a fresh build number is due
 # well before that. Run it by hand for a real release, or let the daily schedule
 # notice that the last one has gone stale.
+#
+# The tag it cuts is the release: Xcode Cloud archives it for TestFlight, and the
+# android job below rolls it out to Play's closed testing. iOS and Android share the
+# build number, as CURRENT_PROJECT_VERSION and versionCode.
 
 on:
   workflow_dispatch:
@@ -18,6 +22,8 @@ concurrency:
 jobs:
   bump:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +54,7 @@ jobs:
 
       # The app and the widget extension share one build number; the test targets
       # sit at 1 and are left alone, so the highest value in the file is the app's.
-      - name: Bump CURRENT_PROJECT_VERSION
+      - name: Bump the build number
         id: version
         if: steps.due.outputs.due == 'true'
         run: |
@@ -60,6 +66,10 @@ jobs:
           sed -i "s/CURRENT_PROJECT_VERSION = $current;/CURRENT_PROJECT_VERSION = $next;/g" "$pbxproj"
           marketing=$(grep -oE 'MARKETING_VERSION = [^;]+;' "$pbxproj" | head -1 \
             | sed -E 's/MARKETING_VERSION = (.*);/\1/')
+          sed -i -E \
+            -e "s/versionCode = [0-9]+/versionCode = $next/" \
+            -e "s/versionName = \"[^\"]*\"/versionName = \"$marketing\"/" \
+            android/app/build.gradle.kts
           echo "build=$next" >> "$GITHUB_OUTPUT"
           echo "marketing=$marketing" >> "$GITHUB_OUTPUT"
           echo "tag=v$marketing-$next" >> "$GITHUB_OUTPUT"
@@ -71,7 +81,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Bump the build number to ${{ steps.version.outputs.build }}" \
-            -- app/SSSBLaundry.xcodeproj/project.pbxproj
+            -- app/SSSBLaundry.xcodeproj/project.pbxproj android/app/build.gradle.kts
           git push
 
       - name: Create the release
@@ -84,10 +94,20 @@ jobs:
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/notes.md" <<EOF
-          Build $BUILD of $MARKETING, ready to archive.
+          Build $BUILD of $MARKETING.
 
-          Nothing here uploads to TestFlight — archive and upload from Xcode, as
-          described in [app/README.md](https://github.com/$REPO/blob/main/app/README.md#publishing-an-update-to-testflight).
+          Xcode Cloud archives this tag for TestFlight, and the Android release
+          workflow rolls it out to Play's closed testing.
           EOF
           gh release create "${{ steps.version.outputs.tag }}" \
             --title "$MARKETING ($BUILD)" --notes-file "$RUNNER_TEMP/notes.md"
+
+  # A tag pushed with this workflow's token starts no other workflow, so the
+  # Android release is called from here rather than left to its `push` trigger.
+  android:
+    needs: bump
+    if: needs.bump.outputs.tag != ''
+    uses: ./.github/workflows/android-release.yml
+    with:
+      ref: ${{ needs.bump.outputs.tag }}
+    secrets: inherit

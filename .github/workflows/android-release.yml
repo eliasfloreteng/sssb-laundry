@@ -1,0 +1,120 @@
+name: Android release
+
+# The Android half of what Xcode Cloud does for iOS: a version tag is built, signed with
+# the upload key and rolled out to Play's closed testing track ("Closed testing - Alpha"),
+# whose testers get it as an update.
+#
+# bump-build.yml cuts those tags and calls this workflow itself, because a tag pushed
+# with the workflow's own token never starts another workflow. A tag pushed by hand
+# starts it through `push`. Run it by hand on a tag to retry a failed upload, or as a
+# dry run to build and check the Play credentials without uploading anything.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_call:
+    inputs:
+      ref:
+        description: The tag to build
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and check the Play credentials, but upload nothing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The same layout as a local checkout, so build.gradle.kts signs with the
+      # upload key exactly as it does on a Mac.
+      - name: Restore the upload key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p secrets
+          echo "$KEYSTORE" | base64 --decode > secrets/upload.jks
+          {
+            echo "storeFile=upload.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > secrets/upload.properties
+
+      - name: Build the bundle
+        run: ./gradlew :app:bundleRelease
+
+      - name: Summarize
+        run: |
+          set -euo pipefail
+          code=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | grep -oE '[0-9]+')
+          name=$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | cut -d'"' -f2)
+          echo "Built $name ($code) from \`${{ inputs.ref || github.ref_name }}\`." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-release.aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      - name: Install fastlane
+        run: gem install fastlane --no-document
+
+      - name: Check the Play credentials
+        if: inputs.dry_run
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/play.json"
+          printf '%s' "$SUPPLY_JSON_KEY_DATA" > "$key"
+          fastlane run validate_play_store_json_key json_key:"$key"
+          rm "$key"
+
+      # Only the bundle and its release notes go up: changelogs/<versionCode>.txt in
+      # each language, else changelogs/default.txt. The listing itself is edited in
+      # Play Console.
+      - name: Roll out to closed testing
+        if: ${{ !inputs.dry_run }}
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          fastlane supply \
+            --package_name se.floreteng.sssblaundry \
+            --track alpha \
+            --aab app/build/outputs/bundle/release/app-release.aab \
+            --metadata_path fastlane/metadata/android \
+            --skip_upload_metadata true \
+            --skip_upload_images true \
+            --skip_upload_screenshots true \
+            --skip_upload_apk true

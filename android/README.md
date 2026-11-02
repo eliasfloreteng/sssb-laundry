@@ -52,9 +52,36 @@ secrets/upload.properties    storeFile, storePassword, keyAlias, keyPassword
 Keep a copy of both somewhere safe, such as a password manager. A lost upload key is
 not fatal, since Play support can reset it, but that takes days.
 
-**Each upload needs a higher `versionCode`** in `app/build.gradle.kts`. Bump it the way
-the iOS build number is bumped, and keep `versionName` in step with the iOS
-`MARKETING_VERSION`.
+**Each upload needs a higher `versionCode`** in `app/build.gradle.kts`. It is the iOS
+build number: `.github/workflows/bump-build.yml` bumps `CURRENT_PROJECT_VERSION` and
+`versionCode` together, copies `MARKETING_VERSION` into `versionName`, and tags the
+commit `v<version>-<build>`.
+
+### Automated releases
+
+Every version tag goes to Play's closed testing track the way Xcode Cloud takes it to
+TestFlight: `.github/workflows/android-release.yml` builds the bundle, signs it with the
+upload key and rolls it out to "Closed testing - Alpha" with `fastlane supply`. Release
+notes come from `fastlane/metadata/android/<lang>/changelogs/<versionCode>.txt`, else
+`default.txt`; nothing else in the listing is uploaded. `bump-build.yml` calls the
+workflow itself, since a tag pushed with the Actions token starts no other workflow; a
+tag pushed by hand starts it directly. Run it from the Actions tab on a tag to retry, or
+with *dry run* to build and check the Play credentials without uploading.
+
+It needs these repository secrets:
+
+```
+ANDROID_UPLOAD_KEYSTORE_BASE64   base64 of secrets/upload.jks
+ANDROID_UPLOAD_STORE_PASSWORD    \
+ANDROID_UPLOAD_KEY_ALIAS          } from secrets/upload.properties
+ANDROID_UPLOAD_KEY_PASSWORD      /
+PLAY_SERVICE_ACCOUNT_JSON        key of sssb-laundry-play@subtle-hydra-441510-q6.iam.gserviceaccount.com
+```
+
+The service account lives in the "Accord App" Google Cloud project and has only *View
+app information* and *Release apps to testing tracks* on SSSB Laundry in Play Console, so
+it cannot touch production or Accord's apps. A new key is `gcloud iam service-accounts keys
+create` and `gh secret set PLAY_SERVICE_ACCOUNT_JSON`.
 
 ### Store listing
 

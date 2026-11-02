@@ -3,6 +3,7 @@ package se.floreteng.sssblaundry.ui.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,15 +57,26 @@ fun LaundryRoomPickerScreen(selectedId: String, onSelect: (String) -> Unit, onBa
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                 )
-                SearchBarDefaults.InputField(
-                    state = query,
-                    onSearch = {},
+                // Always collapsed: the list below is the results, filtered as
+                // you type. SearchBar supplies the pill container the field lacks.
+                SearchBar(
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            state = query,
+                            onSearch = {},
+                            expanded = false,
+                            onExpandedChange = {},
+                            placeholder = { Text(stringResource(R.string.street_address)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_search), null) },
+                        )
+                    },
                     expanded = false,
                     onExpandedChange = {},
-                    placeholder = { Text(stringResource(R.string.street_address)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_search), null) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+                    colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceBright),
+                    // The top app bar above already clears the status bar.
+                    windowInsets = WindowInsets(0),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                ) {}
             }
         },
     ) { padding ->

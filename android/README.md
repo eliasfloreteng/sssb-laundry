@@ -82,24 +82,29 @@ never appear in one.
 - **Ads:** none. **Category:** House & Home. **Target audience:** 18 and over.
 - **Content rating:** a utility, with no user-to-user content, no location sharing,
   no purchases.
-- **Data safety:** data is encrypted in transit; there is no account creation; none of
-  it is shared with third parties (booking on SSSB's portal is the user's own request,
-  and Telegram only carries feedback as a service provider). Collected:
-  - *Personal info → User IDs* (the object number): required, for app functionality,
-    and stored server-side only for dibs.
+- **Advertising ID:** not used. **Government, financial and health features:** none.
+- **Data safety:** data is encrypted in transit; there is no account creation, but users
+  sign in with an account made outside the app (the object number, from the tenancy);
+  deletion requests go through the privacy policy URL. None of it is shared with third
+  parties (booking on SSSB's portal is the user's own request, and Telegram only carries
+  feedback as a service provider). Play's "Developer communications" means messages
+  *to* users, so feedback is not filed under it. Collected, none of it ephemerally:
+  - *Personal info → User IDs* (the object number): required, for app functionality
+    and account management.
   - *App activity → Other actions* (dibs and their order): optional, for app
     functionality.
-  - *App activity → Other user-generated content* (feedback text) and *Personal info
-    → Address* (the street address sent with feedback): optional, for developer
-    communications.
-  - *App info and performance → Diagnostics* (app version, model, OS, language sent
-    with feedback): optional, for developer communications.
+  - *App activity → Other user-generated content* (feedback text): optional, for app
+    functionality.
+  - *Personal info → Address* (the street address sent with feedback) and *App info
+    and performance → Diagnostics* (app version, model, OS, language sent with
+    feedback): optional, for analytics, as they serve fixing bugs.
 
-### After the first upload
+### App signing
 
-Play shows its **app signing key** certificate under *Test and release → App integrity*.
-Add its SHA-256 fingerprint to `api/site/assetlinks.json`, next to the upload key's,
-or invite links in installs from Play keep opening in the browser.
+Play holds the app signing key, so an install from Play is signed with a different
+certificate than a local release build. `api/site/assetlinks.json` lists both SHA-256
+fingerprints, Play's app signing key (from *Protected with Play → App signing*) and the
+upload key, so invite links verify either way.
 
 ## Design
 
@@ -151,8 +156,7 @@ bookings never filtered out, `canBook`/`canCancel` deciding what is offered, opa
   `data_extraction_rules.xml`) — it is username and password upstream.
 - **Invite links verify only with Digital Asset Links.** The manifest's intent filter
   has `autoVerify`, and the API serves `/.well-known/assetlinks.json` from
-  `api/site/assetlinks.json`. A certificate missing from it, such as Play's app signing
-  key before it is added, means Android opens the link in the browser unless the user
+  `api/site/assetlinks.json`. A certificate missing from it means Android opens the link in the browser unless the user
   turns on "Open supported links" for the app.
 - **One view model per object number** (`viewModel(key = objectId)`), so switching
   apartments starts from an empty store, as `WeekView().id(objectId)` does on iOS.

@@ -73,6 +73,19 @@ size 1080x2160`), because Play refuses anything longer than twice its width, wit
 mode on for a clean status bar. Settings is scrolled past the object number, which must
 never appear in one.
 
+### Testers
+
+The app is in Play's **closed testing** track, in every country, so it is not searchable
+on Google Play. Its testers are the members of the Google Group
+`sssb-laundry-testers@googlegroups.com`, which anyone can join and only managers can
+see the members of. `https://sssb-laundry.eliasf.se/android` (`api/site/android.html`)
+takes a tester through joining the group, opting in at
+`https://play.google.com/apps/testing/se.floreteng.sssblaundry` and installing; the
+landing page links to it, and the invite page sends Android visitors there.
+
+The developer account is Accord Software's, an organization account, so Play's
+12-testers-for-14-days rule for new personal accounts does not apply before production.
+
 ### Play Console answers
 
 - **Privacy policy:** `https://sssb-laundry.eliasf.se/privacy`, served from
@@ -80,7 +93,7 @@ never appear in one.
 - **App access:** everything is behind sign-in with an object number, so review gets
   the demo one, `0000-0000-000`: the server answers it with sample data kept in memory, so
   booking with it touches nobody's laundry (see `api/README.md`).
-- **Ads:** none. **Category:** House & Home. **Target audience:** 18 and over.
+- **Ads:** none. **Category:** House & Home. **Contact:** elias.floreteng@gmail.com. **Target audience:** 18 and over.
 - **Content rating:** a utility, with no user-to-user content, no location sharing,
   no purchases.
 - **Advertising ID:** not used. **Government, financial and health features:** none.

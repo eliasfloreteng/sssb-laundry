@@ -88,6 +88,11 @@
     box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--brand) 80%, transparent);
   }
   .btn:hover { background: var(--brand-hover); }
+  .btn.secondary {
+    background: transparent; color: var(--brand); box-shadow: none;
+    border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent); padding: 13px 23px;
+  }
+  .btn.secondary:hover { background: color-mix(in srgb, var(--brand) 8%, transparent); }
   .fine { font-size: 14.5px; color: var(--muted); }
   .hero .fine { margin-top: 18px; }
 
@@ -167,6 +172,8 @@
   .band p { margin: 12px auto 0; color: #c7dcf0; max-width: 30em; }
   .band .btn { margin-top: 26px; background: #fff; color: #064a88; box-shadow: none; }
   .band .btn:hover { background: #eaf1f8; }
+  .band .btn.secondary { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.55); margin-left: 10px; }
+  .band .btn.secondary:hover { background: rgba(255, 255, 255, 0.1); }
 
   footer { padding: 44px 0 64px; border-top: 1px solid var(--line); }
   footer p { color: var(--muted); font-size: 14.5px; max-width: 44em; }
@@ -179,7 +186,7 @@
 <header>
   <div class="wrap">
     <a class="brand" href="/"><img src="/icon.png" alt=""> SSSB Laundry</a>
-    <a class="ghost" href="https://testflight.apple.com/join/gn5fHjdC">TestFlight</a>
+    <a class="ghost" href="#beta">Join the beta</a>
   </div>
 </header>
 
@@ -190,8 +197,9 @@
       <p class="lede">The whole week of timeslots for your address, on your phone. Book in one tap, get a reminder before your slot starts, and never type your object number twice.</p>
       <div class="cta-row">
         <a class="btn" href="https://testflight.apple.com/join/gn5fHjdC">Get it on TestFlight</a>
+        <a class="btn secondary" href="/android">Android</a>
       </div>
-      <p class="fine">Free. iPhone on iOS 26 or later. Sign in with the object number from your rental agreement.</p>
+      <p class="fine">Free. iPhone on iOS 26 or later, or Android 10 or later. Sign in with the object number from your rental agreement.</p>
     </div>
 
     <div class="phone" aria-hidden="true">
@@ -317,15 +325,16 @@
   <div class="wrap">
     <div class="band">
       <h2>Try it this week</h2>
-      <p>The beta is open. Open this on your iPhone and TestFlight takes it from there.</p>
+      <p>The beta is open to anyone. On an iPhone, TestFlight takes it from there; on Android, join the test on Google Play in three steps.</p>
       <a class="btn" href="https://testflight.apple.com/join/gn5fHjdC">Join the TestFlight beta</a>
+      <a class="btn secondary" href="/android">Join the Android test</a>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <p>Made by Elias Floreteng. Not affiliated with SSSB or Aptus.</p>
+    <p>Made by Elias Floreteng and published by Accord Software AB. Not affiliated with SSSB or Aptus.</p>
     <p>Your object number is stored on your phone. It reaches the server on every request, which uses it to sign in to SSSB's own booking portal, and is kept there only for reminders and dibs you have switched on.</p>
     <p><a href="/privacy">Privacy</a> · <a href="https://github.com/eliasfloreteng/sssb-laundry">Source on GitHub</a></p>
   </div>

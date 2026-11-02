@@ -26,6 +26,6 @@ OCH RESTEN
 • På svenska och engelska, efter telefonens språk.
 • Material You-färger, mörkt tema och inget du inte behöver.
 
-Gjord av Elias Floreteng. Inte knuten till SSSB eller Aptus.
+Gjord av Elias Floreteng och utgiven av Accord Software. Inte knuten till SSSB eller Aptus.
 
 Ditt objektsnummer sparas i telefonen och skickas med varje förfrågan till appens server, som använder det för att logga in i SSSB:s bokningsportal åt dig. Servern sparar det bara så länge dina pax behöver det. Appen har ingen reklam och ingen spårning.

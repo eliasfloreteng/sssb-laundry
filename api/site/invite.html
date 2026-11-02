@@ -120,7 +120,7 @@
   <button class="btn secondary" id="copyNumber" type="button" hidden>Copy the number</button>
 
   <ol class="steps" id="steps" hidden>
-    <li><span class="n">1</span><span>Install from TestFlight — the invite is copied to your clipboard.</span></li>
+    <li><span class="n">1</span><span>Install from <span class="store">TestFlight</span> — the invite is copied to your clipboard.</span></li>
     <li><span class="n">2</span><span>Open the app and tap <b>Paste</b>.</span></li>
   </ol>
 
@@ -139,6 +139,14 @@
 
   const install = document.getElementById("install");
   const copyNumber = document.getElementById("copyNumber");
+
+  // Android installs come from the test on Google Play, which takes a few steps
+  // of its own; /android walks through them.
+  if (/Android/i.test(navigator.userAgent)) {
+    install.href = "/android";
+    install.textContent = "Install from Google Play";
+    for (const store of document.querySelectorAll(".store")) store.textContent = "Google Play";
+  }
 
   if (objectNumber) {
     document.getElementById("objectNumber").textContent = objectNumber;

@@ -134,6 +134,11 @@ export function buildServer(args?: {
     reply.sendFile("privacy.html");
   });
 
+  // How to join the Android test on Google Play.
+  app.get("/android", (_request, reply) => {
+    reply.sendFile("android.html");
+  });
+
   // An invite. Reached only when the app is *not* installed — with it, iOS opens
   // the app on this URL instead of loading anything. The object number is in the
   // fragment, so it never arrives here and never reaches the log; the page reads

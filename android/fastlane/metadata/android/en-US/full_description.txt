@@ -26,6 +26,6 @@ AND THE REST
 • In English and Swedish, following your phone.
 • Material You colours, dark theme, and nothing you don't need.
 
-Made by Elias Floreteng. Not affiliated with SSSB or Aptus.
+Made by Elias Floreteng and published by Accord Software. Not affiliated with SSSB or Aptus.
 
 Your object number is stored on your phone and sent with each request to the app's server, which uses it to sign in to SSSB's booking portal on your behalf. The server keeps it only for as long as your dibs need it. The app has no ads and no tracking.

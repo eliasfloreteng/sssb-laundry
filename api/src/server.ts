@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment } from "./db.js";
+import { createDemoBackend, isDemoObjectId } from "./demo.js";
 import { createDibsService, PRIORITY_LIMIT, type DibsService } from "./dibs.js";
 import { createFeedbackService, FEEDBACK_MAX_LENGTH, type FeedbackContext, type FeedbackService } from "./feedback.js";
 import { createPushService, type PushService } from "./notifications.js";
@@ -38,6 +39,17 @@ interface FeedbackBody {
   context?: unknown;
 }
 
+/**
+ * What a route reaches for on the caller's behalf. Live, that is Aptus and the
+ * services around it; for the demo object number it is `demo.ts`, in memory.
+ */
+export interface Backend {
+  aptus: Pick<AptusClient, "listTimeslots" | "bookTimeslot" | "cancelTimeslot">;
+  push: Pick<PushService, "registerDevice" | "unregisterDevice" | "enqueueTestNotification" | "onBooked" | "onCancelled"> | null;
+  dibs: Pick<DibsService, "call" | "drop" | "dropAll" | "setPriority" | "annotate" | "onReleased"> | null;
+  feedback: Pick<FeedbackService, "submit"> | null;
+}
+
 export interface LaundryServer extends FastifyInstance {
   /** Present only when push is configured; started by startServer(), never by tests. */
   push: PushService | null;
@@ -53,6 +65,7 @@ export function buildServer(args?: {
   dibsService?: DibsService | null;
   feedbackService?: FeedbackService | null;
   upstreamCheck?: UpstreamCheck;
+  demoBackend?: Backend;
 }): LaundryServer {
   const logLevel = process.env.LOG_LEVEL ?? "info";
   const app = Fastify({
@@ -68,6 +81,16 @@ export function buildServer(args?: {
   const dibs = args?.dibsService !== undefined ? args.dibsService : createDibsService(push, aptus, app.log);
   const upstream = args?.upstreamCheck ?? createUpstreamCheck(aptus, app.log);
   const feedback = args?.feedbackService !== undefined ? args.feedbackService : createFeedbackService(app.log);
+  const live: Backend = { aptus, push, dibs, feedback };
+  // Store reviewers sign in with the demo object number, and are served from
+  // memory instead: nothing of theirs reaches Aptus, the database or APNs.
+  const demo = args?.demoBackend ?? createDemoBackend({ feedback, logger: app.log });
+
+  /** The caller's object id, and the backend that serves it. Every route asks here. */
+  const caller = (request: FastifyRequest): { objectId: string; backend: Backend } => {
+    const objectId = requireObjectId(request);
+    return { objectId, backend: isDemoObjectId(objectId) ? demo : live };
+  };
 
   // The app's landing page, on the same host the app already talks to. `site/`
   // is a flat folder of static files; every route below is registered
@@ -120,7 +143,7 @@ export function buildServer(args?: {
   });
 
   app.get<{ Querystring: TimeslotsQuery }>("/timeslots", async (request) => {
-    const objectId = requireObjectId(request);
+    const { objectId, backend } = caller(request);
     const date = request.query.date;
     if (!date) {
       throw new AppError({
@@ -130,21 +153,21 @@ export function buildServer(args?: {
       });
     }
 
-    const response = await aptus.listTimeslots(objectId, date, request.id);
-    return dibs ? dibs.annotate(objectId, response) : response;
+    const response = await backend.aptus.listTimeslots(objectId, date, request.id);
+    return backend.dibs ? backend.dibs.annotate(objectId, response) : response;
   });
 
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/book", async (request) => {
-    const objectId = requireObjectId(request);
+    const { objectId, backend } = caller(request);
     const groupIds = parseGroupIds(request.body.groupIds);
-    const response = await aptus.bookTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
+    const response = await backend.aptus.bookTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
 
-    if (push) {
+    if (backend.push) {
       const booked = succeededGroupIds(response.results, BOOK_SUCCESS);
       if (booked.length > 0) {
         const { startAt, endAt } = decodeTimeslotId(request.params.timeslotId);
         // The device that booked is recorded so the "new booking" push skips it.
-        push.onBooked(objectId, startAt, endAt, booked, deviceToken(request));
+        backend.push.onBooked(objectId, startAt, endAt, booked, deviceToken(request));
       }
     }
 
@@ -152,23 +175,23 @@ export function buildServer(args?: {
   });
 
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/cancel", async (request) => {
-    const objectId = requireObjectId(request);
+    const { objectId, backend } = caller(request);
     const groupIds = parseGroupIds(request.body.groupIds);
-    const response = await aptus.cancelTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
+    const response = await backend.aptus.cancelTimeslot(objectId, request.params.timeslotId, groupIds, request.id);
 
-    if (push) {
+    if (backend.push) {
       const cancelled = succeededGroupIds(response.results, CANCEL_SUCCESS);
       if (cancelled.length > 0) {
         const { startAt } = decodeTimeslotId(request.params.timeslotId);
-        push.onCancelled(objectId, startAt, cancelled);
+        backend.push.onCancelled(objectId, startAt, cancelled);
       }
     }
 
     // Whoever is waiting on a slot this app just released gets it now.
     const released = succeededGroupIds(response.results, new Set(["cancelled"]));
-    if (dibs && released.length > 0) {
+    if (backend.dibs && released.length > 0) {
       const { startAt, endAt } = decodeTimeslotId(request.params.timeslotId);
-      dibs.onReleased(startAt, endAt, released);
+      backend.dibs.onReleased(startAt, endAt, released);
     }
 
     return response;
@@ -177,42 +200,42 @@ export function buildServer(args?: {
   // Dibs: a place in line for a timeslot somebody else holds, booked by the
   // server the moment it frees. See `dibs.ts`.
   app.post<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/dibs", async (request) => {
-    const objectId = requireObjectId(request);
-    if (!dibs) throw pushDisabled();
+    const { objectId, backend } = caller(request);
+    if (!backend.dibs) throw pushDisabled();
     const groupIds = parseGroupIds(request.body?.groupIds);
-    const rows = await dibs.call(objectId, request.params.timeslotId, groupIds, deviceToken(request), request.id);
+    const rows = await backend.dibs.call(objectId, request.params.timeslotId, groupIds, deviceToken(request), request.id);
     return { timeslotId: request.params.timeslotId, groupIds: rows.map((r) => r.groupId) };
   });
 
   app.delete<{ Params: TimeslotParams; Body: ActionBody }>("/timeslots/:timeslotId/dibs", async (request) => {
-    const objectId = requireObjectId(request);
-    if (!dibs) throw pushDisabled();
+    const { objectId, backend } = caller(request);
+    if (!backend.dibs) throw pushDisabled();
     const groupIds = parseGroupIds(request.body?.groupIds);
-    dibs.drop(objectId, request.params.timeslotId, groupIds);
+    backend.dibs.drop(objectId, request.params.timeslotId, groupIds);
     return { ok: true };
   });
 
   // The order the caller wants their dibs and bookings in, most wanted first.
   app.put<{ Body: { timeslotIds?: unknown } }>("/dibs/priority", async (request) => {
-    const objectId = requireObjectId(request);
-    if (!dibs) throw pushDisabled();
-    dibs.setPriority(objectId, parseTimeslotIds(request.body?.timeslotIds));
+    const { objectId, backend } = caller(request);
+    if (!backend.dibs) throw pushDisabled();
+    backend.dibs.setPriority(objectId, parseTimeslotIds(request.body?.timeslotIds));
     return { ok: true };
   });
 
   // Every dibs and the order with them — the app's dibs setting was turned off.
   app.delete("/dibs", async (request) => {
-    const objectId = requireObjectId(request);
-    if (!dibs) throw pushDisabled();
-    dibs.dropAll(objectId);
+    const { objectId, backend } = caller(request);
+    if (!backend.dibs) throw pushDisabled();
+    backend.dibs.dropAll(objectId);
     return { ok: true };
   });
 
   app.put<{ Body: DeviceBody }>("/notifications/device", async (request) => {
-    const objectId = requireObjectId(request);
-    if (!push) throw pushDisabled();
+    const { objectId, backend } = caller(request);
+    if (!backend.push) throw pushDisabled();
     const body = request.body ?? {};
-    push.registerDevice({
+    backend.push.registerDevice({
       token: parseDeviceToken(body.deviceToken),
       objectId,
       environment: parseEnvironment(body.environment),
@@ -227,17 +250,17 @@ export function buildServer(args?: {
   });
 
   app.delete<{ Body: DeviceBody }>("/notifications/device", async (request) => {
-    requireObjectId(request);
-    if (!push) throw pushDisabled();
-    push.unregisterDevice(parseDeviceToken((request.body ?? {}).deviceToken));
+    const { backend } = caller(request);
+    if (!backend.push) throw pushDisabled();
+    backend.push.unregisterDevice(parseDeviceToken((request.body ?? {}).deviceToken));
     return { ok: true };
   });
 
   // Feedback from inside the app, forwarded to the developer with the object id
   // it came from. Requiring it also keeps this from being an open relay.
   app.post<{ Body: FeedbackBody }>("/feedback", async (request) => {
-    const objectId = requireObjectId(request);
-    if (!feedback) {
+    const { objectId, backend } = caller(request);
+    if (!backend.feedback) {
       throw new AppError({
         statusCode: 503,
         code: "FEEDBACK_DISABLED",
@@ -245,15 +268,15 @@ export function buildServer(args?: {
       });
     }
     const body = request.body ?? {};
-    await feedback.submit(objectId, parseFeedbackMessage(body.message), parseFeedbackContext(body.context));
+    await backend.feedback.submit(objectId, parseFeedbackMessage(body.message), parseFeedbackContext(body.context));
     return { ok: true };
   });
 
   if (process.env.NODE_ENV !== "production") {
     app.post("/notifications/test", async (request) => {
-      const objectId = requireObjectId(request);
-      if (!push) throw pushDisabled();
-      return { ok: true, devices: push.enqueueTestNotification(objectId) };
+      const { objectId, backend } = caller(request);
+      if (!backend.push) throw pushDisabled();
+      return { ok: true, devices: backend.push.enqueueTestNotification(objectId) };
     });
   }
 

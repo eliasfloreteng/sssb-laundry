@@ -313,5 +313,5 @@ The stripped `PATH` matters: Xcode's IPA packaging step runs `/usr/bin/rsync` (o
   only reaches an existing install on the next update.
 - `NSCalendarsWriteOnlyAccessUsageDescription` must stay set (via `INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription` in the pbxproj) — App Review rejects builds that prompt for calendar access without it.
 - The backend at the URL in `Config.swift` must be reachable during Beta App Review.
-- App Store Connect → App Review Information should list a working demo object number so reviewers can get past the sign-in screen.
+- App Store Connect → App Review Information should list the demo object number, `0000-0000-000`, so reviewers can get past the sign-in screen. The server answers it with sample data kept in memory — booking with it touches no real account (see `api/README.md`).
 - Encryption export compliance: `ITSAppUsesNonExemptEncryption` should remain `NO` (HTTPS-only, no custom crypto). Set it in Info.plist to skip the per-build prompt.

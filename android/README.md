@@ -77,8 +77,9 @@ never appear in one.
 
 - **Privacy policy:** `https://sssb-laundry.eliasf.se/privacy`, served from
   `api/site/privacy.html`.
-- **App access:** everything is behind sign-in with an object number, so review needs
-  one, along with a note not to book with it.
+- **App access:** everything is behind sign-in with an object number, so review gets
+  the demo one, `0000-0000-000`: the server answers it with sample data kept in memory, so
+  booking with it touches nobody's laundry (see `api/README.md`).
 - **Ads:** none. **Category:** House & Home. **Target audience:** 18 and over.
 - **Content rating:** a utility, with no user-to-user content, no location sharing,
   no purchases.

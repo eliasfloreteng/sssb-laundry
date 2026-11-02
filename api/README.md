@@ -27,6 +27,8 @@ X-Object-Id: <OBJECT_ID>
 Sessions are reused per object id and reauthenticated when they expire. Booking is
 otherwise stateless; only push state is persisted.
 
+`0000-0000-000` is the [demo object number](#demo-object-number), for store review.
+
 ## Endpoints
 
 | Route                              | What it does                                                |
@@ -76,6 +78,32 @@ catch-all.
 
 Categories are deliberately not part of the API. Upstream has one per location (usually
 "Tvätt") and the client should never learn about them.
+
+## Demo object number
+
+App Store and Google Play reviewers have no tenancy, so they sign in with
+**`0000-0000-000`** instead — the number to give in App Store Connect's App Review
+Information and in Play Console's App access. It is served entirely by `src/demo.ts`, an
+in-memory laundry room behind the same interfaces the routes use for the real thing;
+`buildServer()` picks one or the other per request, in `caller()`, and nowhere else. So
+every app build, including ones already in review, gets it with no change of its own.
+
+- **Nothing of it leaves the process.** No Aptus login, no database row, no dibs worker,
+  no APNs, no upstream probe. `/notifications/device` answers `ok` and keeps nothing;
+  dibs work even on a server with push off.
+- **The data has the live shape**: two groups, *Grupp 1* and *Grupp 2* in "Demo
+  Tvättstuga", ten sessions a day from `02:00–04:00` to `23:30–02:00` (which spans
+  midnight), real `ts_` ids, and booking open four weeks ahead — the week after that is
+  empty, the end of the scroll. Whether somebody else holds a slot is a hash of the slot,
+  likelier for evenings and for days close by, so the week looks the same on every visit.
+- **Bookings, cancellations, dibs and their order are kept in memory** and shared by
+  everyone signed in with it. It starts with one booking already behind the account
+  (yesterday at 16:00, or this morning on a Monday) and one tomorrow evening, and allows
+  two sessions ahead at a time: at the limit, free slots lose `canBook` as they do upstream,
+  which is where dibs come in. A dibs is a place in line (always first) and never books.
+- **It starts over every day** (Stockholm time), and on every restart.
+- **Feedback is still forwarded**, headed as coming from the demo account.
+- Separators are not required: any object id whose digits are eleven zeros is the demo.
 
 ## Is upstream still there?
 

@@ -1,0 +1,1 @@
+First Android release: the week list, booking and cancelling, dibs, the rules for your address, calendar, timer and invites.

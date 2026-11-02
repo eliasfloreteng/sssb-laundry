@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · SSSB Laundry</title>
+<meta name="description" content="What the SSSB Laundry apps and their server do with your object number and the rest of your data.">
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="theme-color" content="#064a88">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #eceff3;
+    --surface: #ffffff;
+    --line: #dde2e9;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --brand: #064a88;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1626;
+      --surface: #182231;
+      --line: #2c3849;
+      --ink: #e6ebf2;
+      --muted: #93a1b5;
+      --brand: #3e8bc8;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; padding: 40px 24px 64px;
+    background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 17px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 720px; margin: 0 auto;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 24px; padding: 36px 32px 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; font-weight: 650; text-decoration: none; color: inherit; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; display: block; }
+  h1 { margin: 28px 0 4px; font-size: 2rem; line-height: 1.15; letter-spacing: -0.025em; }
+  h2 { margin: 30px 0 6px; font-size: 1.15rem; letter-spacing: -0.01em; }
+  p, ul { margin: 0 0 12px; }
+  ul { padding-left: 1.2em; }
+  li { margin-bottom: 6px; }
+  .updated { color: var(--muted); font-size: 15px; }
+  a { color: var(--brand); }
+</style>
+</head>
+<body>
+<main>
+  <a class="brand" href="/"><img src="/icon.png" alt="">SSSB Laundry</a>
+
+  <h1>Privacy</h1>
+  <p class="updated">Updated 2 November 2026. Covers the SSSB Laundry apps for iPhone and Android and the server they talk to.</p>
+
+  <p>SSSB Laundry is made by Elias Floreteng, a private person, and is not affiliated with SSSB or Aptus. It shows and books the laundry timeslots SSSB already offers in its Aptus portal. There are no ads, no analytics and no tracking, and nothing is sold or shared for marketing.</p>
+
+  <h2>Your object number</h2>
+  <p>You sign in with the object number from your rental agreement. SSSB's portal uses it as both username and password, so it is treated as a password:</p>
+  <ul>
+    <li>It is stored on your phone. The Android app also leaves it out of the phone's backups.</li>
+    <li>It is sent, over HTTPS, with each request the app makes to its server at sssb-laundry.eliasf.se. The server uses it to sign in to SSSB's Aptus portal on your behalf and to fetch, book or cancel timeslots there.</li>
+    <li>The server's logs never contain it, only a one-way hash of it.</li>
+  </ul>
+
+  <h2>What the server stores</h2>
+  <p>Looking at and booking timeslots stores nothing. The server keeps data only for the features below, and only when you use them:</p>
+  <ul>
+    <li><strong>Dibs.</strong> When you call dibs on a timeslot, the server stores your object number with that timeslot and group, and the order you rank your dibs and bookings in, so it can book the slot for you when it frees up. Each entry is deleted when you drop it, when you turn dibs off, or shortly after the timeslot has started.</li>
+    <li><strong>Reminders</strong> (iPhone app). When you switch on reminders, the server stores your object number with your device's push notification token and reminder settings, and the bookings it has seen for you, so it can notice new bookings and send reminders. The details of a booking are deleted once the booking is over.</li>
+  </ul>
+
+  <h2>Feedback</h2>
+  <p>A message you send with Send feedback is forwarded to the developer on Telegram, together with your object number, the app version, your phone's model, system version and language, and the street address you picked in Settings, so a problem can be looked into. The server does not store it.</p>
+
+  <h2>On your phone</h2>
+  <p>Your settings, such as active hours, hidden groups and your street address, stay on your phone. Adding a booking to your calendar or starting a timer hands the details to your calendar or clock app; the app itself gets no access to your calendar.</p>
+
+  <h2>Who else sees it</h2>
+  <p>SSSB and its booking system Aptus see your bookings, as they would if you booked in their portal yourself. Telegram carries feedback messages to the developer. The server runs on a cloud server operated by the developer. Nothing else is shared with anyone.</p>
+
+  <h2>Deleting your data</h2>
+  <p>Signing out deletes the object number from your phone, and uninstalling the app deletes everything it stored there. To have the server delete what it holds for your object number, turn off dibs and reminders, or send a message with Send feedback in the app asking for it.</p>
+
+  <h2>Contact</h2>
+  <p>Use Send feedback in the app. The source code of the apps and the server is on <a href="https://github.com/eliasfloreteng/sssb-laundry">GitHub</a>.</p>
+</main>
+</body>
+</html>

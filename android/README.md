@@ -30,8 +30,76 @@ cd android
 ./gradlew installDebug           # onto a running emulator or a connected phone
 ```
 
-`assembleRelease` minifies with R8 and, until there is a release keystore, signs with
-the debug key so the build can still be installed.
+Release builds minify with R8 and are signed with the Play upload key from
+`secrets/` (see below); without it they come out unsigned.
+
+```sh
+./gradlew bundleRelease          # app/build/outputs/bundle/release/app-release.aab, for Play
+./gradlew assembleRelease        # the same build as an APK, to try on a device first
+```
+
+## Releasing on Google Play
+
+The app ships through Play with **Play App Signing**: Play holds the key that signs
+what users install, and an upload goes in signed with an *upload key* of our own. That
+key lives in the gitignored `android/secrets/`, the same convention as `api/secrets/`:
+
+```
+secrets/upload.jks           PKCS12 keystore, alias "upload", valid until 2056
+secrets/upload.properties    storeFile, storePassword, keyAlias, keyPassword
+```
+
+Keep a copy of both somewhere safe, such as a password manager. A lost upload key is
+not fatal, since Play support can reset it, but that takes days.
+
+**Each upload needs a higher `versionCode`** in `app/build.gradle.kts`. Bump it the way
+the iOS build number is bumped, and keep `versionName` in step with the iOS
+`MARKETING_VERSION`.
+
+### Store listing
+
+Everything the listing needs is in `fastlane/metadata/android/`, in the layout `fastlane
+supply` and Play's own tooling read, so it can be pasted in by hand now and uploaded by a
+tool later:
+
+```
+en-US/ sv-SE/   title, short and full description, changelogs/<versionCode>.txt
+en-US/images/   icon.png (512), featureGraphic.png (1024×500), phoneScreenshots/
+```
+
+`fastlane/art/render.sh` redraws the icon and feature graphic from `icon.svg` and
+`feature-graphic.html`. The screenshots are from the emulator at 1080×2160 (`adb shell wm
+size 1080x2160`), because Play refuses anything longer than twice its width, with demo
+mode on for a clean status bar. Settings is scrolled past the object number, which must
+never appear in one.
+
+### Play Console answers
+
+- **Privacy policy:** `https://sssb-laundry.eliasf.se/privacy`, served from
+  `api/site/privacy.html`.
+- **App access:** everything is behind sign-in with an object number, so review needs
+  one, along with a note not to book with it.
+- **Ads:** none. **Category:** House & Home. **Target audience:** 18 and over.
+- **Content rating:** a utility, with no user-to-user content, no location sharing,
+  no purchases.
+- **Data safety:** data is encrypted in transit; there is no account creation; none of
+  it is shared with third parties (booking on SSSB's portal is the user's own request,
+  and Telegram only carries feedback as a service provider). Collected:
+  - *Personal info → User IDs* (the object number): required, for app functionality,
+    and stored server-side only for dibs.
+  - *App activity → Other actions* (dibs and their order): optional, for app
+    functionality.
+  - *App activity → Other user-generated content* (feedback text) and *Personal info
+    → Address* (the street address sent with feedback): optional, for developer
+    communications.
+  - *App info and performance → Diagnostics* (app version, model, OS, language sent
+    with feedback): optional, for developer communications.
+
+### After the first upload
+
+Play shows its **app signing key** certificate under *Test and release → App integrity*.
+Add its SHA-256 fingerprint to `api/site/assetlinks.json`, next to the upload key's,
+or invite links in installs from Play keep opening in the browser.
 
 ## Design
 
@@ -64,6 +132,10 @@ app/src/main/java/se/floreteng/sssblaundry/
     Presenters.kt          ErrorPresenter and group-name formatting
     AppRoot.kt             Sign-in vs signed in, Navigation 3 back stack, switch dialog
     week/ booking/ settings/ dibs/ invite/ feedback/ timer/ signin/
+fastlane/
+  metadata/android/        Play listing text and images, en-US and sv-SE
+  art/                     Sources for the icon and feature graphic, and render.sh
+secrets/                   The upload key (gitignored)
 ```
 
 ## Things that will bite you
@@ -78,8 +150,9 @@ bookings never filtered out, `canBook`/`canCancel` deciding what is offered, opa
 - **The object number is excluded from backups** (`res/xml/backup_rules.xml` and
   `data_extraction_rules.xml`) — it is username and password upstream.
 - **Invite links verify only with Digital Asset Links.** The manifest's intent filter
-  has `autoVerify`, but until the API serves `/.well-known/assetlinks.json` with the
-  signing certificate's fingerprint, Android opens the link in the browser unless the
-  user turns on "Open supported links" for the app.
+  has `autoVerify`, and the API serves `/.well-known/assetlinks.json` from
+  `api/site/assetlinks.json`. A certificate missing from it, such as Play's app signing
+  key before it is added, means Android opens the link in the browser unless the user
+  turns on "Open supported links" for the app.
 - **One view model per object number** (`viewModel(key = objectId)`), so switching
   apartments starts from an empty store, as `WeekView().id(objectId)` does on iOS.

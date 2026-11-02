@@ -1,0 +1,1 @@
+Första versionen för Android: veckolistan, bokning och avbokning, pax, reglerna för din adress, kalender, timer och inbjudningar.

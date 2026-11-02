@@ -1,7 +1,7 @@
 # SSSB Laundry API (Aptus wrapper)
 
-Minimal structured JSON API that wraps SSSB's Aptus Portal laundry booking. Its only
-client is the iOS app in [`../app`](../app), and there is no separate spec — `src/` is
+Minimal structured JSON API that wraps SSSB's Aptus Portal laundry booking. Its
+clients are the iOS app in [`../app`](../app) and the Android app in [`../android`](../android), and there is no separate spec — `src/` is
 the contract, so a route or DTO change lands together with the app's `APIClient.swift`
 and `Models.swift` (see [`../README.md`](../README.md)).
 
@@ -45,6 +45,8 @@ otherwise stateless; only push state is persisted.
 | `GET /`                            | The app's landing page, static from `site/`                  |
 | `GET /invite`                      | An invite, for visitors who do *not* have the app installed  |
 | `GET /.well-known/apple-app-site-association` | What makes `/invite` a universal link       |
+| `GET /.well-known/assetlinks.json` | The same for Android: the certificates that may open `/invite` |
+| `GET /privacy`                     | The privacy policy the App Store and Play listings link to   |
 
 `site/` is served by `@fastify/static` at the root: hand-written `index.html` and
 `invite.html`, the association file, and the app icon copied from

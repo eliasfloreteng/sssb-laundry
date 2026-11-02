@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "se.floreteng.sssblaundry",
+      "sha256_cert_fingerprints": [
+        "EC:1B:D7:BA:D8:BF:F8:00:EE:08:C3:2A:6D:C8:C0:F4:18:5D:99:17:3E:CA:97:CE:4D:57:FF:03:52:87:F7:EB"
+      ]
+    }
+  }
+]

@@ -1,7 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+}
+
+// The Play upload key, kept out of the repo in secrets/ (see README). Play re-signs
+// with its own app signing key, so this one only proves an upload came from us.
+val uploadKey = rootProject.file("secrets/upload.properties").takeIf { it.isFile }?.let { file ->
+    Properties().apply { file.inputStream().use(::load) }
 }
 
 android {
@@ -16,14 +24,24 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        if (uploadKey != null) {
+            create("upload") {
+                storeFile = rootProject.file("secrets/${uploadKey.getProperty("storeFile")}")
+                storePassword = uploadKey.getProperty("storePassword")
+                keyAlias = uploadKey.getProperty("keyAlias")
+                keyPassword = uploadKey.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // No release keystore yet: sign with the debug key so a release build
-            // can still be installed and tried on a device.
-            signingConfig = signingConfigs.getByName("debug")
+            // Without the upload key the bundle comes out unsigned, and Play refuses it.
+            signingConfig = signingConfigs.findByName("upload")
         }
     }
 

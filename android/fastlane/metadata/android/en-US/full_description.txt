@@ -1,0 +1,31 @@
+Book your SSSB laundry timeslots from your phone instead of the Aptus portal or the terminal in the basement. The app talks to the booking system SSSB already runs, so a booking made here is the booking on the terminal downstairs.
+
+Sign in once with the object number from your rental agreement, and it stays signed in.
+
+THE WEEK AS A LIST
+• Every timeslot you can book, day by day, scrolling on into the weeks ahead.
+• Jump straight to a date instead of paging a week at a time.
+• Hide the hours you would never wash, and the groups in the other building.
+
+BOOKING IN ONE GO
+• Book or cancel both groups of a timeslot in one action.
+• Long press a time to book it without opening anything.
+• See at a glance which timeslots are yours.
+
+DIBS
+• Taken timeslot? Call dibs, and it is booked for you the moment it frees up.
+• Already at your limit? Rank your dibs and bookings, and a booking you want less is given up for a dibs you want more.
+
+THE RULES FOR YOUR ADDRESS
+• Max future bookings, max per week and month, and how long your tag opens the door after a session, transcribed from sssb.se and shown for your street address.
+
+AND THE REST
+• Add a booking to your calendar.
+• Start a timer for the machine in the Clock app.
+• Invite the people you live with by link.
+• In English and Swedish, following your phone.
+• Material You colours, dark theme, and nothing you don't need.
+
+Made by Elias Floreteng. Not affiliated with SSSB or Aptus.
+
+Your object number is stored on your phone and sent with each request to the app's server, which uses it to sign in to SSSB's booking portal on your behalf. The server keeps it only for as long as your dibs need it. The app has no ads and no tracking.

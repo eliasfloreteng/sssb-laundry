@@ -1,0 +1,31 @@
+Boka dina tvättpass hos SSSB i mobilen i stället för i Aptusportalen eller på terminalen i källaren. Appen pratar med bokningssystemet SSSB redan använder, så en bokning du gör här är bokningen på terminalen i tvättstugan.
+
+Logga in en gång med objektsnumret från ditt hyresavtal, så förblir du inloggad.
+
+VECKAN SOM EN LISTA
+• Alla tvättpass du kan boka, dag för dag, vidare in i kommande veckor.
+• Hoppa direkt till ett datum i stället för att bläddra en vecka i taget.
+• Dölj tiderna du aldrig skulle tvätta och grupperna i den andra byggnaden.
+
+BOKA I ETT SVEP
+• Boka eller avboka båda grupperna för en tid på en gång.
+• Håll inne på en tid för att boka den utan att öppna något.
+• Se direkt vilka tider som är dina.
+
+PAX
+• Upptagen tid? Säg pax, så bokas den åt dig så fort den blir ledig.
+• Redan fullbokad? Rangordna dina pax och bokningar, så släpps en bokning du hellre avstår för ett pax du hellre vill ha.
+
+REGLERNA FÖR DIN ADRESS
+• Max antal framtida bokningar, max per vecka och månad och hur länge din tagg öppnar dörren efter ett pass, hämtat från sssb.se och visat för din gatuadress.
+
+OCH RESTEN
+• Lägg in en bokning i kalendern.
+• Starta en timer för maskinen i Klocka-appen.
+• Bjud in de du bor med via en länk.
+• På svenska och engelska, efter telefonens språk.
+• Material You-färger, mörkt tema och inget du inte behöver.
+
+Gjord av Elias Floreteng. Inte knuten till SSSB eller Aptus.
+
+Ditt objektsnummer sparas i telefonen och skickas med varje förfrågan till appens server, som använder det för att logga in i SSSB:s bokningsportal åt dig. Servern sparar det bara så länge dina pax behöver det. Appen har ingen reklam och ingen spårning.

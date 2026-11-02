@@ -24,10 +24,12 @@ coverage/
 # Example requests against Aptus — they carry real object ids and sessions
 requests/
 
-# APNs signing key and local SQLite state
+# APNs signing key and local SQLite state (`./data` in production, `api/data` locally).
+# Anchored, so the Android app's `data` package is not caught by it.
 secrets/
 *.p8
-data/
+/data/
+/api/data/
 
 # Env
 .env

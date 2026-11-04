@@ -4,6 +4,11 @@ name: Android release
 # the upload key and rolled out to Play's closed testing track ("Closed testing - Alpha"),
 # whose testers get it as an update.
 #
+# Play then turns the bundle into a universal APK signed with the app signing key, and
+# that APK goes on the tag's GitHub release as sssb-laundry.apk, which /android/download
+# on the server points at. Being Play-signed, an installed APK and the Play build update
+# one another.
+#
 # bump-build.yml cuts those tags and calls this workflow itself, because a tag pushed
 # with the workflow's own token never starts another workflow. A tag pushed by hand
 # starts it through `push`. Run it by hand on a tag to retry a failed upload, or as a
@@ -26,7 +31,8 @@ on:
         default: false
 
 permissions:
-  contents: read
+  # Attaching the APK to the release.
+  contents: write
 
 concurrency:
   group: android-release
@@ -72,11 +78,14 @@ jobs:
         run: ./gradlew :app:bundleRelease
 
       - name: Summarize
+        id: version
         run: |
           set -euo pipefail
           code=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | grep -oE '[0-9]+')
           name=$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | cut -d'"' -f2)
           echo "Built $name ($code) from \`${{ inputs.ref || github.ref_name }}\`." >> "$GITHUB_STEP_SUMMARY"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -118,3 +127,50 @@ jobs:
             --skip_upload_images true \
             --skip_upload_screenshots true \
             --skip_upload_apk true
+
+      # Generated as the bundle is committed to the track, so it is normally there at
+      # once; the retries cover a slow one. A dry run fetches the APK of the version on
+      # the checked-out ref, which Play already has, as a check of the same permissions.
+      - name: Fetch the universal APK from Play
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/play.json"
+          printf '%s' "$SUPPLY_JSON_KEY_DATA" > "$key"
+          trap 'rm -f "$key"' EXIT
+          for attempt in 1 2 3 4 5; do
+            if fastlane run download_universal_apk_from_google_play \
+                package_name:se.floreteng.sssblaundry \
+                version_code:"$VERSION_CODE" \
+                json_key:"$key" \
+                destination:"$RUNNER_TEMP/sssb-laundry.apk"; then
+              break
+            fi
+            [ "$attempt" = 5 ] && exit 1
+            sleep 60
+          done
+          unzip -l "$RUNNER_TEMP/sssb-laundry.apk" AndroidManifest.xml > /dev/null
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sssb-laundry.apk
+          path: ${{ runner.temp }}/sssb-laundry.apk
+
+      # bump-build.yml creates the release before calling this; a tag pushed by hand
+      # has none yet, so it gets one here.
+      - name: Attach the APK to the release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.ref || github.ref_name }}
+          NAME: ${{ steps.version.outputs.name }}
+          CODE: ${{ steps.version.outputs.code }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" > /dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --title "$NAME ($CODE)" \
+              --notes "Build $CODE of $NAME."
+          fi
+          gh release upload "$TAG" "$RUNNER_TEMP/sssb-laundry.apk" --clobber

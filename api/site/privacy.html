@@ -59,7 +59,7 @@
   <a class="brand" href="/"><img src="/icon.png" alt="">SSSB Laundry</a>
 
   <h1>Privacy</h1>
-  <p class="updated">Updated 2 November 2026. Covers the SSSB Laundry apps for iPhone and Android and the server they talk to.</p>
+  <p class="updated">Updated 4 November 2026. Covers the SSSB Laundry apps for iPhone and Android and the server they talk to.</p>
 
   <p>SSSB Laundry is made by Elias Floreteng and published by Accord Software AB, and is not affiliated with SSSB or Aptus. It shows and books the laundry timeslots SSSB already offers in its Aptus portal. There are no ads, no analytics and no tracking, and nothing is sold or shared for marketing.</p>
 
@@ -75,8 +75,9 @@
   <p>Looking at and booking timeslots stores nothing. The server keeps data only for the features below, and only when you use them:</p>
   <ul>
     <li><strong>Dibs.</strong> When you call dibs on a timeslot, the server stores your object number with that timeslot and group, and the order you rank your dibs and bookings in, so it can book the slot for you when it frees up. Each entry is deleted when you drop it, when you turn dibs off, or shortly after the timeslot has started.</li>
-    <li><strong>Reminders</strong> (iPhone app). When you switch on reminders, the server stores your object number with your device's push notification token and reminder settings, and the bookings it has seen for you, so it can notice new bookings and send reminders. The details of a booking are deleted once the booking is over.</li>
+    <li><strong>Reminders.</strong> When you switch on reminders, the server stores your object number with your device's push notification token and reminder settings, and the bookings it has seen for you, so it can notice new bookings and send reminders. The details of a booking are deleted once the booking is over.</li>
   </ul>
+  <p>Notifications travel through Apple Push Notification service on iPhone and Firebase Cloud Messaging, Google's push service, on Android. A notification carries the time and machines of the booking it is about, never your object number.</p>
 
   <h2>Feedback</h2>
   <p>A message you send with Send feedback is forwarded to the developer on Telegram, together with your object number, the app version, your phone's model, system version and language, and the street address you picked in Settings, so a problem can be looked into. The server does not store it.</p>

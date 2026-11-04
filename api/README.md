@@ -49,7 +49,8 @@ otherwise stateless; only push state is persisted.
 | `GET /.well-known/apple-app-site-association` | What makes `/invite` a universal link       |
 | `GET /.well-known/assetlinks.json` | The same for Android: the certificates that may open `/invite` |
 | `GET /privacy`                     | The privacy policy the App Store and Play listings link to   |
-| `GET /android`                     | How to join the Android test on Google Play                  |
+| `GET /android`                     | How to install the Android app: the APK, or the Play test    |
+| `GET /android/download`            | Redirect to the newest release's APK on GitHub               |
 
 `site/` is served by `@fastify/static` at the root: hand-written `index.html` and
 `invite.html`, the association file, and the app icon copied from

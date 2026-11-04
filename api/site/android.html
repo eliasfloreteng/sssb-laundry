@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SSSB Laundry for Android</title>
-<meta name="description" content="Join the SSSB Laundry Android test: join the testers group, opt in on Google Play, and install.">
+<meta name="description" content="Install SSSB Laundry on Android: download the app, or get it from the test on Google Play.">
 <link rel="icon" href="/icon.png">
 <link rel="apple-touch-icon" href="/icon.png">
 <meta name="theme-color" content="#064a88">
@@ -106,6 +106,17 @@
   .steps.big .head { display: flex; gap: 11px; align-items: center; color: var(--ink); font-weight: 650; }
   .steps.big .body { margin: 6px 0 0 32px; }
   .steps.big .btn { margin-top: 12px; padding: 12px 18px; }
+
+  .steps b { white-space: nowrap; }
+
+  details { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 22px; text-align: left; }
+  summary {
+    cursor: pointer; font-weight: 650; color: var(--brand); text-align: center;
+    list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  details .lede { margin-top: 12px; font-size: 15px; text-align: center; }
+  details .steps.big { margin-top: 22px; }
 </style>
 </head>
 <body>
@@ -114,7 +125,19 @@
   <img class="icon" src="/icon.png" alt="">
 
   <h1>SSSB Laundry for Android</h1>
-  <p class="lede">The Android app is in a test on Google Play. Anyone can join, in three steps, with the Google account your phone uses.</p>
+  <p class="lede">Download the app and install it. Android asks once whether your browser may install apps.</p>
+
+  <a class="btn" href="/android/download" download="sssb-laundry.apk">Download the app</a>
+
+  <ol class="steps">
+    <li><span class="n">1</span><span>Open the downloaded <b>sssb-laundry.apk</b>.</span></li>
+    <li><span class="n">2</span><span>If Android asks, allow your browser to install unknown apps, then go back.</span></li>
+    <li><span class="n">3</span><span>Tap <b>Install</b>. To update later, download it again from this page.</span></li>
+  </ol>
+
+  <details>
+  <summary>Or get it from Google Play</summary>
+  <p class="lede">The app is also in a test on Google Play, where it updates by itself. Anyone can join, in three steps, with the Google account your phone uses.</p>
 
   <ol class="steps big">
     <li>
@@ -133,6 +156,7 @@
         <a class="btn" href="https://play.google.com/store/apps/details?id=se.floreteng.sssblaundry">Get it on Google Play</a></span>
     </li>
   </ol>
+  </details>
 </div>
 
 <p class="fine">Android 10 or later. On an iPhone? <a href="https://testflight.apple.com/join/gn5fHjdC">Join the TestFlight beta</a>. <a href="/">What SSSB Laundry does</a></p>

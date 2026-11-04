@@ -142,6 +142,12 @@ export function buildServer(args?: {
     reply.sendFile("android.html");
   });
 
+  // The APK of the newest release: Play's universal APK, which android-release.yml
+  // attaches to every release, so it is signed like the Play build.
+  app.get("/android/download", (_request, reply) => {
+    reply.redirect(ANDROID_APK_URL);
+  });
+
   // An invite. Reached only when the app is *not* installed — with it, iOS opens
   // the app on this URL instead of loading anything. The object number is in the
   // fragment, so it never arrives here and never reaches the log; the page reads
@@ -351,6 +357,7 @@ const APP_SITE_ASSOCIATION = readFileSync(
  * installed outside Play, and Play's app signing key, which signs every install
  * from the store; both come from Play Console under App integrity.
  */
+const ANDROID_APK_URL = "https://github.com/eliasfloreteng/sssb-laundry/releases/latest/download/sssb-laundry.apk";
 const ASSET_LINKS = readFileSync(fileURLToPath(new URL("../site/assetlinks.json", import.meta.url)), "utf8");
 
 /** Per-group statuses that count as a real state change worth notifying about. */

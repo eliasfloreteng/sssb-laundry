@@ -51,6 +51,7 @@ otherwise stateless; only push state is persisted.
 | `GET /privacy`                     | The privacy policy the App Store and Play listings link to   |
 | `GET /android`                     | How to install the Android app: the APK, or the Play test    |
 | `GET /android/download`            | Redirect to the newest release's APK on GitHub               |
+| `GET /android/latest`              | `{ versionCode, versionName }` of that APK, for the app      |
 
 `site/` is served by `@fastify/static` at the root: hand-written `index.html` and
 `invite.html`, the association file, and the app icon copied from

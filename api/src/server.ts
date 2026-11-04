@@ -3,6 +3,7 @@ import fastifyStatic from "@fastify/static";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
+import { AndroidReleases } from "./android-release.js";
 import { AptusClient } from "./aptus-client.js";
 import type { PushEnvironment, PushPlatform } from "./db.js";
 import { createDemoBackend, isDemoObjectId } from "./demo.js";
@@ -69,6 +70,7 @@ export function buildServer(args?: {
   feedbackService?: FeedbackService | null;
   upstreamCheck?: UpstreamCheck;
   demoBackend?: Backend;
+  androidReleases?: AndroidReleases;
 }): LaundryServer {
   const logLevel = process.env.LOG_LEVEL ?? "info";
   const app = Fastify({
@@ -83,6 +85,7 @@ export function buildServer(args?: {
   const push = args?.pushService !== undefined ? args.pushService : createPushService(aptus, app.log);
   const dibs = args?.dibsService !== undefined ? args.dibsService : createDibsService(push, aptus, app.log);
   const upstream = args?.upstreamCheck ?? createUpstreamCheck(aptus, app.log);
+  const androidReleases = args?.androidReleases ?? new AndroidReleases({ logger: app.log });
   const feedback = args?.feedbackService !== undefined ? args.feedbackService : createFeedbackService(app.log);
   const live: Backend = { aptus, push, dibs, feedback };
   // Store reviewers sign in with the demo object number, and are served from
@@ -143,9 +146,23 @@ export function buildServer(args?: {
   });
 
   // The APK of the newest release: Play's universal APK, which android-release.yml
-  // attaches to every release, so it is signed like the Play build.
-  app.get("/android/download", (_request, reply) => {
-    reply.redirect(ANDROID_APK_URL);
+  // attaches to every release, so it is signed like the Play build. GitHub's own
+  // "latest" link is only the fallback, as it 404s while a new release still waits
+  // for its APK.
+  app.get("/android/download", async (_request, reply) => {
+    const release = await androidReleases.latest();
+    return reply.redirect(release?.apkUrl ?? ANDROID_APK_URL);
+  });
+
+  // What an APK install compares itself with to offer an update. Public, like the
+  // download: it says nothing about anyone.
+  app.get("/android/latest", async (_request, reply) => {
+    const release = await androidReleases.latest();
+    if (!release) {
+      throw new AppError({ statusCode: 503, code: "NO_RELEASE", message: "No Android release is available" });
+    }
+    reply.header("cache-control", "public, max-age=300");
+    return { versionCode: release.versionCode, versionName: release.versionName };
   });
 
   // An invite. Reached only when the app is *not* installed — with it, iOS opens

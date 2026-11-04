@@ -363,6 +363,9 @@ export function createDemoBackend(args: {
       cancelTimeslot: async (_objectId, timeslotId, groupIds) => laundry.cancelTimeslot(timeslotId, groupIds)
     },
     push: {
+      // Accepted and forgotten: the demo sends no pushes, but the app's
+      // reminder settings should still save without an error.
+      supports: () => true,
       registerDevice: () => {},
       unregisterDevice: () => {},
       enqueueTestNotification: () => 0,

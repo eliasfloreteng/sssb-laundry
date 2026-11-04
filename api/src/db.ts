@@ -3,11 +3,16 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 export type PushEnvironment = "sandbox" | "production";
+/** Which push service reaches the device: APNs for the iPhone app, FCM for Android. */
+export type PushPlatform = "ios" | "android";
 export type NotificationKind = "reminder" | "new_booking" | "cancelled" | "dibs_won";
 
 export interface DeviceRow {
   token: string;
   objectId: string;
+  /** Absent means "ios": every device registered before Android had push was an iPhone. */
+  platform?: PushPlatform;
+  /** APNs only; an Android device is stored as "production" and the value never read. */
   environment: PushEnvironment;
   enabled: boolean;
   alertMinutes: number | null;
@@ -38,6 +43,7 @@ export interface OutboxRow {
   token: string;
   kind: NotificationKind;
   objectId: string;
+  platform: PushPlatform;
   environment: PushEnvironment;
   startAt: string;
   endAt: string;
@@ -82,12 +88,15 @@ export interface NotificationLabels {
   endTime: string;
   /** A dibs won by giving up another booking: when that one was, day and time. */
   replaced?: string;
+  /** The same booking's start as ISO, for Android, which formats it in its own locale. */
+  replacedStartAt?: string;
 }
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS devices (
   token                TEXT PRIMARY KEY,
   object_id            TEXT NOT NULL,
+  platform             TEXT NOT NULL DEFAULT 'ios',
   environment          TEXT NOT NULL,
   enabled              INTEGER NOT NULL DEFAULT 1,
   alert_minutes        INTEGER,
@@ -183,6 +192,9 @@ export class Store {
     if (!columns.some((c) => c.name === "push_version")) {
       this.db.exec("ALTER TABLE devices ADD COLUMN push_version INTEGER NOT NULL DEFAULT 0");
     }
+    if (!columns.some((c) => c.name === "platform")) {
+      this.db.exec("ALTER TABLE devices ADD COLUMN platform TEXT NOT NULL DEFAULT 'ios'");
+    }
   }
 
   close(): void {
@@ -195,10 +207,11 @@ export class Store {
     const now = nowSeconds();
     this.db
       .query(
-        `INSERT INTO devices (token, object_id, environment, enabled, alert_minutes, second_alert_minutes, push_version, created_at, updated_at)
-         VALUES ($token, $objectId, $environment, $enabled, $alert, $second, $pushVersion, $now, $now)
+        `INSERT INTO devices (token, object_id, platform, environment, enabled, alert_minutes, second_alert_minutes, push_version, created_at, updated_at)
+         VALUES ($token, $objectId, $platform, $environment, $enabled, $alert, $second, $pushVersion, $now, $now)
          ON CONFLICT(token) DO UPDATE SET
            object_id            = excluded.object_id,
+           platform             = excluded.platform,
            environment          = excluded.environment,
            enabled              = excluded.enabled,
            alert_minutes        = excluded.alert_minutes,
@@ -209,6 +222,7 @@ export class Store {
       .run({
         $token: device.token,
         $objectId: device.objectId,
+        $platform: device.platform ?? "ios",
         $environment: device.environment,
         $enabled: device.enabled ? 1 : 0,
         $alert: device.alertMinutes,
@@ -358,7 +372,7 @@ export class Store {
   dueNotifications(now = nowSeconds(), limit = 100): OutboxRow[] {
     const rows = this.db
       .query(
-        `SELECT o.*, d.environment AS environment
+        `SELECT o.*, d.platform AS platform, d.environment AS environment
            FROM outbox o
            JOIN devices d ON d.token = o.token
           WHERE o.sent_at IS NULL AND o.fire_at <= ? AND d.enabled = 1
@@ -399,7 +413,7 @@ export class Store {
   sentForBooking(objectId: string, startAt: string): OutboxRow[] {
     const rows = this.db
       .query(
-        `SELECT o.*, d.environment AS environment
+        `SELECT o.*, d.platform AS platform, d.environment AS environment
            FROM outbox o
            JOIN devices d ON d.token = o.token
           WHERE o.sent_at IS NOT NULL AND o.kind <> 'cancelled'
@@ -560,6 +574,7 @@ function toDevice(row: Record<string, unknown>): DeviceRow {
   return {
     token: row.token as string,
     objectId: row.object_id as string,
+    platform: (row.platform as PushPlatform | null) ?? "ios",
     environment: row.environment as PushEnvironment,
     enabled: Boolean(row.enabled),
     alertMinutes: (row.alert_minutes as number | null) ?? null,
@@ -608,6 +623,7 @@ function toOutbox(row: Record<string, unknown>): OutboxRow {
     token: row.token as string,
     kind: row.kind as NotificationKind,
     objectId: row.object_id as string,
+    platform: (row.platform as PushPlatform | null) ?? "ios",
     environment: row.environment as PushEnvironment,
     startAt: row.start_at as string,
     endAt: row.end_at as string,

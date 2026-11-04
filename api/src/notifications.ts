@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { AptusClient, hashObjectId, type LoggerLike } from "./aptus-client.js";
-import { ApnsClient, loadApnsConfig, type ApnsRequest } from "./apns.js";
+import { ApnsClient, loadApnsConfig, type ApnsOutcome, type ApnsRequest } from "./apns.js";
+import { FcmClient, loadFcmConfig } from "./fcm.js";
 import {
   Store,
   decodeGroupIds,
@@ -9,7 +10,7 @@ import {
   type DeviceRow,
   type NotificationLabels,
   type OutboxRow,
-  type PushEnvironment
+  type PushPlatform
 } from "./db.js";
 import { encodeTimeslotId } from "./timeslot-id.js";
 import { STOCKHOLM_TZ, type TimeslotsResponse } from "./types.js";
@@ -30,7 +31,9 @@ export interface OwnedSlot {
 export interface PushServiceOptions {
   store: Store;
   aptus: AptusClient;
-  apns: ApnsClient;
+  /** Either may be absent: a server can push to iPhones, to Android, or both. */
+  apns: ApnsClient | null;
+  fcm?: FcmClient | null;
   logger?: LoggerLike;
   pollMinutes?: number;
   pollWeeks?: number;
@@ -40,7 +43,8 @@ export class PushService {
   /** Shared with the dibs service, which queues on the same database. */
   readonly store: Store;
   private readonly aptus: AptusClient;
-  private readonly apns: ApnsClient;
+  private readonly apns: ApnsClient | null;
+  private readonly fcm: FcmClient | null;
   private readonly logger?: LoggerLike;
   private readonly pollMinutes: number;
   private readonly pollWeeks: number;
@@ -52,6 +56,7 @@ export class PushService {
     this.store = options.store;
     this.aptus = options.aptus;
     this.apns = options.apns;
+    this.fcm = options.fcm ?? null;
     this.logger = options.logger;
     this.pollMinutes = options.pollMinutes ?? Number(process.env.PUSH_POLL_MINUTES ?? 10);
     this.pollWeeks = options.pollWeeks ?? Number(process.env.PUSH_POLL_WEEKS ?? 3);
@@ -70,7 +75,12 @@ export class PushService {
   stop(): void {
     for (const timer of this.timers) clearInterval(timer);
     this.timers = [];
-    this.apns.close();
+    this.apns?.close();
+  }
+
+  /** Whether this server holds credentials for the push service a platform uses. */
+  supports(platform: PushPlatform): boolean {
+    return platform === "android" ? this.fcm !== null : this.apns !== null;
   }
 
   // --- route hooks -----------------------------------------------------
@@ -167,6 +177,7 @@ export class PushService {
     if (replaced) {
       const start = DateTime.fromISO(replaced.startAt).setZone(STOCKHOLM_TZ);
       labels.replaced = start.isValid ? start.toFormat("ccc d LLL HH:mm") : replaced.startAt;
+      labels.replacedStartAt = replaced.startAt;
     }
     // How far off the start is decides whether the body carries the
     // "activate within 15 minutes" warning, the same way it does for reminders.
@@ -443,15 +454,7 @@ export class PushService {
   }
 
   private async deliver(row: OutboxRow): Promise<void> {
-    const labels = JSON.parse(row.labels) as NotificationLabels;
-    const groupIds = decodeGroupIds(row.groupIds);
-
-    const outcome = await this.apns.send({
-      token: row.token,
-      environment: row.environment,
-      payload: buildPayload(row, labels, groupIds, this.store.getDevice(row.token)?.pushVersion ?? 0),
-      ...deliveryOptions(row)
-    });
+    const outcome = await this.send(row);
 
     if (outcome.kind === "sent") {
       this.store.markSent(row.id);
@@ -472,9 +475,63 @@ export class PushService {
       this.store.dropNotification(row.id);
     }
   }
+
+  private async send(row: OutboxRow): Promise<ApnsOutcome> {
+    const labels = JSON.parse(row.labels) as NotificationLabels;
+    const groupIds = decodeGroupIds(row.groupIds);
+    const options = deliveryOptions(row);
+
+    if (row.platform === "android") {
+      if (!this.fcm) return { kind: "failed", status: 0, reason: "FCM is not configured", retryable: false };
+      return this.fcm.send({
+        token: row.token,
+        data: buildFcmData(row, labels, groupIds),
+        collapseKey: options.collapseId,
+        expiration: options.expiration
+      });
+    }
+
+    if (!this.apns) return { kind: "failed", status: 0, reason: "APNs is not configured", retryable: false };
+    return this.apns.send({
+      token: row.token,
+      environment: row.environment,
+      payload: buildPayload(row, labels, groupIds, this.store.getDevice(row.token)?.pushVersion ?? 0),
+      ...options
+    });
+  }
 }
 
 // --- payloads ----------------------------------------------------------
+
+/**
+ * Android's push is a data message: the app picks the wording from its own
+ * resources and formats the times in the phone's language, so what travels is
+ * the booking itself rather than localization keys. Every value is a string,
+ * as FCM requires. `offsetMinutes` drives the same title and grace-period
+ * choices `buildPayload` makes for iOS.
+ */
+export function buildFcmData(
+  row: Pick<OutboxRow, "kind" | "startAt" | "endAt" | "offsetMinutes">,
+  labels: NotificationLabels,
+  groupIds: number[]
+): Record<string, string> {
+  const data: Record<string, string> = {
+    kind: row.kind,
+    timeslotId: encodeTimeslotId(row.startAt, row.endAt),
+    startAt: row.startAt,
+    endAt: row.endAt,
+    groupIds: groupIds.join(",")
+  };
+  if (row.kind === "cancelled") return data;
+
+  data.machines = labels.machines.join(", ");
+  data.location = labels.location;
+  if ((row.kind === "reminder" || row.kind === "dibs_won") && row.offsetMinutes !== null) {
+    data.offsetMinutes = String(row.offsetMinutes);
+  }
+  if (row.kind === "dibs_won" && labels.replacedStartAt) data.replacedStartAt = labels.replacedStartAt;
+  return data;
+}
 
 export function buildPayload(
   row: Pick<OutboxRow, "kind" | "startAt" | "endAt" | "groupIds" | "offsetMinutes">,
@@ -727,11 +784,17 @@ export function createPushService(
   logger?: LoggerLike
 ): PushService | null {
   if (process.env.PUSH_ENABLED !== "true") return null;
-  const config = loadApnsConfig();
-  if (!config) {
-    logger?.warn?.({}, "PUSH_ENABLED is set but APNs configuration is incomplete");
-    return null;
-  }
+  const apnsConfig = loadApnsConfig();
+  const fcmConfig = loadFcmConfig();
+  if (!apnsConfig) logger?.warn?.({}, "PUSH_ENABLED is set but APNs configuration is incomplete; no iPhone pushes");
+  if (!fcmConfig) logger?.warn?.({}, "PUSH_ENABLED is set but FCM configuration is missing; no Android pushes");
+  if (!apnsConfig && !fcmConfig) return null;
   const store = new Store();
-  return new PushService({ store, aptus, apns: new ApnsClient(config, logger), logger });
+  return new PushService({
+    store,
+    aptus,
+    apns: apnsConfig ? new ApnsClient(apnsConfig, logger) : null,
+    fcm: fcmConfig ? new FcmClient(fcmConfig, logger) : null,
+    logger
+  });
 }

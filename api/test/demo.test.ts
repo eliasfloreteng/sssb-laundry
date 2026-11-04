@@ -210,6 +210,12 @@ describe("demo object number", () => {
       const device = { deviceToken: "a".repeat(64), environment: "production", alertMinutes: 30 };
       expect((await request("PUT", "/notifications/device", device)).json<object>()).toEqual({ ok: true });
       expect((await request("DELETE", "/notifications/device", { deviceToken: "a".repeat(64) })).json<object>()).toEqual({ ok: true });
+
+      const android = { platform: "android", deviceToken: "dX:APA91b" + "y".repeat(140), alertMinutes: 30 };
+      expect((await request("PUT", "/notifications/device", android)).json<object>()).toEqual({ ok: true });
+      // An APNs-shaped token is not an FCM one, and an unknown platform is refused.
+      expect((await request("PUT", "/notifications/device", { ...android, deviceToken: "a".repeat(64) })).statusCode).toBe(400);
+      expect((await request("PUT", "/notifications/device", { ...device, platform: "windows" })).statusCode).toBe(400);
     } finally {
       await app.close();
     }

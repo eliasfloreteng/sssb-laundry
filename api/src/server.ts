@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { AppError, asError } from "./errors.js";
 import { AptusClient } from "./aptus-client.js";
-import type { PushEnvironment } from "./db.js";
+import type { PushEnvironment, PushPlatform } from "./db.js";
 import { createDemoBackend, isDemoObjectId } from "./demo.js";
 import { createDibsService, PRIORITY_LIMIT, type DibsService } from "./dibs.js";
 import { createFeedbackService, FEEDBACK_MAX_LENGTH, type FeedbackContext, type FeedbackService } from "./feedback.js";
@@ -25,7 +25,10 @@ interface TimeslotParams {
 }
 
 interface DeviceBody {
+  /** "ios" (the default, so older iPhone builds need not send it) or "android". */
+  platform?: unknown;
   deviceToken?: unknown;
+  /** APNs only. */
   environment?: unknown;
   enabled?: unknown;
   alertMinutes?: unknown;
@@ -45,7 +48,7 @@ interface FeedbackBody {
  */
 export interface Backend {
   aptus: Pick<AptusClient, "listTimeslots" | "bookTimeslot" | "cancelTimeslot">;
-  push: Pick<PushService, "registerDevice" | "unregisterDevice" | "enqueueTestNotification" | "onBooked" | "onCancelled"> | null;
+  push: Pick<PushService, "supports" | "registerDevice" | "unregisterDevice" | "enqueueTestNotification" | "onBooked" | "onCancelled"> | null;
   dibs: Pick<DibsService, "call" | "drop" | "dropAll" | "setPriority" | "annotate" | "onReleased"> | null;
   feedback: Pick<FeedbackService, "submit"> | null;
 }
@@ -240,10 +243,14 @@ export function buildServer(args?: {
     const { objectId, backend } = caller(request);
     if (!backend.push) throw pushDisabled();
     const body = request.body ?? {};
+    const platform = parsePlatform(body.platform);
+    if (!backend.push.supports(platform)) throw pushDisabled();
     backend.push.registerDevice({
-      token: parseDeviceToken(body.deviceToken),
+      token: parseDeviceToken(body.deviceToken, platform),
       objectId,
-      environment: parseEnvironment(body.environment),
+      platform,
+      // Android has no sandbox: FCM decides from the token alone.
+      environment: platform === "android" ? "production" : parseEnvironment(body.environment),
       enabled: body.enabled !== false,
       alertMinutes: parseAlertMinutes(body.alertMinutes, "alertMinutes"),
       secondAlertMinutes: parseAlertMinutes(body.secondAlertMinutes, "secondAlertMinutes"),
@@ -257,7 +264,8 @@ export function buildServer(args?: {
   app.delete<{ Body: DeviceBody }>("/notifications/device", async (request) => {
     const { backend } = caller(request);
     if (!backend.push) throw pushDisabled();
-    backend.push.unregisterDevice(parseDeviceToken((request.body ?? {}).deviceToken));
+    const body = request.body ?? {};
+    backend.push.unregisterDevice(parseDeviceToken(body.deviceToken, parsePlatform(body.platform)));
     return { ok: true };
   });
 
@@ -356,12 +364,30 @@ function succeededGroupIds(
   return results.filter((r) => accepted.has(r.status)).map((r) => r.groupId);
 }
 
-/** Optional: the app identifies its APNs token so it can be skipped on announcements. */
+/** APNs tokens are 32 bytes of hex; FCM registration tokens are long, opaque and URL-safe. */
+const APNS_TOKEN = /^[0-9a-fA-F]{64}$/;
+const FCM_TOKEN = /^[A-Za-z0-9_:-]{100,4096}$/;
+
+/**
+ * Optional: the app identifies its push token so it can be skipped on
+ * announcements. Either kind is accepted; an APNs one is stored lowercase.
+ */
 function deviceToken(request: FastifyRequest): string | null {
   const raw = request.headers["x-device-token"];
-  return typeof raw === "string" && /^[0-9a-fA-F]{64}$/.test(raw.trim())
-    ? raw.trim().toLowerCase()
-    : null;
+  if (typeof raw !== "string") return null;
+  const token = raw.trim();
+  if (APNS_TOKEN.test(token)) return token.toLowerCase();
+  return FCM_TOKEN.test(token) ? token : null;
+}
+
+function parsePlatform(value: unknown): PushPlatform {
+  if (value === undefined || value === null || value === "ios") return "ios";
+  if (value === "android") return "android";
+  throw new AppError({
+    statusCode: 400,
+    code: "INVALID_PLATFORM",
+    message: "platform must be 'ios' or 'android'"
+  });
 }
 
 function pushDisabled(): AppError {
@@ -372,15 +398,22 @@ function pushDisabled(): AppError {
   });
 }
 
-function parseDeviceToken(value: unknown): string {
-  if (typeof value !== "string" || !/^[0-9a-fA-F]{64}$/.test(value.trim())) {
+function parseDeviceToken(value: unknown, platform: PushPlatform): string {
+  const token = typeof value === "string" ? value.trim() : "";
+  if (platform === "android") {
+    if (FCM_TOKEN.test(token)) return token;
     throw new AppError({
       statusCode: 400,
       code: "INVALID_DEVICE_TOKEN",
-      message: "deviceToken must be a 64-character hex APNs token"
+      message: "deviceToken must be an FCM registration token"
     });
   }
-  return value.trim().toLowerCase();
+  if (APNS_TOKEN.test(token)) return token.toLowerCase();
+  throw new AppError({
+    statusCode: 400,
+    code: "INVALID_DEVICE_TOKEN",
+    message: "deviceToken must be a 64-character hex APNs token"
+  });
 }
 
 function parseEnvironment(value: unknown): PushEnvironment {

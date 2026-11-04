@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Store } from "../src/db.js";
-import { PushService, activeOffsets, buildLabels, buildPayload, leadUnit } from "../src/notifications.js";
+import { PushService, activeOffsets, buildFcmData, buildLabels, buildPayload, leadUnit } from "../src/notifications.js";
+import { classify as classifyFcm, type FcmClient } from "../src/fcm.js";
 import type { AptusClient } from "../src/aptus-client.js";
 import type { ApnsClient } from "../src/apns.js";
 import type { TimeslotsResponse } from "../src/types.js";
@@ -54,6 +55,7 @@ function service(args: {
   store: Store;
   responses: TimeslotsResponse[] | (() => never);
   sent?: unknown[];
+  fcmSent?: unknown[];
 }): PushService {
   const responses = args.responses;
   let call = 0;
@@ -74,7 +76,14 @@ function service(args: {
     close: () => {}
   } as unknown as ApnsClient;
 
-  return new PushService({ store: args.store, aptus, apns, pollWeeks: 1 });
+  const fcm = {
+    send: async (request: unknown) => {
+      args.fcmSent?.push(request);
+      return { kind: "sent" as const };
+    }
+  } as unknown as FcmClient;
+
+  return new PushService({ store: args.store, aptus, apns, fcm, pollWeeks: 1 });
 }
 
 /** Start far enough out that every alert offset is still in the future. */
@@ -386,6 +395,103 @@ describe("sending", () => {
 
     expect(sent).toHaveLength(1);
     expect(store.dueNotifications()).toHaveLength(0);
+  });
+});
+
+describe("android", () => {
+  const FCM_TOKEN = "f".repeat(20) + ":APA91b" + "x".repeat(140);
+  const labels = { machines: ["Grupp 1", "Grupp 2"], location: "Domus", dayLabel: "Mon 4 May", startTime: "07:00", endTime: "10:00" };
+
+  it("sends an Android device's pushes through FCM, not APNs", async () => {
+    const store = memoryStore();
+    const slot = futureSlot();
+    const sent: unknown[] = [];
+    const fcmSent: unknown[] = [];
+    store.upsertDevice({
+      token: FCM_TOKEN, objectId: "obj", platform: "android", environment: "production", enabled: true,
+      alertMinutes: 0, secondAlertMinutes: null
+    });
+    const push = service({ store, responses: [week({ fromDate: "2026-05-04", toDate: "2026-05-10", ...slot, ownGroups: [162] })], sent, fcmSent });
+    await push.pollObject("obj");
+    store.enqueue({
+      token: FCM_TOKEN, kind: "reminder", objectId: "obj",
+      startAt: slot.startAt, endAt: slot.endAt, groupIds: [162],
+      labels, offsetMinutes: 30, fireAt: 1
+    });
+
+    await push.sendDue();
+
+    expect(sent).toHaveLength(0);
+    expect(fcmSent).toHaveLength(1);
+    const request = fcmSent[0] as { token: string; data: Record<string, string>; collapseKey: string; expiration: number };
+    expect(request.token).toBe(FCM_TOKEN);
+    expect(request.data).toMatchObject({ kind: "reminder", offsetMinutes: "30", groupIds: "162", startAt: slot.startAt });
+    expect(request.collapseKey).toStartWith("booking.");
+    // Never delivered after the booking would have been released.
+    expect(request.expiration).toBe(Math.floor(Date.parse(slot.startAt) / 1000) + 15 * 60);
+    expect(store.dueNotifications()).toHaveLength(0);
+  });
+
+  it("knows which platforms it has credentials for", () => {
+    const store = memoryStore();
+    const push = new PushService({ store, aptus: {} as AptusClient, apns: null, fcm: {} as FcmClient });
+    expect(push.supports("android")).toBe(true);
+    expect(push.supports("ios")).toBe(false);
+  });
+
+  it("carries the booking as plain strings", () => {
+    const row = { kind: "reminder" as const, startAt: "2026-05-04T07:00:00+02:00", endAt: "2026-05-04T10:00:00+02:00", offsetMinutes: 60 };
+    const data = buildFcmData(row, labels, [162, 163]);
+    expect(data).toMatchObject({
+      kind: "reminder", startAt: row.startAt, endAt: row.endAt, groupIds: "162,163",
+      machines: "Grupp 1, Grupp 2", location: "Domus", offsetMinutes: "60"
+    });
+    expect(data.timeslotId).toBeString();
+    for (const value of Object.values(data)) expect(value).toBeString();
+  });
+
+  it("names the booking a dibs gave up, and leaves a new booking without an offset", () => {
+    const dibs = buildFcmData(
+      { kind: "dibs_won", startAt: "2026-05-04T07:00:00+02:00", endAt: "2026-05-04T10:00:00+02:00", offsetMinutes: 5 },
+      { ...labels, replaced: "Tue 5 May 07:00", replacedStartAt: "2026-05-05T07:00:00+02:00" },
+      [162]
+    );
+    expect(dibs).toMatchObject({ kind: "dibs_won", offsetMinutes: "5", replacedStartAt: "2026-05-05T07:00:00+02:00" });
+
+    const announced = buildFcmData(
+      { kind: "new_booking", startAt: "2026-05-04T07:00:00+02:00", endAt: "2026-05-04T10:00:00+02:00", offsetMinutes: null },
+      labels,
+      [162]
+    );
+    expect(announced.offsetMinutes).toBeUndefined();
+    expect(announced.replacedStartAt).toBeUndefined();
+  });
+
+  it("sends only what a take-down needs", () => {
+    const data = buildFcmData(
+      { kind: "cancelled", startAt: "2026-05-04T07:00:00+02:00", endAt: "2026-05-04T10:00:00+02:00", offsetMinutes: null },
+      labels,
+      [162]
+    );
+    expect(Object.keys(data).sort()).toEqual(["endAt", "groupIds", "kind", "startAt", "timeslotId"]);
+  });
+
+  it("tells a dead token from a failure worth retrying", () => {
+    const error = (status: string, code: string, message = "x") =>
+      JSON.stringify({ error: { status, message, details: [{ "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", errorCode: code }] } });
+    expect(classifyFcm(404, error("NOT_FOUND", "UNREGISTERED")).kind).toBe("unregistered");
+    expect(classifyFcm(403, error("PERMISSION_DENIED", "SENDER_ID_MISMATCH")).kind).toBe("unregistered");
+    expect(classifyFcm(400, error("INVALID_ARGUMENT", "INVALID_ARGUMENT", "The registration token is not a valid FCM registration token")).kind).toBe("unregistered");
+    expect(classifyFcm(400, error("INVALID_ARGUMENT", "INVALID_ARGUMENT", "Invalid value at 'message.data'"))).toMatchObject({ kind: "failed", retryable: false });
+    expect(classifyFcm(503, error("UNAVAILABLE", "UNAVAILABLE"))).toMatchObject({ kind: "failed", retryable: true });
+    expect(classifyFcm(429, error("RESOURCE_EXHAUSTED", "QUOTA_EXCEEDED"))).toMatchObject({ kind: "failed", retryable: true });
+    expect(classifyFcm(502, "<html>Bad gateway</html>")).toMatchObject({ kind: "failed", retryable: true });
+  });
+
+  it("defaults devices stored before Android had push to iOS", () => {
+    const store = memoryStore();
+    store.upsertDevice({ token: TOKEN_A, objectId: "obj", environment: "sandbox", enabled: true, alertMinutes: 0, secondAlertMinutes: null });
+    expect(store.getDevice(TOKEN_A)?.platform).toBe("ios");
   });
 });
 

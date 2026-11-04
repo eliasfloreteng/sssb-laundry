@@ -227,9 +227,10 @@ frees. `GET /timeslots` marks each group the caller waits on with `dibs: true` a
 
 ## Push notifications
 
-Server-driven APNs, because a booking made by anyone else on the same object id must
+Server-driven pushes, because a booking made by anyone else on the same object id must
 notify even when the app is never opened. `src/notifications.ts` polls, `src/apns.ts`
-sends, `src/db.ts` stores. Timers start in `startServer()` only — `buildServer()` stays
+sends to iPhones, `src/fcm.ts` to Android, and `src/db.ts` stores. `devices.platform`
+(`ios` unless the app says `"platform": "android"`) picks the service. Timers start in `startServer()` only — `buildServer()` stays
 timer-free so tests can call it directly.
 
 - **A failed scrape is not "the bookings vanished".** `pollObject` aborts and changes
@@ -251,13 +252,25 @@ timer-free so tests can call it directly.
   there is to retract. `pruneExpiredBookings` drops them with the booking.
 - Object ids and device tokens are never logged — hash with `hashObjectId()`.
 - `410` / `BadDeviceToken` / `Unregistered` deletes the device row. Never retry those.
+- **Android gets data messages, not finished text.** `buildFcmData` sends the booking —
+  kind, ISO start and end, machines, the alert offset — and the app picks the wording and
+  formats the times in the phone's language, which is what the localization keys do on
+  iOS. FCM's `UNREGISTERED`, `SENDER_ID_MISMATCH`, or an `INVALID_ARGUMENT` about the
+  token likewise deletes the device row.
 
 ### Environment
 
 `PUSH_ENABLED=true` plus `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_TOPIC`, and either
 `APNS_KEY_P8` (inline PEM, `\n`-escaped — the production path) or `APNS_KEY_PATH` (dev;
 the key lives in the gitignored `secrets/`). Without them the server logs one warning and
-runs without notifications. Tunables: `PUSH_POLL_MINUTES` (default 10), `PUSH_POLL_WEEKS`
+runs without iPhone notifications.
+
+Android needs `FCM_SERVICE_ACCOUNT_JSON` (the key as one line of JSON, single-quoted in
+`.env`) or `FCM_SERVICE_ACCOUNT_PATH` (dev: `secrets/fcm-service-account.json`). It is a
+key for `sssb-laundry-push@subtle-hydra-441510-q6.iam.gserviceaccount.com`, whose only
+role is Firebase Cloud Messaging API Admin on the Firebase project the Android app is
+registered in. Without it, an Android registration answers `PUSH_DISABLED`. Either
+service alone is enough to run push. Tunables: `PUSH_POLL_MINUTES` (default 10), `PUSH_POLL_WEEKS`
 (default 3) — polling is expensive, so leave them alone unless you mean it.
 
 The upstream check reads `UPSTREAM_CHECK_OBJECT_ID`, which is what enables it — unset,

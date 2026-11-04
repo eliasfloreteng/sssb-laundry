@@ -139,7 +139,7 @@
     <string name="sign_out">Sign out</string>
     <string name="object_number_footer">From your rental agreement. Sign out to use a different one.</string>
     <string name="sign_out_title">Sign out?</string>
-    <string name="sign_out_body">Your bookings stay, but this phone stops seeing them.</string>
+    <string name="sign_out_body">Your bookings stay, but this phone stops seeing them and reminders end.</string>
     <string name="visible_groups">Visible groups</string>
     <string name="no_groups_yet">No groups loaded yet.</string>
     <string name="hidden_groups_footer">Hidden groups are left out of the week list. Useful when your address covers several buildings.</string>
@@ -192,7 +192,7 @@
     <string name="rule_groups">Multiple groups of one time still count as a single session.</string>
     <string name="rule_cancel">Cancel a session you won’t use, so someone else can take it.</string>
     <string name="switch_title">Switch object number?</string>
-    <string name="switch_body">This phone will show %1$s instead. Your own bookings stay, but they leave this phone.</string>
+    <string name="switch_body">This phone will show %1$s instead. Your own bookings stay, but they leave this phone along with their reminders.</string>
     <string name="switch_action">Switch</string>
     <string name="invite">Invite</string>
     <string name="include_object_number">Include object number</string>
@@ -213,4 +213,82 @@
     <string name="calendar_unavailable">No calendar app found.</string>
     <string name="calendar_event_title">Laundry</string>
     <string name="calendar_event_description">Tag in with your Aptus tag within 15 minutes of the start, or the session is released.</string>
+    <!-- Notifications: wording from the iOS string catalog's notification.* keys and Settings. -->
+    <string name="notifications">Notifications</string>
+    <string name="booking_reminders">Booking reminders</string>
+    <string name="alert">Alert</string>
+    <string name="second_alert">Second alert</string>
+    <string name="notifications_footer">Reminders arrive with the app closed, and for bookings someone else in your apartment made.</string>
+    <string name="notifications_blocked_footer">Notifications are off in Android settings. Turn them back on there.</string>
+    <string name="open_notification_settings">Open Android settings</string>
+    <string name="alert_at_start">At start</string>
+    <plurals name="alert_minutes_before">
+        <item quantity="one">%d minute before</item>
+        <item quantity="other">%d minutes before</item>
+    </plurals>
+    <plurals name="alert_hours_before">
+        <item quantity="one">%d hour before</item>
+        <item quantity="other">%d hours before</item>
+    </plurals>
+    <plurals name="alert_days_before">
+        <item quantity="one">%d day before</item>
+        <item quantity="other">%d days before</item>
+    </plurals>
+    <plurals name="alert_weeks_before">
+        <item quantity="one">%d week before</item>
+        <item quantity="other">%d weeks before</item>
+    </plurals>
+    <plurals name="lead_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="lead_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="lead_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="lead_weeks">
+        <item quantity="one">%d week</item>
+        <item quantity="other">%d weeks</item>
+    </plurals>
+    <string name="offer_title">Remind you before laundry?</string>
+    <string name="offer_body_at_start">Get a reminder when your booking starts. Bookings are released 15 minutes after the start unless you tag in.</string>
+    <!-- The placeholder is a span like "10 minutes". -->
+    <string name="offer_body">Get a reminder %1$s before your booking starts. Bookings are released 15 minutes after the start unless you tag in.</string>
+    <string name="offer_accept">Turn on reminders</string>
+    <string name="offer_decline">Not now</string>
+    <string name="receipt_dibs_notified">You’ll get a notification when it does.</string>
+    <string name="receipt_dibs_notify_off">Turn on notifications in Settings to hear when it does.</string>
+    <string name="notification_title_starts_now">Laundry starts now</string>
+    <plurals name="notification_title_in_minutes">
+        <item quantity="one">Laundry in %d minute</item>
+        <item quantity="other">Laundry in %d minutes</item>
+    </plurals>
+    <plurals name="notification_title_in_hours">
+        <item quantity="one">Laundry in %d hour</item>
+        <item quantity="other">Laundry in %d hours</item>
+    </plurals>
+    <plurals name="notification_title_in_days">
+        <item quantity="one">Laundry in %d day</item>
+        <item quantity="other">Laundry in %d days</item>
+    </plurals>
+    <plurals name="notification_title_in_weeks">
+        <item quantity="one">Laundry in %d week</item>
+        <item quantity="other">Laundry in %d weeks</item>
+    </plurals>
+    <string name="notification_title_new_booking">New laundry booking</string>
+    <string name="notification_title_dibs_won">Dibs came through — it’s yours</string>
+    <!-- The placeholder is the given-up booking's day and time. -->
+    <string name="notification_title_dibs_swapped">Dibs came through — gave up %1$s</string>
+    <string name="notification_body_machines" translatable="false">%1$s · %2$s</string>
+    <string name="notification_activate">Activate with your Aptus tag within 15 minutes or the session is released.</string>
+    <string name="channel_reminders">Booking reminders</string>
+    <string name="channel_reminders_description">Before a booking starts, at the times picked in Settings.</string>
+    <string name="channel_bookings">New bookings</string>
+    <string name="channel_bookings_description">When someone else in your apartment books laundry.</string>
+    <string name="channel_dibs">Dibs</string>
+    <string name="channel_dibs_description">When a dibs comes through and the time is booked for you.</string>
 </resources>

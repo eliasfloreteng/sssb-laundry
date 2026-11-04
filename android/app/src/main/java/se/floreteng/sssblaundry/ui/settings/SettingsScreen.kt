@@ -1,8 +1,19 @@
 package se.floreteng.sssblaundry.ui.settings
 
 import android.content.res.Resources
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Row as LayoutRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,12 +55,16 @@ import androidx.compose.ui.unit.dp
 import se.floreteng.sssblaundry.R
 import se.floreteng.sssblaundry.data.ApiError
 import se.floreteng.sssblaundry.data.AppSettings
+import se.floreteng.sssblaundry.data.BookingAlert
 import se.floreteng.sssblaundry.data.LaundryRoom
 import se.floreteng.sssblaundry.ui.ErrorPresenter
 import se.floreteng.sssblaundry.ui.LaundryViewModel
 import se.floreteng.sssblaundry.ui.components.copyToClipboard
 import se.floreteng.sssblaundry.ui.components.segmentShape
 import se.floreteng.sssblaundry.ui.feedback.FeedbackSheet
+import se.floreteng.sssblaundry.ui.notifications.alertLabel
+import se.floreteng.sssblaundry.ui.notifications.openNotificationSettings
+import se.floreteng.sssblaundry.ui.notifications.rememberNotificationAccess
 
 /** One settings row in a segmented group. */
 private data class Row(
@@ -74,6 +89,13 @@ fun SettingsScreen(
     var leavingLines by remember { mutableStateOf(false) }
     var dibsError by remember { mutableStateOf<ApiError?>(null) }
     var showFeedback by remember { mutableStateOf(false) }
+    var choosingAlert by remember { mutableStateOf<AlertField?>(null) }
+    var requestingNotifications by remember { mutableStateOf(false) }
+    val notifications = rememberNotificationAccess { requestingNotifications = false }
+    // Asked before and still not allowed: the switch can't fix that, only Android's
+    // settings can. Never asked (13+), it is just off, and the switch asks.
+    val notificationsBlocked = !notifications.allowed &&
+        (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || settings.notificationsPrompted)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -204,6 +226,63 @@ fun SettingsScreen(
                                 headline = { Text(stringResource(R.string.to)) },
                                 trailing = { Text(formatMinutes(settings.activeHoursEnd), style = MaterialTheme.typography.titleMedium) },
                                 onClick = { editingTime = TimeField.End },
+                            )
+                        })
+                    }
+                },
+            )
+
+            section(
+                header = res.getString(R.string.notifications),
+                footer = res.getString(if (notificationsBlocked) R.string.notifications_blocked_footer else R.string.notifications_footer),
+                rows = buildList {
+                    add(Row("reminders") { shape ->
+                        SettingsItem(
+                            shape = shape,
+                            leading = { Icon(painterResource(R.drawable.ic_notifications), null) },
+                            headline = { Text(stringResource(R.string.booking_reminders)) },
+                            trailing = {
+                                Switch(
+                                    checked = settings.notificationsEnabled,
+                                    enabled = !requestingNotifications,
+                                    onCheckedChange = { wantsEnabled ->
+                                        if (wantsEnabled) {
+                                            requestingNotifications = true
+                                            notifications.request()
+                                        } else {
+                                            // The registrar sees it and takes this phone off the server.
+                                            vm.launch { repo.setNotificationsEnabled(false) }
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    })
+                    if (settings.notificationsEnabled) {
+                        add(Row("alert") { shape ->
+                            SettingsItem(
+                                shape = shape,
+                                headline = { Text(stringResource(R.string.alert)) },
+                                supporting = { Text(res.alertLabel(settings.alert)) },
+                                onClick = { choosingAlert = AlertField.First },
+                            )
+                        })
+                        add(Row("secondAlert") { shape ->
+                            SettingsItem(
+                                shape = shape,
+                                headline = { Text(stringResource(R.string.second_alert)) },
+                                supporting = { Text(res.alertLabel(settings.secondAlert)) },
+                                onClick = { choosingAlert = AlertField.Second },
+                            )
+                        })
+                    }
+                    if (notificationsBlocked) {
+                        add(Row("systemSettings") { shape ->
+                            SettingsItem(
+                                shape = shape,
+                                headline = { Text(stringResource(R.string.open_notification_settings), color = MaterialTheme.colorScheme.primary) },
+                                trailing = { Icon(painterResource(R.drawable.ic_chevron_right), null) },
+                                onClick = { context.openNotificationSettings() },
                             )
                         })
                     }
@@ -341,10 +420,57 @@ fun SettingsScreen(
         )
     }
 
+    choosingAlert?.let { field ->
+        AlertPickerDialog(
+            title = stringResource(if (field == AlertField.First) R.string.alert else R.string.second_alert),
+            selected = if (field == AlertField.First) settings.alert else settings.secondAlert,
+            onSelect = { alert ->
+                choosingAlert = null
+                vm.launch { if (field == AlertField.First) repo.setAlert(alert) else repo.setSecondAlert(alert) }
+            },
+            onDismiss = { choosingAlert = null },
+        )
+    }
+
     if (showFeedback) FeedbackSheet(settings = settings, vm = vm, onDismiss = { showFeedback = false })
 }
 
 private enum class TimeField { Start, End }
+
+private enum class AlertField { First, Second }
+
+/** A single-choice list that applies on tap, as Android's own settings do. */
+@Composable
+private fun AlertPickerDialog(
+    title: String,
+    selected: BookingAlert,
+    onSelect: (BookingAlert) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val res = LocalResources.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
+                BookingAlert.entries.forEach { alert ->
+                    LayoutRow(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .selectable(selected = alert == selected, role = Role.RadioButton, onClick = { onSelect(alert) }),
+                    ) {
+                        RadioButton(selected = alert == selected, onClick = null, modifier = Modifier.padding(horizontal = 12.dp))
+                        Text(res.alertLabel(alert), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.dialog_cancel)) } },
+    )
+}
 
 private fun formatMinutes(minutes: Int) = "%02d:%02d".format(minutes / 60, minutes % 60)
 

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.serialization.Serializable
 
 /** Everything the app remembers. The object number is excluded from backups. */
 data class AppSettings(
@@ -27,11 +28,30 @@ data class AppSettings(
     val laundryRoomId: String = "",
     val inviteIncludesObjectId: Boolean = true,
     val feedbackDraft: String = "",
+    /** Booking reminders, new-booking and dibs pushes; off until asked for, as on iOS. */
+    val notificationsEnabled: Boolean = false,
+    val alert: BookingAlert = BookingAlert.DEFAULT_FIRST,
+    val secondAlert: BookingAlert = BookingAlert.DEFAULT_SECOND,
+    /** Set once the app has asked for the permission, so the one-time offer stays one-time. */
+    val notificationsPrompted: Boolean = false,
+    /** The last FCM token handed to us, sent as `X-Device-Token` and registered with the server. */
+    val deviceToken: String? = null,
+    /** What the server was last told, so a change knows what to replace. */
+    val pushRegistration: PushRegistration? = null,
 ) {
     /** Dibs is opt-in: with it off, a taken group is just taken. */
     val dibsEnabled: Boolean get() = dibsSetting ?: false
     val laundryRoom: LaundryRoom? get() = LaundryRooms.room(laundryRoomId)
 }
+
+/** This phone as the server knows it: registered for [objectId] under [token]. */
+@Serializable
+data class PushRegistration(
+    val objectId: String,
+    val token: String,
+    val alertMinutes: Int?,
+    val secondAlertMinutes: Int?,
+)
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -50,6 +70,13 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         val laundryRoomId = stringPreferencesKey("laundryRoom.id")
         val inviteIncludesObjectId = booleanPreferencesKey("invite.includeObjectId")
         val feedbackDraft = stringPreferencesKey("feedback.draft")
+        val notificationsEnabled = booleanPreferencesKey("notifications.enabled")
+        val alert = intPreferencesKey("notifications.alert")
+        val secondAlert = intPreferencesKey("notifications.secondAlert")
+        val notificationsPrompted = booleanPreferencesKey("notifications.prompted")
+        val deviceToken = stringPreferencesKey("notifications.deviceToken")
+        /** JSON of [PushRegistration]. Android only: iOS re-sends on every launch instead. */
+        val pushRegistration = stringPreferencesKey("notifications.registration")
     }
 
     /** `null` until the store has been read once, so the splash screen can wait for it. */
@@ -71,6 +98,14 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         laundryRoomId = this[Keys.laundryRoomId].orEmpty(),
         inviteIncludesObjectId = this[Keys.inviteIncludesObjectId] ?: true,
         feedbackDraft = this[Keys.feedbackDraft].orEmpty(),
+        notificationsEnabled = this[Keys.notificationsEnabled] ?: false,
+        alert = BookingAlert.of(this[Keys.alert], BookingAlert.DEFAULT_FIRST),
+        secondAlert = BookingAlert.of(this[Keys.secondAlert], BookingAlert.DEFAULT_SECOND),
+        notificationsPrompted = this[Keys.notificationsPrompted] ?: false,
+        deviceToken = this[Keys.deviceToken]?.takeIf { it.isNotEmpty() },
+        pushRegistration = this[Keys.pushRegistration]?.let {
+            runCatching { ApiClient.json.decodeFromString<PushRegistration>(it) }.getOrNull()
+        },
     )
 
     private suspend fun update(block: MutablePreferences.() -> Unit) {
@@ -90,6 +125,19 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
     suspend fun setLaundryRoomId(id: String) = update { this[Keys.laundryRoomId] = id }
     suspend fun setInviteIncludesObjectId(value: Boolean) = update { this[Keys.inviteIncludesObjectId] = value }
     suspend fun setFeedbackDraft(text: String) = update { this[Keys.feedbackDraft] = text }
+    suspend fun setNotificationsEnabled(value: Boolean) = update { this[Keys.notificationsEnabled] = value }
+    suspend fun setAlert(alert: BookingAlert) = update { this[Keys.alert] = alert.minutes }
+    suspend fun setSecondAlert(alert: BookingAlert) = update { this[Keys.secondAlert] = alert.minutes }
+    suspend fun setNotificationsPrompted() = update { this[Keys.notificationsPrompted] = true }
+    suspend fun setDeviceToken(token: String) = update { this[Keys.deviceToken] = token }
+
+    suspend fun setPushRegistration(registration: PushRegistration?) = update {
+        if (registration == null) {
+            remove(Keys.pushRegistration)
+        } else {
+            this[Keys.pushRegistration] = ApiClient.json.encodeToString(PushRegistration.serializer(), registration)
+        }
+    }
 
     /**
      * Dibs came before its setting did: a phone with lines already open on the

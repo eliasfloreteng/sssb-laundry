@@ -207,11 +207,10 @@ fun BookingSheet(
             return Receipt(true, res.getString(R.string.receipt_left_line_title), res.getString(R.string.receipt_left_line_body, names(remove)))
         }
         val free = current.groups.filter { it.groupId in add }.all { it.isFreePastLimit }
-        return Receipt(
-            true,
-            res.getString(R.string.receipt_in_line_title),
-            res.getString(if (free) R.string.receipt_dibs_free_body else R.string.receipt_dibs_taken_body, names(add)),
-        )
+        val base = res.getString(if (free) R.string.receipt_dibs_free_body else R.string.receipt_dibs_taken_body, names(add))
+        // The booking happens either way; only hearing about it needs notifications.
+        val hint = res.getString(if (settings.notificationsEnabled) R.string.receipt_dibs_notified else R.string.receipt_dibs_notify_off)
+        return Receipt(true, res.getString(R.string.receipt_in_line_title), "$base $hint")
     }
 
     fun submit() {

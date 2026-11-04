@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "962454780707",
+    "project_id": "subtle-hydra-441510-q6",
+    "storage_bucket": "subtle-hydra-441510-q6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962454780707:android:bff8878029aafb86fa2a96",
+        "android_client_info": {
+          "package_name": "se.floreteng.sssblaundry"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "962454780707-fnf8dkp79mp83nte8245g7a1sbqft91l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyyPf2ALQzxL40uqlYBKCGByevnf_aBMw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962454780707-fnf8dkp79mp83nte8245g7a1sbqft91l.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "962454780707-2ao2o01306s1h27e1cdr3h18r73ld632.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.accord.app.preview"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

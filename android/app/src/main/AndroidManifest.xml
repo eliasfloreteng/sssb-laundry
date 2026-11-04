@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Hands a laundry timer to the Clock app. A normal permission, granted at install. -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- Booking reminders and dibs pushes; asked for when they are turned on in Settings. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <queries>
         <intent>
@@ -48,5 +50,19 @@
                 <data android:path="/invite" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".push.LaundryMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- No FCM token until notifications are turned on: PushRegistrar enables
+             auto-init then, so a phone that never wants them never talks to FCM. -->
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
     </application>
 </manifest>

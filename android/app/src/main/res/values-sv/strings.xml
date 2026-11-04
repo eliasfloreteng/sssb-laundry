@@ -139,7 +139,7 @@
     <string name="sign_out">Logga ut</string>
     <string name="object_number_footer">Från ditt hyresavtal. Logga ut för att använda ett annat.</string>
     <string name="sign_out_title">Logga ut?</string>
-    <string name="sign_out_body">Dina bokningar finns kvar, men den här telefonen slutar visa dem.</string>
+    <string name="sign_out_body">Dina bokningar finns kvar, men den här telefonen slutar visa dem och påminnelserna upphör.</string>
     <string name="visible_groups">Synliga grupper</string>
     <string name="no_groups_yet">Inga grupper inlästa än.</string>
     <string name="hidden_groups_footer">Dolda grupper visas inte i veckolistan. Praktiskt när din adress omfattar flera hus.</string>
@@ -191,7 +191,7 @@
     <string name="rule_groups">Flera grupper på samma tid räknas ändå som ett enda pass.</string>
     <string name="rule_cancel">Avboka tider du inte kommer att använda, så att någon annan kan boka dem.</string>
     <string name="switch_title">Byt objektsnummer?</string>
-    <string name="switch_body">Den här telefonen visar %1$s i stället. Dina egna bokningar finns kvar, men de lämnar telefonen.</string>
+    <string name="switch_body">Den här telefonen visar %1$s i stället. Dina egna bokningar finns kvar, men de lämnar telefonen tillsammans med sina påminnelser.</string>
     <string name="switch_action">Byt</string>
     <string name="invite">Bjud in</string>
     <string name="include_object_number">Inkludera objektsnummer</string>
@@ -212,4 +212,78 @@
     <string name="calendar_unavailable">Hittade ingen kalenderapp.</string>
     <string name="calendar_event_title">Tvätt</string>
     <string name="calendar_event_description">Aktivera med din Aptusbricka inom 15 minuter efter start, annars avbokas passet.</string>
+    <string name="notifications">Notiser</string>
+    <string name="booking_reminders">Bokningspåminnelser</string>
+    <string name="alert">Påminnelse</string>
+    <string name="second_alert">Andra påminnelsen</string>
+    <string name="notifications_footer">Påminnelser kommer även när appen är stängd, och för bokningar som någon annan i din lägenhet har gjort.</string>
+    <string name="notifications_blocked_footer">Notiser är avstängda i Android-inställningarna. Slå på dem där igen.</string>
+    <string name="open_notification_settings">Öppna Android-inställningar</string>
+    <string name="alert_at_start">När passet börjar</string>
+    <plurals name="alert_minutes_before">
+        <item quantity="one">%d minut innan</item>
+        <item quantity="other">%d minuter innan</item>
+    </plurals>
+    <plurals name="alert_hours_before">
+        <item quantity="one">%d timme innan</item>
+        <item quantity="other">%d timmar innan</item>
+    </plurals>
+    <plurals name="alert_days_before">
+        <item quantity="one">%d dag innan</item>
+        <item quantity="other">%d dagar innan</item>
+    </plurals>
+    <plurals name="alert_weeks_before">
+        <item quantity="one">%d vecka innan</item>
+        <item quantity="other">%d veckor innan</item>
+    </plurals>
+    <plurals name="lead_minutes">
+        <item quantity="one">%d minut</item>
+        <item quantity="other">%d minuter</item>
+    </plurals>
+    <plurals name="lead_hours">
+        <item quantity="one">%d timme</item>
+        <item quantity="other">%d timmar</item>
+    </plurals>
+    <plurals name="lead_days">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dagar</item>
+    </plurals>
+    <plurals name="lead_weeks">
+        <item quantity="one">%d vecka</item>
+        <item quantity="other">%d veckor</item>
+    </plurals>
+    <string name="offer_title">Påminnelse innan tvättpasset?</string>
+    <string name="offer_body_at_start">Få en påminnelse när ditt tvättpass börjar. Pass som inte aktiveras inom 15 minuter efter start avbokas.</string>
+    <string name="offer_body">Få en påminnelse %1$s innan ditt tvättpass börjar. Pass som inte aktiveras inom 15 minuter efter start avbokas.</string>
+    <string name="offer_accept">Slå på påminnelser</string>
+    <string name="offer_decline">Inte nu</string>
+    <string name="receipt_dibs_notified">Du får en notis när det händer.</string>
+    <string name="receipt_dibs_notify_off">Slå på notiser i Inställningar för att få veta när det händer.</string>
+    <string name="notification_title_starts_now">Tvättpasset börjar nu</string>
+    <plurals name="notification_title_in_minutes">
+        <item quantity="one">Tvätt om %d minut</item>
+        <item quantity="other">Tvätt om %d minuter</item>
+    </plurals>
+    <plurals name="notification_title_in_hours">
+        <item quantity="one">Tvätt om %d timme</item>
+        <item quantity="other">Tvätt om %d timmar</item>
+    </plurals>
+    <plurals name="notification_title_in_days">
+        <item quantity="one">Tvätt om %d dag</item>
+        <item quantity="other">Tvätt om %d dagar</item>
+    </plurals>
+    <plurals name="notification_title_in_weeks">
+        <item quantity="one">Tvätt om %d vecka</item>
+        <item quantity="other">Tvätt om %d veckor</item>
+    </plurals>
+    <string name="notification_title_new_booking">Ny tvättbokning</string>
+    <string name="notification_title_dibs_won">Paxet gick igenom — tiden är din</string>
+    <string name="notification_title_dibs_swapped">Paxet gick igenom — %1$s släpptes</string>
+    <string name="notification_activate">Aktivera med din Aptusbricka inom 15 minuter, annars avbokas passet.</string>
+    <string name="channel_reminders">Bokningspåminnelser</string>
+    <string name="channel_reminders_description">Innan ett tvättpass börjar, vid tiderna du valt i Inställningar.</string>
+    <string name="channel_bookings">Nya bokningar</string>
+    <string name="channel_bookings_description">När någon annan i din lägenhet bokar tvätt.</string>
+    <string name="channel_dibs">Pax</string>
+    <string name="channel_dibs_description">När ett pax går igenom och tiden bokas åt dig.</string>
 </resources>

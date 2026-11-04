@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    // Reads google-services.json (Firebase project subtle-hydra-441510-q6) for FCM.
+    alias(libs.plugins.google.services)
 }
 
 // The Play upload key, kept out of the repo in secrets/ (see README). Play re-signs
@@ -91,6 +93,11 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.coroutines)
     implementation(libs.kotlinx.serialization.json)
+
+    // Push only: no Analytics, so nothing else from Firebase is pulled in.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
 }

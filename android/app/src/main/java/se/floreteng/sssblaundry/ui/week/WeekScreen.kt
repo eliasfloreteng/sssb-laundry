@@ -69,6 +69,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import se.floreteng.sssblaundry.R
 import se.floreteng.sssblaundry.data.AppSettings
 import se.floreteng.sssblaundry.data.BookingRules
@@ -96,6 +97,9 @@ import se.floreteng.sssblaundry.ui.feedback.FeedbackSheet
 import se.floreteng.sssblaundry.ui.groupName
 import se.floreteng.sssblaundry.ui.groupNames
 import se.floreteng.sssblaundry.ui.invite.InviteSheet
+import se.floreteng.sssblaundry.ui.notifications.NotificationOfferDialog
+import se.floreteng.sssblaundry.ui.notifications.rememberNotificationAccess
+import se.floreteng.sssblaundry.ui.notifications.shouldOfferNotifications
 import se.floreteng.sssblaundry.ui.timer.SessionTimerCard
 import se.floreteng.sssblaundry.ui.timer.TimerSheet
 
@@ -125,6 +129,8 @@ fun WeekScreen(
     var showFeedback by remember { mutableStateOf(false) }
     var showTimer by remember { mutableStateOf(false) }
     var pendingCancel by remember { mutableStateOf<PendingCancel?>(null) }
+    var offeringNotifications by remember { mutableStateOf(false) }
+    val notifications = rememberNotificationAccess()
     /** Timeslots with a long-press action in flight; the row is the only progress shown. */
     val busy = remember { mutableStateListOf<String>() }
 
@@ -140,6 +146,12 @@ fun WeekScreen(
         haptics.performHapticFeedback(
             if (outcome.isFullSuccess) HapticFeedbackType.Confirm else HapticFeedbackType.Reject,
         )
+        // Right after a booking is when a reminder is worth something, so that is
+        // when to ask. A beat first, so the ask follows the confirmation.
+        if (outcome.didBook && context.shouldOfferNotifications(settings)) {
+            delay(700)
+            offeringNotifications = true
+        }
     }
 
     LaunchedEffect(vm.lastError) {
@@ -411,6 +423,13 @@ fun WeekScreen(
     if (showInvite) InviteSheet(settings = settings, vm = vm, onDismiss = { showInvite = false })
     if (showFeedback) FeedbackSheet(settings = settings, vm = vm, onDismiss = { showFeedback = false })
     if (showTimer) TimerSheet(session = vm.runningSession, onDismiss = { showTimer = false })
+    if (offeringNotifications) {
+        NotificationOfferDialog(
+            alert = settings.alert,
+            onAccept = notifications.request,
+            onDismiss = { offeringNotifications = false },
+        )
+    }
 }
 
 @Composable

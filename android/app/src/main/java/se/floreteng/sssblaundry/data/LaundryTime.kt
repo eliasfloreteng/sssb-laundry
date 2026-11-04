@@ -18,7 +18,7 @@ import java.util.Locale
 object LaundryTime {
     val stockholm: ZoneId = ZoneId.of("Europe/Stockholm")
 
-    fun today(now: Instant = Instant.now()): String = LocalDate.ofInstant(now, stockholm).toString()
+    fun today(now: Instant = Instant.now()): String = now.atZone(stockholm).toLocalDate().toString()
 
     fun addDays(day: String, days: Long): String? =
         runCatching { LocalDate.parse(day).plusDays(days).toString() }.getOrNull()

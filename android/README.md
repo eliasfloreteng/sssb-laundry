@@ -10,13 +10,15 @@ Swedish, with the Swedish wording taken from the iOS app's string catalog.
 - Book or cancel 1–2 groups in one action from a bottom sheet, with a per-group receipt
 - Long press a timeslot to book, cancel (after a confirmation), call dibs, add to the calendar or copy the time
 - Dibs and dibs priority, behind the same opt-in setting as on iOS
-- Settings: visible groups, active hours, laundry room rules by street address, dibs, sign out
+- Booking reminders (two alert times, as on iOS), new bookings made by someone else in the
+  apartment, and dibs that came through, as push notifications; a cancelled booking takes
+  its notification back down. Offered once after the first booking, and in Settings
+- Settings: visible groups, active hours, notifications, laundry room rules by street address, dibs, sign out
 - Invite links (`https://sssb-laundry.eliasf.se/invite#…`), shared through the system share sheet and opened by the app
 - Feedback straight to the developer, with a draft that survives the sheet
 - A "Start a timer" card while a session is running, which hands the countdown to the Clock app
 
-Not yet on Android: booking reminders and dibs pushes (the server only speaks APNs),
-and the Live Activity.
+Not yet on Android: the Live Activity.
 
 ## Building
 
@@ -26,7 +28,7 @@ Needs JDK 21 and the Android SDK (`ANDROID_HOME`, or `sdk.dir` in an untracked
 ```sh
 cd android
 ./gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest      # JVM tests for the rules, invite links and decoding
+./gradlew testDebugUnitTest      # JVM tests for the rules, invite links, decoding and notification wording
 ./gradlew installDebug           # onto a running emulator or a connected phone
 ```
 
@@ -37,6 +39,48 @@ Release builds minify with R8 and are signed with the Play upload key from
 ./gradlew bundleRelease          # app/build/outputs/bundle/release/app-release.aab, for Play
 ./gradlew assembleRelease        # the same build as an APK, to try on a device first
 ```
+
+## Push notifications
+
+Pushes go through Firebase Cloud Messaging, Firebase project `subtle-hydra-441510-q6`
+(the "Accord App" Google Cloud project), where the app is registered as
+`se.floreteng.sssblaundry`. `app/google-services.json` is that registration and is
+checked in: it identifies the project, it grants nothing. Only `firebase-messaging` is
+used — no Analytics — and FCM auto-init is off in the manifest, so the app gets no token
+and never contacts Firebase until notifications are turned on. The server needs FCM
+credentials of its own to send (configured in `../api`); a server without them answers
+`503 PUSH_DISABLED`, which the app treats as "no pushes" rather than an error. So does
+the demo number.
+
+Every push is an FCM *data* message (`buildFcmData` in `api/src/notifications.ts`): the
+booking's kind, times, groups and machines, never finished sentences. The app writes the
+notification itself (`push/BookingNotifier.kt`), so the wording comes from its own
+resources and the times are formatted in the phone's language, the same as iOS does with
+localization keys. One notification per booking, tagged by its start: a later push for
+the booking replaces it, and a `cancelled` push removes it. Three channels — booking
+reminders and dibs at high importance, new bookings at default — so each can be silenced
+on its own.
+
+`push/PushRegistrar.kt` keeps the server in step with Settings: it compares what the
+server should hold (object number, FCM token, alert times) with what it was last told,
+and `PUT`s or `DELETE`s `/notifications/device` on any difference — a toggle, an alert
+time, a new token, a sign-out or another object number. It re-registers on every return
+to the app, as iOS does at launch. The token also goes out as `X-Device-Token` on booking
+and dibs requests, so the server doesn't announce a booking to the phone that made it.
+
+To try one without the server, an emulator *with* Google Play services is needed for a
+token; the rendering can be tested on any emulator, as root, by handing FCM's receiver a
+message the way Play services would:
+
+```sh
+adb root
+adb shell "am broadcast -n se.floreteng.sssblaundry/com.google.firebase.iid.FirebaseInstanceIdReceiver \
+  -a com.google.android.c2dm.intent.RECEIVE --es google.message_id test-1 --es kind reminder \
+  --es startAt 2026-11-05T18:30:00+01:00 --es endAt 2026-11-05T21:00:00+01:00 --es groupIds 1 \
+  --es machines 'Grupp 1' --es offsetMinutes 10"
+```
+
+Give each message its own `google.message_id`: FCM drops repeats.
 
 ## Releasing on Google Play
 
@@ -134,6 +178,8 @@ The developer account is Accord Software's, an organization account, so Play's
     and account management.
   - *App activity → Other actions* (dibs and their order): optional, for app
     functionality.
+  - *Device or other IDs* (the FCM token, with notifications on): optional, for app
+    functionality.
   - *App activity → Other user-generated content* (feedback text): optional, for app
     functionality.
   - *Personal info → Address* (the street address sent with feedback) and *App info
@@ -172,12 +218,17 @@ app/src/main/java/se/floreteng/sssblaundry/
     BookingRules.kt        canBook/canCancel, dibs eligibility, active hours
     LaundryRooms.kt        SSSB's per-room rules, generated from LaundryRooms.swift
     LaundryTime.kt         Europe/Stockholm days and ISO timestamps
+    Notifications.kt       Alert times, FCM message parsing, notification titles and bodies
     InviteLink.kt          Building and reading the invite link
+  push/
+    LaundryMessagingService  FCM: new tokens, and data messages turned into notifications
+    BookingNotifier.kt     Channels, posting and taking down, wording from resources
+    PushRegistrar.kt       Keeps /notifications/device in step with Settings
   ui/
     LaundryViewModel.kt    The port of LaundryStore: anchor, paging, bookings, dibs
     Presenters.kt          ErrorPresenter and group-name formatting
     AppRoot.kt             Sign-in vs signed in, Navigation 3 back stack, switch dialog
-    week/ booking/ settings/ dibs/ invite/ feedback/ timer/ signin/
+    week/ booking/ settings/ dibs/ invite/ feedback/ timer/ signin/ notifications/
 fastlane/
   metadata/android/        Play listing text and images, en-US and sv-SE
   art/                     Sources for the icon and feature graphic, and render.sh
@@ -201,3 +252,6 @@ bookings never filtered out, `canBook`/`canCancel` deciding what is offered, opa
   turns on "Open supported links" for the app.
 - **One view model per object number** (`viewModel(key = objectId)`), so switching
   apartments starts from an empty store, as `WeekView().id(objectId)` does on iOS.
+- **`PUSH_VERSION` moves in three places.** `data/Notifications.kt`, the iOS app's
+  `NotificationSetting.pushVersion` and the server's `PUSH_VERSION` count the same
+  notification titles. A new title needs strings here too, and the bump.

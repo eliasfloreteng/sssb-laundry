@@ -33,6 +33,8 @@ object Config {
  */
 class ApiClient(
     private val objectId: () -> String?,
+    /** This phone's FCM token, if it has one: lets the server skip it when announcing its own bookings. */
+    private val deviceToken: () -> String? = { null },
     private val baseUrl: HttpUrl = Config.BASE_URL.toHttpUrl(),
     private val http: OkHttpClient = defaultClient,
 ) {
@@ -78,18 +80,59 @@ class ApiClient(
             ),
         )
 
+    /**
+     * Registers this phone for pushes about the signed-in object number. An
+     * idempotent upsert keyed on the token, so it is safe to repeat. A server
+     * without push answers 503 `PUSH_DISABLED`, as it does for the demo number.
+     */
+    suspend fun registerDevice(
+        deviceToken: String,
+        enabled: Boolean,
+        alertMinutes: Int?,
+        secondAlertMinutes: Int?,
+    ): OkResponse = send(
+        request(
+            url { addPathSegments("notifications/device") },
+            "PUT",
+            buildJsonObject {
+                put("platform", PLATFORM)
+                put("deviceToken", deviceToken)
+                put("enabled", enabled)
+                put("alertMinutes", alertMinutes)
+                put("secondAlertMinutes", secondAlertMinutes)
+                put("pushVersion", PUSH_VERSION)
+            },
+        ),
+    )
+
+    suspend fun deregisterDevice(deviceToken: String): OkResponse = send(
+        request(
+            url { addPathSegments("notifications/device") },
+            "DELETE",
+            buildJsonObject {
+                put("platform", PLATFORM)
+                put("deviceToken", deviceToken)
+            },
+        ),
+    )
+
+    /** The same client speaking for another object number — to deregister the one being left. */
+    fun forObjectId(id: String): ApiClient = ApiClient({ id }, deviceToken, baseUrl, http)
+
     private suspend inline fun <reified T> action(
         timeslotId: String,
         path: String,
         method: String,
         groupIds: List<Int>,
-    ): T = send(
-        request(
+    ): T {
+        val request = request(
             url { addPathSegment("timeslots").addPathSegment(timeslotId).addPathSegment(path) },
             method,
             buildJsonObject { putJsonArray("groupIds") { groupIds.forEach { add(it) } } },
-        ),
-    )
+        )
+        val token = deviceToken()
+        return send(if (token == null) request else request.newBuilder().header("X-Device-Token", token).build())
+    }
 
     private inline fun url(build: HttpUrl.Builder.() -> Unit): HttpUrl = baseUrl.newBuilder().apply(build).build()
 
@@ -138,6 +181,7 @@ class ApiClient(
             explicitNulls = false
             coerceInputValues = true
         }
+        private const val PLATFORM = "android"
         private val jsonType = "application/json".toMediaType()
         private val defaultClient = OkHttpClient.Builder()
             .callTimeout(60, TimeUnit.SECONDS)

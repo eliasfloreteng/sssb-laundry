@@ -116,6 +116,14 @@ class ApiClient(
         ),
     )
 
+    /** The newest APK. Asked signed out too, so it goes without the object number. */
+    suspend fun latestAndroidRelease(): AndroidRelease = send(
+        Request.Builder()
+            .url(url { addPathSegments("android/latest") })
+            .header("Accept", "application/json")
+            .build(),
+    )
+
     /** The same client speaking for another object number — to deregister the one being left. */
     fun forObjectId(id: String): ApiClient = ApiClient({ id }, deviceToken, baseUrl, http)
 

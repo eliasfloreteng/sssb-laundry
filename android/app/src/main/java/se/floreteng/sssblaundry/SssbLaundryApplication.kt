@@ -7,6 +7,7 @@ import se.floreteng.sssblaundry.data.ApiClient
 import se.floreteng.sssblaundry.data.SettingsRepository
 import se.floreteng.sssblaundry.push.BookingNotifier
 import se.floreteng.sssblaundry.push.PushRegistrar
+import se.floreteng.sssblaundry.update.AppUpdater
 
 class SssbLaundryApplication : Application() {
     /** Lives as long as the process: settings are read once and shared by every screen. */
@@ -24,6 +25,9 @@ class SssbLaundryApplication : Application() {
     lateinit var notifier: BookingNotifier
         private set
 
+    lateinit var updater: AppUpdater
+        private set
+
     override fun onCreate() {
         super.onCreate()
         settings = SettingsRepository(this, appScope)
@@ -33,5 +37,6 @@ class SssbLaundryApplication : Application() {
         )
         notifier = BookingNotifier(this).also { it.createChannels() }
         push = PushRegistrar(this, settings, api, appScope).also { it.start() }
+        updater = AppUpdater(this, api, appScope)
     }
 }

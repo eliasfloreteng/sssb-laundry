@@ -42,10 +42,13 @@ class MainActivity : ComponentActivity() {
     }
 
     // Back from the system's notification settings, or after a while away: the
-    // token may have been reissued and the permission taken back.
+    // token may have been reissued and the permission taken back, and a new
+    // version may be out.
     override fun onStart() {
         super.onStart()
-        (application as SssbLaundryApplication).push.refresh()
+        val app = application as SssbLaundryApplication
+        app.push.refresh()
+        app.updater.check()
     }
 
     // A link opened with the app already running arrives here; one that launched

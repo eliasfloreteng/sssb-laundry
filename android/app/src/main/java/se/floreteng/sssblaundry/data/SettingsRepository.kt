@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +39,8 @@ data class AppSettings(
     val deviceToken: String? = null,
     /** What the server was last told, so a change knows what to replace. */
     val pushRegistration: PushRegistration? = null,
+    /** Epoch millis before which an available update is not offered again. */
+    val updateSnoozedUntil: Long = 0,
 ) {
     /** Dibs is opt-in: with it off, a taken group is just taken. */
     val dibsEnabled: Boolean get() = dibsSetting ?: false
@@ -77,6 +80,7 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         val deviceToken = stringPreferencesKey("notifications.deviceToken")
         /** JSON of [PushRegistration]. Android only: iOS re-sends on every launch instead. */
         val pushRegistration = stringPreferencesKey("notifications.registration")
+        val updateSnoozedUntil = longPreferencesKey("update.snoozedUntil")
     }
 
     /** `null` until the store has been read once, so the splash screen can wait for it. */
@@ -106,6 +110,7 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         pushRegistration = this[Keys.pushRegistration]?.let {
             runCatching { ApiClient.json.decodeFromString<PushRegistration>(it) }.getOrNull()
         },
+        updateSnoozedUntil = this[Keys.updateSnoozedUntil] ?: 0,
     )
 
     private suspend fun update(block: MutablePreferences.() -> Unit) {
@@ -130,6 +135,7 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
     suspend fun setSecondAlert(alert: BookingAlert) = update { this[Keys.secondAlert] = alert.minutes }
     suspend fun setNotificationsPrompted() = update { this[Keys.notificationsPrompted] = true }
     suspend fun setDeviceToken(token: String) = update { this[Keys.deviceToken] = token }
+    suspend fun snoozeUpdate(until: Long) = update { this[Keys.updateSnoozedUntil] = until }
 
     suspend fun setPushRegistration(registration: PushRegistration?) = update {
         if (registration == null) {

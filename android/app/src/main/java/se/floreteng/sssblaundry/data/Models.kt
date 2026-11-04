@@ -9,6 +9,16 @@ import kotlinx.serialization.json.jsonPrimitive
 // The wire format lives in api/src and is hand-mirrored here, as it is in the
 // iOS app's Models.swift. A change to a DTO belongs in one commit across all three.
 
+/** `GET /android/latest`: the newest APK, which an install from an APK compares itself with. */
+@Serializable
+data class AndroidRelease(
+    val versionCode: Int,
+    val versionName: String,
+) {
+    /** As the feedback form and Play show it: "1.0 (12)". */
+    val label: String get() = "$versionName ($versionCode)"
+}
+
 @Serializable
 data class WeekResponse(
     val week: Week,

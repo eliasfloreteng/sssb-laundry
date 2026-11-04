@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import se.floreteng.sssblaundry.R
+import se.floreteng.sssblaundry.SssbLaundryApplication
 import se.floreteng.sssblaundry.data.ApiError
 import se.floreteng.sssblaundry.data.AppSettings
 import se.floreteng.sssblaundry.data.BookingAlert
@@ -94,6 +96,8 @@ fun SettingsScreen(
     val notifications = rememberNotificationAccess { requestingNotifications = false }
     // Asked before and still not allowed: the switch can't fix that, only Android's
     // settings can. Never asked (13+), it is just off, and the switch asks.
+    val updater = (context.applicationContext as SssbLaundryApplication).updater
+    val update by updater.available.collectAsStateWithLifecycle()
     val notificationsBlocked = !notifications.allowed &&
         (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || settings.notificationsPrompted)
 
@@ -120,6 +124,25 @@ fun SettingsScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding() + 24.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
+            update?.let { release ->
+                section(
+                    header = null,
+                    footer = null,
+                    rows = listOf(
+                        Row("update") { shape ->
+                            SettingsItem(
+                                shape = shape,
+                                leading = { Icon(painterResource(R.drawable.ic_download), null) },
+                                headline = { Text(stringResource(R.string.update_title)) },
+                                supporting = { Text(stringResource(R.string.update_row, release.label)) },
+                                onClick = { updater.download(context) },
+                            )
+                        },
+                    ),
+                    key = "update",
+                )
+            }
+
             // The object number is deliberately not editable: copy it, or sign out.
             section(
                 header = res.getString(R.string.object_number),

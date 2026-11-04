@@ -16,6 +16,7 @@ Swedish, with the Swedish wording taken from the iOS app's string catalog.
 - Settings: visible groups, active hours, notifications, laundry room rules by street address, dibs, sign out
 - Invite links (`https://sssb-laundry.eliasf.se/invite#…`), shared through the system share sheet and opened by the app
 - Feedback straight to the developer, with a draft that survives the sheet
+- Installed from the APK rather than Play, it offers to download each new version
 - A "Start a timer" card while a session is running, which hands the countdown to the Clock app
 
 Not yet on Android: the Live Activity.
@@ -112,6 +113,20 @@ workflow itself, since a tag pushed with the Actions token starts no other workf
 tag pushed by hand starts it directly. Run it from the Actions tab on a tag to retry, or
 with *dry run* to build and check the Play credentials without uploading.
 
+The workflow then fetches the universal APK Play generated from the bundle and attaches
+it to the tag's GitHub release as `sssb-laundry.apk`. It is signed with Play's app
+signing key, so an APK install and a Play install update each other.
+`/android/download` on the server redirects to the newest release that has one, and
+`/android/latest` gives its version.
+
+An APK install has no store to update it, so it checks for itself: `AppUpdater` asks
+`/android/latest` each time the app comes to the foreground, at most every four hours.
+When there is a newer version, it shows a dialog and a row at the top of Settings, which
+open the download in the browser. The user already allowed that browser to install apps
+the first time. It does nothing in a Play install or a debug build. It never installs
+the APK itself: that would need `REQUEST_INSTALL_PACKAGES`, which Play does not allow
+this app, and a Play app must not update itself outside Play anyway.
+
 It needs these repository secrets:
 
 ```
@@ -150,9 +165,10 @@ The app is in Play's **closed testing** track, in every country, so it is not se
 on Google Play. Its testers are the members of the Google Group
 `sssb-laundry-testers@googlegroups.com`, which anyone can join and only managers can
 see the members of. `https://sssb-laundry.eliasf.se/android` (`api/site/android.html`)
-takes a tester through joining the group, opting in at
-`https://play.google.com/apps/testing/se.floreteng.sssblaundry` and installing; the
-landing page links to it, and the invite page sends Android visitors there.
+offers the APK first. Below it, a fold-out takes a tester through joining the group,
+opting in at `https://play.google.com/apps/testing/se.floreteng.sssblaundry` and
+installing from Play. The landing page links to that page, and the invite page sends
+Android visitors there.
 
 The developer account is Accord Software's, an organization account, so Play's
 12-testers-for-14-days rule for new personal accounts does not apply before production.

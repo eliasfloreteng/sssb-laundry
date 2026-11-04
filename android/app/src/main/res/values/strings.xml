@@ -291,4 +291,9 @@
     <string name="channel_bookings_description">When someone else in your apartment books laundry.</string>
     <string name="channel_dibs">Dibs</string>
     <string name="channel_dibs_description">When a dibs comes through and the time is booked for you.</string>
+    <string name="update_title">Update available</string>
+    <string name="update_body">Version %1$s is out. Download it, then open the file to install it over this one. You stay signed in.</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
+    <string name="update_row">Version %1$s. Download it, then open the file to install it.</string>
 </resources>

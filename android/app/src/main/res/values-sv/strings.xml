@@ -286,4 +286,9 @@
     <string name="channel_bookings_description">När någon annan i din lägenhet bokar tvätt.</string>
     <string name="channel_dibs">Pax</string>
     <string name="channel_dibs_description">När ett pax går igenom och tiden bokas åt dig.</string>
+    <string name="update_title">Ny version finns</string>
+    <string name="update_body">Version %1$s har kommit. Ladda ner den och öppna sedan filen för att installera den över den här. Du förblir inloggad.</string>
+    <string name="update_download">Ladda ner</string>
+    <string name="update_later">Senare</string>
+    <string name="update_row">Version %1$s. Ladda ner den och öppna sedan filen för att installera den.</string>
 </resources>

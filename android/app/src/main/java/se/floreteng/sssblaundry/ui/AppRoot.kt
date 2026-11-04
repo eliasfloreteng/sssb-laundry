@@ -27,6 +27,7 @@ import se.floreteng.sssblaundry.ui.dibs.DibsPriorityScreen
 import se.floreteng.sssblaundry.ui.settings.LaundryRoomPickerScreen
 import se.floreteng.sssblaundry.ui.settings.SettingsScreen
 import se.floreteng.sssblaundry.ui.signin.SignInScreen
+import se.floreteng.sssblaundry.ui.update.UpdateDialog
 import se.floreteng.sssblaundry.ui.week.WeekScreen
 import androidx.compose.ui.platform.LocalContext
 
@@ -83,6 +84,8 @@ fun AppRoot(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         )
     }
+
+    UpdateDialog(settings = settings)
 }
 
 @Composable

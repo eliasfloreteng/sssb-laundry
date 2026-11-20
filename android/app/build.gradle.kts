@@ -93,6 +93,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.coroutines)
     implementation(libs.kotlinx.serialization.json)
+    // Encoding only, for the invite QR code: no camera, no scanning.
+    implementation(libs.zxing.core)
 
     // Push only: no Analytics, so nothing else from Firebase is pulled in.
     implementation(platform(libs.firebase.bom))

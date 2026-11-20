@@ -5,9 +5,10 @@
 
 import SwiftUI
 
-/// Hands the link to someone else. Sharing needs no explaining, so the link
-/// itself is the description — it changes as the switch does, and the one thing
-/// worth a sentence is what the number in it lets the other person do.
+/// Hands the link to someone else: as a QR code to scan across the room, or
+/// through the share sheet. Sharing needs no explaining, so the link itself is
+/// the description — it changes as the switch does, and the one thing worth a
+/// sentence is what the number in it lets the other person do.
 struct InviteSheet: View {
     @AppStorage(ObjectIdStore.key) private var objectId: String = ""
     @AppStorage(InviteSetting.includeObjectIdKey) private var includesObjectId: Bool = InviteSetting.defaultIncludeObjectId
@@ -20,9 +21,8 @@ struct InviteSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Image(systemName: "person.2.badge.plus")
-                    .font(.system(size: 44, weight: .light))
-                    .foregroundStyle(.tint)
+                QRCodeView(url: url)
+                    .frame(width: 200)
 
                 Text(url.absoluteString)
                     .font(.system(.footnote, design: .monospaced))
@@ -61,7 +61,8 @@ struct InviteSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        // Too tall for .medium once the QR code is in it.
+        .presentationDetents([.large])
     }
 }
 

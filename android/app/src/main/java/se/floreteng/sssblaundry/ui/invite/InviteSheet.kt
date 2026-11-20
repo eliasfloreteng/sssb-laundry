@@ -2,7 +2,6 @@ package se.floreteng.sssblaundry.ui.invite
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,20 +9,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +40,8 @@ import se.floreteng.sssblaundry.ui.LaundryViewModel
 import se.floreteng.sssblaundry.ui.components.share
 
 /**
- * Hands the link to someone else. The link itself is the description — it
+ * Hands the link to someone else: as a QR code to scan across the room, or
+ * through the share sheet. The link itself is the description — it
  * changes as the switch does — and the one thing worth a sentence is what the
  * number in it lets the other person do.
  */
@@ -54,19 +54,15 @@ fun InviteSheet(settings: AppSettings, vm: LaundryViewModel, onDismiss: () -> Un
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp),
-            modifier = Modifier.navigationBarsPadding().padding(horizontal = 24.dp).padding(bottom = 16.dp),
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 16.dp),
         ) {
-            Surface(
-                shape = MaterialShapes.Clover4Leaf.toShape(),
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.size(80.dp),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(painterResource(R.drawable.ic_group_add), null, Modifier.size(36.dp))
-                }
-            }
             Text(stringResource(R.string.invite), style = MaterialTheme.typography.headlineSmall)
+
+            QrCode(url, stringResource(R.string.invite_qr_code), Modifier.size(200.dp))
 
             SelectionContainer {
                 Text(

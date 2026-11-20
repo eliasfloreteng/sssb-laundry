@@ -14,7 +14,7 @@ Swedish, with the Swedish wording taken from the iOS app's string catalog.
   apartment, and dibs that came through, as push notifications; a cancelled booking takes
   its notification back down. Offered once after the first booking, and in Settings
 - Settings: visible groups, active hours, notifications, laundry room rules by street address, dibs, sign out
-- Invite links (`https://sssb-laundry.eliasf.se/invite#…`), shared through the system share sheet and opened by the app
+- Invite links (`https://sssb-laundry.eliasf.se/invite#…`), shared through the system share sheet or shown as a QR code, and opened by the app
 - Feedback straight to the developer, with a draft that survives the sheet
 - Installed from the APK rather than Play, it offers to download each new version
 - A "Start a timer" card while a session is running, which hands the countdown to the Clock app

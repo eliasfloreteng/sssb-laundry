@@ -3185,6 +3185,23 @@
         }
       }
     },
+    "QR code of the invite link" : {
+      "comment" : "Accessibility label for the QR code in the invite sheet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR code of the invite link"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR-kod för inbjudningslänken"
+          }
+        }
+      }
+    },
     "Rang %@" : {
       "comment" : "Subtitle of a laundry timer that has run out; the placeholder is a time like \"14:32\"",
       "localizations" : {

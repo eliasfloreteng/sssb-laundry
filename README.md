@@ -37,9 +37,9 @@ That same host serves the app's landing page at its root and its invite page at
   or a markup change upstream is something a monitor sees rather than a user
 - Feedback from the app's menu, straight to the developer — a text field that opens
   with the keyboard up, sent with the object number, app version and laundry room
-- An invite link that hands the rest of the apartment the same object number — opened on
-  a phone that has the app it signs them straight in, and on one that does not it copies
-  itself to the clipboard on the way to TestFlight
+- An invite link, shared or shown as a QR code, that hands the rest of the apartment the
+  same object number — opened on a phone that has the app it signs them straight in, and
+  on one that does not it copies itself to the clipboard on the way to TestFlight
 
 Sign-in is the SSSB **object number** (`1234-5678-901`) — SSSB's own word for it, and
 what Aptus uses as both username and password. It is stored on the device and sent as

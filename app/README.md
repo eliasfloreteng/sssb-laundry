@@ -14,8 +14,9 @@ A native iOS app for browsing and booking laundry timeslots in SSSB student hous
 - Jump straight to a date with the calendar button, instead of paging a week at a time
 - Long press a timeslot to book, cancel, add it to Calendar or copy the time without opening the sheet
 - Haptic feedback when a booking action lands, telling a clean result from a partial one
-- Invite the rest of the apartment with one link, which signs them in on the spot if they
-  have the app and survives a TestFlight install on the clipboard if they don't
+- Invite the rest of the apartment with one link, shared or shown as a QR code, which signs
+  them in on the spot if they have the app and survives a TestFlight install on the
+  clipboard if they don't
 
 ## Requirements
 
@@ -51,6 +52,7 @@ SSSBLaundry/
   BookingRules.swift       What Aptus refuses, and what SSSB only publishes
   ObjectIdSetupView.swift  First-run sign-in, and the paste that accepts an invite
   InviteLink.swift         Building and reading the one link the app shares
+  QRCodeView.swift         That link as a QR code, for the invite sheet
   GroupChip.swift          Group status chip
   APIClient.swift          HTTP client (URLSession)
   Models.swift             Decodable DTOs and settings helpers

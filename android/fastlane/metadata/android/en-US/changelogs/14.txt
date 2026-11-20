@@ -1,0 +1,1 @@
+The invite now shows a QR code, so someone in the same room can scan it.

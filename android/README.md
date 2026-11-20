@@ -115,7 +115,10 @@ with *dry run* to build and check the Play credentials without uploading.
 
 The workflow then fetches the universal APK Play generated from the bundle and attaches
 it to the tag's GitHub release as `sssb-laundry.apk`. It is signed with Play's app
-signing key, so an APK install and a Play install update each other.
+signing key, so an APK install and a Play install update each other. *Automatic
+protection* under App integrity in Play Console must stay off: it wraps the app in
+`com.pairip`, which refuses to open unless Play installed it, and the workflow fails
+rather than attach such an APK.
 `/android/download` on the server redirects to the newest release that has one, and
 `/android/latest` gives its version.
 

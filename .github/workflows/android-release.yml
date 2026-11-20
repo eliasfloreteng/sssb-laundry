@@ -153,6 +153,17 @@ jobs:
           done
           unzip -l "$RUNNER_TEMP/sssb-laundry.apk" AndroidManifest.xml > /dev/null
 
+      # Play's automatic integrity protection (Play Console → App integrity) rewrites
+      # the app around com.pairip, and the result refuses to open unless Play installed
+      # it, so a downloaded APK would only ever show an error. Keep it off for this app.
+      - name: Check the APK opens outside Play
+        run: |
+          set -euo pipefail
+          if unzip -p "$RUNNER_TEMP/sssb-laundry.apk" 'classes*.dex' | grep -aq 'Lcom/pairip/'; then
+            echo "::error::Play added automatic integrity protection to the APK, so it won't open when installed outside Play. Turn off Automatic protection under App integrity in Play Console and cut a new build."
+            exit 1
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: sssb-laundry.apk

@@ -22,7 +22,7 @@ android {
         applicationId = "se.floreteng.sssblaundry"
         minSdk = 29
         targetSdk = 37
-        versionCode = 14
+        versionCode = 15
         versionName = "1.0"
     }
 
